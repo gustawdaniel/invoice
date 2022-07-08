@@ -41,6 +41,7 @@
     <div class="grid grid-cols-6 items-center flex my-1">
       <label class="col-span-1 text-right mr-2">Note on invoice (printed)</label>
       <textarea type="text"
+                rows="5"
                 class="col-span-5 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
                 placeholder="Vat account number"
                 v-model="invoice.publicNote"

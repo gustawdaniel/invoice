@@ -13,5 +13,8 @@ export default defineNuxtConfig({
             },
         },
     },
-    ssr: false
+    ssr: false,
+    publicRuntimeConfig: {
+        JSON_URL: process.env.JSON_URL
+    }
 })

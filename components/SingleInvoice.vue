@@ -8,6 +8,16 @@
       <div>
         <div class="relative mr-4 inline-block">
           <div
+              title="Save!"
+              class="text-gray-500 cursor-pointer w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-300 inline-flex items-center justify-center"
+              @click="save">
+            <SaveIcon class="h-6 w-6" aria-hidden="true"/>
+
+          </div>
+        </div>
+
+        <div class="relative mr-4 inline-block">
+          <div
               :title="mode === 'edit' ? 'Preview Invoice' : 'Edit invoice'"
               class="text-gray-500 cursor-pointer w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-300 inline-flex items-center justify-center"
               @click="toggleMode()">
@@ -40,8 +50,8 @@
         <form class="relative mr-4 inline-block">
           <input type="file" id="import" hidden accept="application/json" @change="importJson">
           <label for="import"
-              title="Import Json"
-              class="text-gray-500 cursor-pointer w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-300 inline-flex items-center justify-center">
+                 title="Import Json"
+                 class="text-gray-500 cursor-pointer w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-300 inline-flex items-center justify-center">
             <UploadIcon class="h-6 w-6" aria-hidden="true"/>
           </label>
         </form>
@@ -131,9 +141,7 @@
 import {onMounted, ref} from "vue";
 import LogoInput from "~/components/LogoInput.vue";
 
-import {company, clients, invoice} from "~/store";
-import clientsSeed from "~/seed/clients.json";
-import companySeed from "~/seed/company.json";
+import {company, invoice, invoices} from "~/store";
 import ItemsInput from "~/components/ItemsInput.vue";
 import DatesInput from "~/components/DatesInput.vue";
 import RightInput from "~/components/RightInput.vue";
@@ -143,6 +151,7 @@ import dayjs from "dayjs";
 type Mode = 'edit' | 'preview';
 
 const mode = ref<Mode>('edit');
+const config = useRuntimeConfig()
 
 const printTemplate = ref<HTMLElement>(null);
 import {
@@ -152,9 +161,51 @@ import {
   DatabaseIcon,
   PrinterIcon,
   DocumentTextIcon,
-  ServerIcon
+  ServerIcon,
+  SaveIcon
 } from '@heroicons/vue/outline'
+import axios, {AxiosResponse} from "axios";
+import {useRoute, useRouter, useRuntimeConfig} from "#imports";
+import {Invoice} from "~/interfaces/Invoice";
+import {Company} from "~/interfaces/Company";
+import {nextInvoiceNumber} from "~/helpers/nextInvoiceNumber";
 
+const router = useRouter();
+
+const props = defineProps({
+  id: {
+    type: String,
+    required: false
+  }
+})
+
+onMounted(async () => {
+  console.log("id", props.id);
+  if (props.id) {
+    const {data} = await axios.get<Invoice>(config.JSON_URL + `/invoices/${props.id}`)
+    invoice.value = data;
+  } else {
+    console.log(" nextInvoiceNumber(invoice.value.issueDate)",  nextInvoiceNumber(invoice.value.issueDate));
+    invoice.value.number = nextInvoiceNumber(invoice.value.issueDate)
+    console.log("invoice.value.number", invoice.value.number);
+  }
+})
+
+async function syncInvoices() {
+  const {data} = await axios.get<Invoice[]>(config.public.JSON_URL + `/invoices`)
+  invoices.value = data
+}
+
+async function save() {
+  console.log("ID", invoice.value.id);
+  if (invoice.value.id) { // edit
+    await axios.put<Invoice>(config.public.JSON_URL + `/invoices/${invoice.value.id}`, invoice.value)
+  } else { // create new
+    await axios.post<Invoice>(config.public.JSON_URL + `/invoices`, invoice.value)
+  }
+  await syncInvoices();
+  return router.push('/')
+}
 
 const printInvoice = () => {
   const printContents = printTemplate.value.innerHTML;
@@ -179,19 +230,15 @@ const reload = () => {
   window.location.reload()
 }
 
-const seed = () => {
+const seed = async () => {
   localStorage.clear();
-  clients.value = clientsSeed
-  company.value = companySeed
+  const {data} = await axios.get<Company>(config.JSON_URL + '/company')
+  company.value = data;
 }
 
 const toggleMode = () => {
   mode.value = mode.value === 'edit' ? 'preview' : 'edit';
 }
-
-const generateInvoiceNumber = (number: number) => {
-  invoice.value.number = `${String(number).padStart(4, '0')}/${dayjs().format('MM/YYYY')}`
-};
 
 const exportJson = () => {
   const blob = new Blob([JSON.stringify(invoice.value)], {type: 'application/json'})
@@ -202,12 +249,12 @@ const exportJson = () => {
   URL.revokeObjectURL(link.href)
 }
 
-function readFileAsync(file):Promise<string> {
+function readFileAsync(file): Promise<string> {
   return new Promise((resolve, reject) => {
     let reader = new FileReader();
 
     reader.onload = () => {
-      if(typeof reader.result === 'string') {
+      if (typeof reader.result === 'string') {
         resolve(reader.result);
       } else {
         resolve('');
@@ -228,7 +275,4 @@ const importJson = async (event) => {
   invoice.value = invoiceData;
 }
 
-onMounted(() => {
-  generateInvoiceNumber(1)
-})
 </script>

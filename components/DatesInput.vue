@@ -39,6 +39,7 @@
       <input
           class="bg-gray-200 appearance-none border-2 border-gray-200 rounded w-48 py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-blue-500 js-datepicker-2"
           id="datepicker2" type="date" placeholder="eg. 17 Mar, 2020" v-model="invoice.paymentDate"
+          @input="paymentDataUpdated"
           pattern="\d{4}-\d{2}-\d{2}">
     </div>
   </div>
@@ -46,6 +47,15 @@
 
 <script setup lang="ts">
 import {invoice} from "~/store";
+import {total} from "~/helpers/total";
+
+function paymentDataUpdated() {
+  if(invoice.value.paymentDate) {
+    invoice.value.paid = total(invoice.value)
+  } else {
+    invoice.value.paid = 0
+  }
+}
 </script>
 
 <style scoped>
