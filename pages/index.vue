@@ -1,11 +1,6 @@
 <template>
-  <Invoice/>
+  <Main/>
 </template>
 
-<script>
-import Invoice from "../components/Invoice";
-export default {
-  name: "index",
-  components: {Invoice}
-}
+<script lang="ts" setup>
 </script>

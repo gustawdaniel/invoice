@@ -10,6 +10,8 @@ export type Language = 'pl';
 
 export type PaymentFormOption = "cash" | "prepaid" | "14d" | "7d" | "card" | "delivery" | "check" | "dotpay" | "paypal" | "payu" | "other";
 
+export type InvoiceStatus = 'send' | 'draft' | 'cancelled' | 'printed' | 'paid' | 'overdue'
+
 export interface PaymentForm {
     name: string,
     key: PaymentFormOption
@@ -45,6 +47,7 @@ export interface PaymentForm {
 // ]
 
 export interface Invoice {
+    id: string,
     type: InvoiceType,
     number: string,
     client: Client,
@@ -66,4 +69,7 @@ export interface Invoice {
     publicNote: string,
     privateNote: string,
     paid?: number,
+    wasPrinted?: boolean,
+    wasSend?: boolean,
+    wasCancelled?: boolean
 }

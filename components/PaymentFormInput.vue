@@ -34,6 +34,7 @@ import {SelectorIcon} from '@heroicons/vue/solid'
 import {PaymentForm} from "~/interfaces/Invoice";
 import {invoice} from "~/store";
 import dayjs from "dayjs";
+import {deadlineDate} from "~/helpers/deadlineDate";
 
 const forms: PaymentForm[] = [
   {name: "Cash", key: 'cash'},
@@ -63,14 +64,8 @@ const selected = computed({
   },
 
   set(value: PaymentForm) {
-    if(value.key === '14d') {
-      invoice.value.deadlineDate = dayjs(dayjs(invoice.value.issueDate)).add(14, 'days').format('YYYY-MM-DD');
-    }
-    if(value.key === '7d') {
-      invoice.value.deadlineDate = dayjs(dayjs(invoice.value.issueDate)).add(7, 'days').format('YYYY-MM-DD');
-    }
-    if(value.key === 'cash') {
-      invoice.value.deadlineDate = dayjs(dayjs(invoice.value.issueDate)).format('YYYY-MM-DD');
+    if (['7d', '14d', 'cash'].includes(value.key)) {
+      invoice.value.deadlineDate = deadlineDate(invoice.value.issueDate, value.key);
     }
 
     return emit('update:modelValue', value)
