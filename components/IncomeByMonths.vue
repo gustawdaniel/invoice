@@ -77,19 +77,21 @@ function valueOfInvoicesAgo(monthsAgo, wasPaid): number {
   }
 }
 
-console.log("all", [...new Array(3)].map((e, i, a) => valueOfInvoicesAgo(a.length - 1 - i, false)));
+const monthsAgo = 5;
+
+console.log("all", [...new Array(monthsAgo)].map((e, i, a) => valueOfInvoicesAgo(a.length - 1 - i, false)));
 
 
 const chartData = {
-  labels: [...new Array(3)].map((e, i, a) => dayjs().subtract(a.length - 1 - i, 'months').format('MMMM')),
+  labels: [...new Array(monthsAgo)].map((e, i, a) => dayjs().subtract(a.length - 1 - i, 'months').format('MMMM')),
   datasets: [
     {
-      data: [...new Array(3)].map((e, i, a) => valueOfInvoicesAgo(a.length - 1 - i, true)),
+      data: [...new Array(monthsAgo)].map((e, i, a) => valueOfInvoicesAgo(a.length - 1 - i, true)),
       label: 'Paid',
       backgroundColor: '#27AE60'
     },
     {
-      data: [...new Array(3)].map((e, i, a) => valueOfInvoicesAgo(a.length - 1 - i, false)),
+      data: [...new Array(monthsAgo)].map((e, i, a) => valueOfInvoicesAgo(a.length - 1 - i, false)),
       label: 'Waiting',
       backgroundColor: '#F4D03F'
     }
