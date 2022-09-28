@@ -3,6 +3,7 @@
     <p>
       <nuxt-link to="/">Invoices list</nuxt-link> |
       <nuxt-link to="/clients">Clients</nuxt-link>
+      <nuxt-link to="/months">Bookkeeping</nuxt-link>
     </p>
   <SingleInvoice :id="route.params.id"/>
   </div>

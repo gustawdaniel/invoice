@@ -70,7 +70,7 @@
     },
     {
       "type": "invoice",
-      "number": "0008/07/2022",
+      "number": "0001/09/2022",
       "client": {
         "name": "MOTORRAID SPÓŁKA Z OGRANICZONĄ ODPOWIEDZIALNOŚCIĄ",
         "street": "ul. Perlicza 6",
@@ -78,15 +78,15 @@
         "city": "Warszawa",
         "tin": "6762250307"
       },
-      "issueDate": "2022-07-11",
-      "saleDate": "2022-07-11",
-      "deadlineDate": "2022-07-25",
+      "issueDate": "2022-09-21",
+      "saleDate": "2022-09-21",
+      "deadlineDate": "2022-09-28",
       "issuePlace": "Tbilisi",
       "currency": "pln",
       "lang": "pl",
       "paymentForm": {
-        "name": "Transfer 14 days",
-        "key": "14d"
+        "name": "Transfer 7 days",
+        "key": "7d"
       },
       "items": [
         {
@@ -390,7 +390,9 @@
       "publicNote": "W zakresie ogólnych usług informatycznych organy podatkowe uznają, że wynagrodzenie z tytułu świadczenia usług informatycznych nie podlega podatkowi u źródła. Stanowisko takie zajął m.in. Dyrektora Krajowej Informacji Skarbowej w interpretacji z 2 stycznia 2020 r. (sygn. 0114-KDIP2-1.4010.399.2019.4.SP), w której potwierdził, że usługi wdrażania systemów informatycznych, monitorowanie sieci i zabezpieczeń, wsparcie technicznego nie będą podlegały podatkowi u źródła.",
       "privateNote": "",
       "receiverName": "",
-      "id": 10
+      "id": 10,
+      "paymentDate": "2022-09-05",
+      "paid": 3070
     },
     {
       "type": "invoice",
@@ -439,7 +441,9 @@
       "publicNote": "W zakresie ogólnych usług informatycznych organy podatkowe uznają, że wynagrodzenie z tytułu świadczenia usług informatycznych nie podlega podatkowi u źródła. Stanowisko takie zajął m.in. Dyrektora Krajowej Informacji Skarbowej w interpretacji z 2 stycznia 2020 r. (sygn. 0114-KDIP2-1.4010.399.2019.4.SP), w której potwierdził, że usługi wdrażania systemów informatycznych, monitorowanie sieci i zabezpieczeń, wsparcie technicznego nie będą podlegały podatkowi u źródła.",
       "privateNote": "",
       "receiverName": "",
-      "id": 11
+      "id": 11,
+      "paymentDate": "2022-08-01",
+      "paid": 1500
     },
     {
       "type": "invoice",
@@ -561,8 +565,8 @@
       "privateNote": "",
       "receiverName": "",
       "id": "14",
-      "paymentDate": "",
-      "paid": 0
+      "paymentDate": "2022-08-26",
+      "paid": 250
     },
     {
       "id": "N6ppvf5",
@@ -630,7 +634,224 @@
       "issuerName": "Daniel Gustaw",
       "bankAccountNumber": "PLN Millennium (90 1160 2202 0000 0002 2859 6562)",
       "publicNote": "W zakresie ogólnych usług informatycznych organy podatkowe uznają, że wynagrodzenie z tytułu świadczenia usług informatycznych nie podlega podatkowi u źródła. Stanowisko takie zajął m.in. Dyrektora Krajowej Informacji Skarbowej w interpretacji z 2 stycznia 2020 r. (sygn. 0114-KDIP2-1.4010.399.2019.4.SP), w której potwierdził, że usługi wdrażania systemów informatycznych, monitorowanie sieci i zabezpieczeń, wsparcie technicznego nie będą podlegały podatkowi u źródła.",
-      "privateNote": ""
+      "privateNote": "",
+      "paymentDate": "2022-07-11",
+      "paid": 5225
+    },
+    {
+      "type": "invoice",
+      "number": "0001/08/2022",
+      "client": {
+        "name": "Szkoła Umysłu Sowa Małgorzata Paszek",
+        "street": "ul. 11 listopada 9/24",
+        "post": "62-540",
+        "city": "Kleczew,  Polska",
+        "tin": "NIP: 6651063039"
+      },
+      "issueDate": "2022-08-13",
+      "saleDate": "2022-08-13",
+      "deadlineDate": "2022-08-27",
+      "issuePlace": "Tbilisi",
+      "currency": "pln",
+      "lang": "pl",
+      "paymentForm": {
+        "name": "Transfer 14 days",
+        "key": "14d"
+      },
+      "items": [
+        {
+          "name": "Utrzymanie i rozwój serwisu webowego „Sowa”",
+          "priceNet": 250,
+          "vat": {
+            "name": "zw.",
+            "value": 0
+          },
+          "quantity": 1,
+          "unit": "piece"
+        }
+      ],
+      "issuerName": "Daniel Gustaw",
+      "bankAccountNumber": "PLN Millennium (90 1160 2202 0000 0002 2859 6562)",
+      "publicNote": "W zakresie ogólnych usług informatycznych organy podatkowe uznają, że wynagrodzenie z tytułu świadczenia usług informatycznych nie podlega podatkowi u źródła. Stanowisko takie zajął m.in. Dyrektora Krajowej Informacji Skarbowej w interpretacji z 2 stycznia 2020 r. (sygn. 0114-KDIP2-1.4010.399.2019.4.SP), w której potwierdził, że usługi wdrażania systemów informatycznych, monitorowanie sieci i zabezpieczeń, wsparcie technicznego nie będą podlegały podatkowi u źródła.",
+      "privateNote": "",
+      "receiverName": "",
+      "id": "94b8a74c68e",
+      "paymentDate": "2022-08-19",
+      "paid": 250
+    },
+    {
+      "type": "invoice",
+      "number": "0002/08/2022",
+      "client": {
+        "name": "Aristo - Kamila Zdrodowska",
+        "street": "ul. Sabinowska 131",
+        "post": "42-202",
+        "city": "Częstochowa,  Polska",
+        "tin": "NIP: 5771895144"
+      },
+      "issueDate": "2022-08-13",
+      "saleDate": "2022-08-13",
+      "deadlineDate": "2022-08-27",
+      "issuePlace": "Tbilisi",
+      "currency": "pln",
+      "lang": "pl",
+      "paymentForm": {
+        "name": "Transfer 14 days",
+        "key": "14d"
+      },
+      "items": [
+        {
+          "name": "Utrzymanie i rozwój serwisu webowego „Arikaso”",
+          "priceNet": 250,
+          "vat": {
+            "name": "zw.",
+            "value": 0
+          },
+          "quantity": 1,
+          "unit": "piece"
+        }
+      ],
+      "issuerName": "Daniel Gustaw",
+      "bankAccountNumber": "PLN Millennium (90 1160 2202 0000 0002 2859 6562)",
+      "publicNote": "W zakresie ogólnych usług informatycznych organy podatkowe uznają, że wynagrodzenie z tytułu świadczenia usług informatycznych nie podlega podatkowi u źródła. Stanowisko takie zajął m.in. Dyrektora Krajowej Informacji Skarbowej w interpretacji z 2 stycznia 2020 r. (sygn. 0114-KDIP2-1.4010.399.2019.4.SP), w której potwierdził, że usługi wdrażania systemów informatycznych, monitorowanie sieci i zabezpieczeń, wsparcie technicznego nie będą podlegały podatkowi u źródła.",
+      "privateNote": "",
+      "receiverName": "",
+      "id": "4b8a74c68e8",
+      "paymentDate": "2022-08-26",
+      "paid": 250
+    },
+    {
+      "type": "invoice",
+      "number": "0002/09/2022",
+      "client": {
+        "name": "Szkoła Umysłu Sowa Małgorzata Paszek",
+        "street": "ul. 11 listopada 9/24",
+        "post": "62-540",
+        "city": "Kleczew,  Polska",
+        "tin": "NIP: 6651063039"
+      },
+      "issueDate": "2022-09-21",
+      "saleDate": "2022-08-13",
+      "deadlineDate": "2022-09-21",
+      "issuePlace": "Tbilisi",
+      "currency": "pln",
+      "lang": "pl",
+      "paymentForm": {
+        "name": "Transfer 14 days",
+        "key": "14d"
+      },
+      "items": [
+        {
+          "name": "Utrzymanie i rozwój serwisu webowego „Sowa”",
+          "priceNet": 250,
+          "vat": {
+            "name": "zw.",
+            "value": 0
+          },
+          "quantity": 1,
+          "unit": "piece"
+        }
+      ],
+      "issuerName": "Daniel Gustaw",
+      "bankAccountNumber": "PLN Millennium (90 1160 2202 0000 0002 2859 6562)",
+      "publicNote": "W zakresie ogólnych usług informatycznych organy podatkowe uznają, że wynagrodzenie z tytułu świadczenia usług informatycznych nie podlega podatkowi u źródła. Stanowisko takie zajął m.in. Dyrektora Krajowej Informacji Skarbowej w interpretacji z 2 stycznia 2020 r. (sygn. 0114-KDIP2-1.4010.399.2019.4.SP), w której potwierdził, że usługi wdrażania systemów informatycznych, monitorowanie sieci i zabezpieczeń, wsparcie technicznego nie będą podlegały podatkowi u źródła.",
+      "privateNote": "",
+      "receiverName": "",
+      "id": "d12df8a9838",
+      "paymentDate": "",
+      "paid": 0
+    },
+    {
+      "type": "invoice",
+      "number": "0003/09/2022",
+      "client": {
+        "name": "Aristo - Kamila Zdrodowska",
+        "street": "ul. Sabinowska 131",
+        "post": "42-202",
+        "city": "Częstochowa,  Polska",
+        "tin": "NIP: 5771895144"
+      },
+      "issueDate": "2022-09-21",
+      "saleDate": "2022-08-13",
+      "deadlineDate": "2022-09-21",
+      "issuePlace": "Tbilisi",
+      "currency": "pln",
+      "lang": "pl",
+      "paymentForm": {
+        "name": "Transfer 14 days",
+        "key": "14d"
+      },
+      "items": [
+        {
+          "name": "Utrzymanie i rozwój serwisu webowego „Arikaso”",
+          "priceNet": 250,
+          "vat": {
+            "name": "zw.",
+            "value": 0
+          },
+          "quantity": 1,
+          "unit": "piece"
+        }
+      ],
+      "issuerName": "Daniel Gustaw",
+      "bankAccountNumber": "PLN Millennium (90 1160 2202 0000 0002 2859 6562)",
+      "publicNote": "W zakresie ogólnych usług informatycznych organy podatkowe uznają, że wynagrodzenie z tytułu świadczenia usług informatycznych nie podlega podatkowi u źródła. Stanowisko takie zajął m.in. Dyrektora Krajowej Informacji Skarbowej w interpretacji z 2 stycznia 2020 r. (sygn. 0114-KDIP2-1.4010.399.2019.4.SP), w której potwierdził, że usługi wdrażania systemów informatycznych, monitorowanie sieci i zabezpieczeń, wsparcie technicznego nie będą podlegały podatkowi u źródła.",
+      "privateNote": "",
+      "receiverName": "",
+      "id": "12df8a98384",
+      "paymentDate": "2022-09-28",
+      "paid": 250
+    },
+    {
+      "type": "invoice",
+      "number": "0004/09/2022",
+      "client": {
+        "name": "ŁUKASZ PIOTROWSKI LEXCENTER",
+        "street": "ul. Trzebnicka 48/7",
+        "post": "50-231",
+        "city": "Wrocław",
+        "tin": "8951744276"
+      },
+      "issueDate": "2022-09-21",
+      "saleDate": "2022-07-03",
+      "deadlineDate": "2022-09-21",
+      "issuePlace": "Tbilisi",
+      "currency": "pln",
+      "lang": "pl",
+      "paymentForm": {
+        "name": "Transfer 14 days",
+        "key": "14d"
+      },
+      "items": [
+        {
+          "name": "Utrzymanie skanercfg, kalkulator, kancelariomat, czerwiec 2022",
+          "priceNet": 750,
+          "vat": {
+            "name": "zw.",
+            "value": 0
+          },
+          "quantity": 1,
+          "unit": "piece"
+        },
+        {
+          "name": "Utrzymanie skanercfg, kalkulator, kancelariomat, lipiec 2022",
+          "unit": "piece",
+          "vat": {
+            "name": "zw.",
+            "value": 0
+          },
+          "quantity": 1,
+          "priceNet": 750
+        }
+      ],
+      "issuerName": "Daniel Gustaw",
+      "bankAccountNumber": "PLN Millennium (90 1160 2202 0000 0002 2859 6562)",
+      "publicNote": "W zakresie ogólnych usług informatycznych organy podatkowe uznają, że wynagrodzenie z tytułu świadczenia usług informatycznych nie podlega podatkowi u źródła. Stanowisko takie zajął m.in. Dyrektora Krajowej Informacji Skarbowej w interpretacji z 2 stycznia 2020 r. (sygn. 0114-KDIP2-1.4010.399.2019.4.SP), w której potwierdził, że usługi wdrażania systemów informatycznych, monitorowanie sieci i zabezpieczeń, wsparcie technicznego nie będą podlegały podatkowi u źródła.",
+      "privateNote": "",
+      "receiverName": "",
+      "id": "2df8a983844",
+      "paymentDate": "",
+      "paid": 0
     }
   ],
   "clients": [
