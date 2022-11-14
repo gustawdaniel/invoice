@@ -1,8 +1,6 @@
 <template>
   <div>
-    <p>
-      <nuxt-link to="/clients">Clients</nuxt-link>
-    </p>
+
 
     <IncomeByMonths/>
 

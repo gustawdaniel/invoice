@@ -11,4 +11,4 @@ t: node_modules
 	npm run test
 
 json-server:
-	json-server --watch db.json --port 4000
+	npm run json-server

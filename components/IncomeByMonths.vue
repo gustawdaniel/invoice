@@ -77,7 +77,7 @@ function valueOfInvoicesAgo(monthsAgo, wasPaid): number {
   }
 }
 
-const monthsAgo = 5;
+const monthsAgo = 7;
 
 console.log("all", [...new Array(monthsAgo)].map((e, i, a) => valueOfInvoicesAgo(a.length - 1 - i, false)));
 

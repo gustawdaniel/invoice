@@ -5,7 +5,8 @@
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "test": "jest"
+    "test": "jest",
+    "json-server": "json-server --watch db.json --port 4000"
   },
   "devDependencies": {
     "@types/jest": "^27.4.1",
@@ -14,6 +15,7 @@
     "esbuild-jest": "^0.5.0",
     "fake-indexeddb": "^3.1.7",
     "jest": "^27.4.4",
+    "json-server": "^0.17.0",
     "nuxt": "3.0.0-rc.1",
     "postcss": "^8.4.12",
     "tailwindcss": "^3.0.24"
