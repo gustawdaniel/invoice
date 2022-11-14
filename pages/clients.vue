@@ -1,7 +1,7 @@
 <template>
   <div>
     <p>Clients ({{ clients.length }}) |
-      <nuxt-link to="/">Invoices</nuxt-link>
+      <nuxt-link to="/">Invoices</nuxt-link> |
       <nuxt-link to="/months">Bookkeeping</nuxt-link>
     </p>
 
