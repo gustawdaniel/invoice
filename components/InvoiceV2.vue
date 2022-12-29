@@ -227,6 +227,7 @@
 
     <!-- Print Template -->
     <div id="js-print-template" ref="printTemplate" class="hidden">
+      <pre>XXX</pre>
       <div class="mb-8 flex justify-between">
         <div>
           <h2 class="text-3xl font-bold mb-6 pb-2 tracking-wider uppercase">Invoice</h2>
@@ -252,6 +253,7 @@
         </div>
         <div class="pr-5">
           <div class="w-32 h-32 mb-1 overflow-hidden">
+            <pre>XXX: {{logo}}</pre>
             <img id="image2" class="object-cover w-20 h-20" :src="logo"/>
           </div>
         </div>
@@ -584,7 +586,7 @@ export default {
         printWindow.close();
       });
 
-      printWindow.print();
+      // printWindow.print();
     },
 
     reload() {

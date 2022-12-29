@@ -16,7 +16,10 @@
           <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">issued at</th>
           <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">paid at</th>
           <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">client</th>
-          <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">value</th>
+          <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+            <span class="mr-1">value</span>
+            <button class="border px-2 py-1 hover:bg-gray-100" @click="printAllInvoices(month.invoices)">P</button>
+          </th>
           <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6">
             <span class="sr-only">Edit</span>
           </th>
@@ -36,19 +39,36 @@
       </template>
     </table>
 
+    <div ref="printTemplate" v-show="false">
+      <PrintTemplate/>
+    </div>
+
+
   </div>
 </template>
 
 <script lang="ts" setup>
-import {computed} from "#imports";
+import {computed, nextTick} from "#imports";
 import {Invoice} from "~/interfaces/Invoice";
-import {invoices} from "~/store";
+import {invoices, invoice} from "~/store";
 import dayjs from "dayjs";
 import {total} from '~/helpers/total'
+import {printContent} from "~/helpers/printContent";
+import {ref} from "vue";
+
+const printTemplate = ref<HTMLElement>(null);
 
 function invoicesAgo(monthsAgo): Invoice[] {
   const datePrefix = dayjs().subtract(monthsAgo, 'month').format('YYYY-MM');
   return invoices.value.filter(inv => inv.paymentDate && inv.paymentDate.startsWith(datePrefix));
+}
+
+async function printAllInvoices(invoicesToPrint) {
+  for(const inv of invoicesToPrint) {
+    invoice.value = inv;
+    await nextTick();
+    await printContent(printTemplate.value.innerHTML, `invoice_${invoice.value.number}.pdf`)
+  }
 }
 
 const monthsAgo = 7;

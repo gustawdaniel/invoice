@@ -47,6 +47,7 @@
       <label class="text-gray-800 block mb-2 font-bold text-xs uppercase tracking-wide">Buyer and payer:</label>
       <div>
         <div v-text="invoice.client.name"></div>
+<!--        TODO: add united kingdom -->
         <div v-text="`${invoice.client.street}, ${invoice.client.post} ${invoice.client.city}, Polska`"></div>
         <div v-text="`NIP: ${invoice.client.tin}`"></div>
       </div>

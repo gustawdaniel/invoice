@@ -36,6 +36,7 @@
           {{ status(invoice) }} <span v-if="status(invoice) === 'paid'"><br>{{ invoice.paymentDate }}</span>
         </td>
         <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+          <button class="border px-2 py-1 hover:bg-gray-100" @click="printInvoice(invoice)">PRINT</button>
           <button class="border px-2 py-1 hover:bg-gray-100" @click="clone(invoice)">COPY</button>
           <button class="text-indigo-600 hover:text-indigo-900" @click="edit(invoice)">Edit</button>
           <button class="border px-2 py-1 hover:bg-gray-100" @click="remove(invoice.id)">DEL</button>
@@ -43,6 +44,10 @@
       </tr>
       </tbody>
     </table>
+
+    <div ref="printTemplate" v-show="false">
+      <PrintTemplate/>
+    </div>
 
   </div>
 </template>
@@ -52,7 +57,7 @@ import {total} from '~/helpers/total'
 import {status} from '~/helpers/status'
 import {invoice, invoices} from "~/store";
 import {Invoice} from "~/interfaces/Invoice";
-import {computed, useRouter} from "#imports";
+import {computed, nextTick, useRouter} from "#imports";
 import axios, {AxiosResponse} from "axios";
 import {useRuntimeConfig} from "#app";
 import {defaultInvoice} from "~/composables/useInvoice";
@@ -60,9 +65,19 @@ import dayjs from "dayjs";
 import {deadlineDate} from "~/helpers/deadlineDate";
 import {nextInvoiceNumber} from "~/helpers/nextInvoiceNumber";
 import {uid} from "uid";
+import {printContent} from "~/helpers/printContent";
+import {ref} from "vue";
 
 const router = useRouter()
 const config = useRuntimeConfig()
+
+const printTemplate = ref<HTMLElement>(null);
+
+const printInvoice = async (inv) => {
+  invoice.value = inv;
+  await nextTick();
+  return printContent(printTemplate.value.innerHTML, `invoice_${invoice.value.number}.pdf`)
+}
 
 function sync() {
   axios.get(config.JSON_URL + '/invoices').then((res: AxiosResponse<Invoice[]>) => {
