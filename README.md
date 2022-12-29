@@ -1,3 +1,5 @@
+[![Deploy Nuxt site to Pages](https://github.com/gustawdaniel/invoice/actions/workflows/nuxtjs.yml/badge.svg?branch=main)](https://github.com/gustawdaniel/invoice/actions/workflows/nuxtjs.yml)
+
 # Nuxt 3 Minimal Starter
 
 Look at the [nuxt 3 documentation](https://v3.nuxtjs.org) to learn more.
