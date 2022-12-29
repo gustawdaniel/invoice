@@ -3,11 +3,12 @@ import {Client} from '~/interfaces/Client';
 
 export function useClient() {
     let client = ref<Client>({
+        id: "",
         name: '',
         city: '',
         post: '',
         street: '',
-        tin: '',
+        tin: ''
     })
 
     let clients = ref<Client[]>([])

@@ -934,8 +934,8 @@
       "privateNote": "",
       "receiverName": "",
       "id": "73cd02ef731",
-      "paymentDate": "",
-      "paid": 0
+      "paymentDate": "2022-11-22",
+      "paid": 250
     },
     {
       "type": "invoice",
@@ -1077,8 +1077,8 @@
       "privateNote": "",
       "receiverName": "",
       "id": "9f6f661a776",
-      "paymentDate": "",
-      "paid": 0
+      "paymentDate": "2022-11-22",
+      "paid": 1000
     },
     {
       "type": "invoice",
@@ -1118,8 +1118,8 @@
       "privateNote": "",
       "receiverName": "",
       "id": "f6f661a776c",
-      "paymentDate": "",
-      "paid": 0
+      "paymentDate": "2022-11-14",
+      "paid": 250
     },
     {
       "type": "invoice",
@@ -1159,8 +1159,8 @@
       "privateNote": "",
       "receiverName": "",
       "id": "6f661a776c4",
-      "paymentDate": "",
-      "paid": 0
+      "paymentDate": "2022-11-14",
+      "paid": 750
     },
     {
       "type": "invoice",
@@ -1210,8 +1210,8 @@
       "privateNote": "",
       "receiverName": "",
       "id": "2d453f9b049",
-      "paymentDate": "",
-      "paid": 0
+      "paymentDate": "2022-11-21",
+      "paid": 5000
     },
     {
       "id": "JevTl_x",
@@ -1255,6 +1255,415 @@
           },
           "quantity": 1,
           "priceNet": 2000
+        }
+      ],
+      "issuerName": "Daniel Gustaw",
+      "bankAccountNumber": "PLN Millennium (90 1160 2202 0000 0002 2859 6562)",
+      "publicNote": "W zakresie ogólnych usług informatycznych organy podatkowe uznają, że wynagrodzenie z tytułu świadczenia usług informatycznych nie podlega podatkowi u źródła. Stanowisko takie zajął m.in. Dyrektora Krajowej Informacji Skarbowej w interpretacji z 2 stycznia 2020 r. (sygn. 0114-KDIP2-1.4010.399.2019.4.SP), w której potwierdził, że usługi wdrażania systemów informatycznych, monitorowanie sieci i zabezpieczeń, wsparcie technicznego nie będą podlegały podatkowi u źródła.",
+      "privateNote": "",
+      "paymentDate": "2022-11-18",
+      "paid": 19000
+    },
+    {
+      "id": "ckpE-lm",
+      "type": "invoice",
+      "number": "0005/11/2022",
+      "client": {
+        "id": "3de78412f3e",
+        "name": "Centrum Edukacyjno Consultingowe CONCRET ANNA URBAŃSKA",
+        "street": "ul. Mieszka I 7d",
+        "post": "86-300",
+        "city": "Grudziądz",
+        "tin": "8761283234"
+      },
+      "issueDate": "2022-11-16",
+      "saleDate": "2022-11-16",
+      "deadlineDate": "2022-11-30",
+      "issuePlace": "Tbilisi",
+      "currency": "pln",
+      "lang": "pl",
+      "paymentForm": {
+        "name": "Transfer 14 days",
+        "key": "14d"
+      },
+      "items": [
+        {
+          "name": "Servers maintenance - prepilots and virtual coach - July August September",
+          "unit": "piece",
+          "vat": {
+            "name": "zw.",
+            "value": 0
+          },
+          "quantity": 1,
+          "priceNet": 520
+        }
+      ],
+      "issuerName": "Daniel Gustaw",
+      "bankAccountNumber": "PLN Millennium (90 1160 2202 0000 0002 2859 6562)",
+      "publicNote": "W zakresie ogólnych usług informatycznych organy podatkowe uznają, że wynagrodzenie z tytułu świadczenia usług informatycznych nie podlega podatkowi u źródła. Stanowisko takie zajął m.in. Dyrektora Krajowej Informacji Skarbowej w interpretacji z 2 stycznia 2020 r. (sygn. 0114-KDIP2-1.4010.399.2019.4.SP), w której potwierdził, że usługi wdrażania systemów informatycznych, monitorowanie sieci i zabezpieczeń, wsparcie technicznego nie będą podlegały podatkowi u źródła.",
+      "privateNote": "",
+      "paymentDate": "2022-11-18",
+      "paid": 520
+    },
+    {
+      "id": "1rtDja4",
+      "type": "invoice",
+      "number": "0006/11/2022",
+      "client": {
+        "id": "8c6bf76d852",
+        "name": "S.A.L-MET Łukasz Andryszewki",
+        "city": "Zawadzkie",
+        "post": "47-120",
+        "tin": "7561845454",
+        "street": "Ul. Nowe Osiedle 8/49"
+      },
+      "issueDate": "2022-11-17",
+      "saleDate": "2022-11-17",
+      "deadlineDate": "2022-12-01",
+      "issuePlace": "Tbilisi",
+      "currency": "usd",
+      "lang": "pl",
+      "paymentForm": {
+        "name": "Transfer 14 days",
+        "key": "14d"
+      },
+      "items": [
+        {
+          "name": "IT service [ level 3, access forever ]",
+          "unit": "piece",
+          "vat": {
+            "name": "zw.",
+            "value": 0
+          },
+          "quantity": 1,
+          "priceNet": 3338.5
+        }
+      ],
+      "issuerName": "Daniel Gustaw",
+      "bankAccountNumber": "BIC: REVOLT21 (IBAN: LT54 3250 0732 0994 5743)",
+      "publicNote": "As regards general IT services, the tax authorities recognize that the remuneration for the provision of IT services is not subject to withholding tax.\nSuch a position was taken, among others, by Director of the National Tax Information in the interpretation of January 2, 2020 (reference number\n0114-KDIP2-1.4010.399.2019.4.SP), in which he confirmed that IT system implementation services, network and security monitoring, technical\nsupport will not be subject to tax on sources. Intermediary or sender’s bank may charge you for international payments Only SWIFT transfers are\naccepted.",
+      "privateNote": "",
+      "paymentDate": "2022-11-18",
+      "paid": 3338.5
+    },
+    {
+      "id": "68cb6e99691",
+      "type": "invoice",
+      "number": "0007/11/2022",
+      "client": {
+        "id": "1568cb6e996",
+        "name": "Kamil Zurek",
+        "city": "",
+        "post": "",
+        "tin": "",
+        "street": "31B Glen Street Paisley PA3 2JD"
+      },
+      "issueDate": "2022-11-18",
+      "saleDate": "2022-11-18",
+      "deadlineDate": "2022-11-30",
+      "issuePlace": "Tbilisi",
+      "currency": "usd",
+      "lang": "pl",
+      "paymentForm": {
+        "name": "Transfer 14 days",
+        "key": "14d"
+      },
+      "items": [
+        {
+          "name": "IT service [ level 3, access forever ]",
+          "unit": "piece",
+          "vat": {
+            "name": "zw.",
+            "value": 0
+          },
+          "quantity": 1,
+          "priceNet": 3360
+        }
+      ],
+      "issuerName": "Daniel Gustaw",
+      "bankAccountNumber": "https://revolut.me/r/xmQmEcrsED",
+      "publicNote": "As regards general IT services, the tax authorities recognize that the remuneration for the provision of IT services is not subject to withholding tax.\nSuch a position was taken, among others, by Director of the National Tax Information in the interpretation of January 2, 2020 (reference number\n0114-KDIP2-1.4010.399.2019.4.SP), in which he confirmed that IT system implementation services, network and security monitoring, technical\nsupport will not be subject to tax on sources. Intermediary or sender’s bank may charge you for international payments Only SWIFT transfers are\naccepted.",
+      "privateNote": "",
+      "paid": 3360,
+      "paymentDate": "2022-11-18"
+    },
+    {
+      "id": "6fbd4cb66d8",
+      "type": "invoice",
+      "number": "0001/12/2022",
+      "client": {
+        "id": "02e4308c2c1",
+        "name": "Grupa Lewandowski sp. z o. o.",
+        "city": "Olsztyn",
+        "post": "10-684",
+        "tin": "7393937858",
+        "street": "ul. Murzynowskiego 4/10"
+      },
+      "issueDate": "2022-12-19",
+      "saleDate": "2022-12-19",
+      "deadlineDate": "2022-12-31",
+      "issuePlace": "Tbilisi",
+      "currency": "pln",
+      "lang": "pl",
+      "paymentForm": {
+        "name": "Transfer 14 days",
+        "key": "14d"
+      },
+      "items": [
+        {
+          "name": "Usługi IT listopad ( sellmanager i alesprzedawca )",
+          "unit": "piece",
+          "vat": {
+            "name": "zw.",
+            "value": 0
+          },
+          "quantity": 1,
+          "priceNet": 500
+        },
+        {
+          "name": "Usługi IT grudzień ( sellmanager i alesprzedawca )",
+          "unit": "piece",
+          "vat": {
+            "name": "zw.",
+            "value": 0
+          },
+          "quantity": 1,
+          "priceNet": 1000
+        }
+      ],
+      "issuerName": "Daniel Gustaw",
+      "bankAccountNumber": "PLN Millennium (90 1160 2202 0000 0002 2859 6562)",
+      "publicNote": "W zakresie ogólnych usług informatycznych organy podatkowe uznają, że wynagrodzenie z tytułu świadczenia usług informatycznych nie podlega podatkowi u źródła. Stanowisko takie zajął m.in. Dyrektora Krajowej Informacji Skarbowej w interpretacji z 2 stycznia 2020 r. (sygn. 0114-KDIP2-1.4010.399.2019.4.SP), w której potwierdził, że usługi wdrażania systemów informatycznych, monitorowanie sieci i zabezpieczeń, wsparcie technicznego nie będą podlegały podatkowi u źródła.",
+      "privateNote": "",
+      "paymentDate": "2022-12-20",
+      "paid": 1500
+    },
+    {
+      "type": "invoice",
+      "number": "0002/12/2022",
+      "client": {
+        "name": "Aristo - Kamila Zdrodowska",
+        "street": "ul. Sabinowska 131",
+        "post": "42-202",
+        "city": "Częstochowa,  Polska",
+        "tin": "NIP: 5771895144"
+      },
+      "issueDate": "2022-12-19",
+      "saleDate": "2022-12-19",
+      "deadlineDate": "2022-12-31",
+      "issuePlace": "Tbilisi",
+      "currency": "pln",
+      "lang": "pl",
+      "paymentForm": {
+        "name": "Transfer 14 days",
+        "key": "14d"
+      },
+      "items": [
+        {
+          "name": "Utrzymanie i rozwój serwisu webowego „Arikaso”",
+          "priceNet": 250,
+          "vat": {
+            "name": "zw.",
+            "value": 0
+          },
+          "quantity": 1,
+          "unit": "piece"
+        }
+      ],
+      "issuerName": "Daniel Gustaw",
+      "bankAccountNumber": "PLN Millennium (90 1160 2202 0000 0002 2859 6562)",
+      "publicNote": "W zakresie ogólnych usług informatycznych organy podatkowe uznają, że wynagrodzenie z tytułu świadczenia usług informatycznych nie podlega podatkowi u źródła. Stanowisko takie zajął m.in. Dyrektora Krajowej Informacji Skarbowej w interpretacji z 2 stycznia 2020 r. (sygn. 0114-KDIP2-1.4010.399.2019.4.SP), w której potwierdził, że usługi wdrażania systemów informatycznych, monitorowanie sieci i zabezpieczeń, wsparcie technicznego nie będą podlegały podatkowi u źródła.",
+      "privateNote": "",
+      "receiverName": "",
+      "id": "fbd4cb66d8b",
+      "paymentDate": "2022-12-21",
+      "paid": 250
+    },
+    {
+      "type": "invoice",
+      "number": "0003/12/2022",
+      "client": {
+        "name": "Szkoła Umysłu Sowa Małgorzata Paszek",
+        "street": "ul. 11 listopada 9/24",
+        "post": "62-540",
+        "city": "Kleczew,  Polska",
+        "tin": "NIP: 6651063039"
+      },
+      "issueDate": "2022-12-19",
+      "saleDate": "2022-12-19",
+      "deadlineDate": "2022-12-31",
+      "issuePlace": "Tbilisi",
+      "currency": "pln",
+      "lang": "pl",
+      "paymentForm": {
+        "name": "Transfer 14 days",
+        "key": "14d"
+      },
+      "items": [
+        {
+          "name": "Utrzymanie i rozwój serwisu webowego „Sowa”",
+          "priceNet": 250,
+          "vat": {
+            "name": "zw.",
+            "value": 0
+          },
+          "quantity": 1,
+          "unit": "piece"
+        }
+      ],
+      "issuerName": "Daniel Gustaw",
+      "bankAccountNumber": "PLN Millennium (90 1160 2202 0000 0002 2859 6562)",
+      "publicNote": "W zakresie ogólnych usług informatycznych organy podatkowe uznają, że wynagrodzenie z tytułu świadczenia usług informatycznych nie podlega podatkowi u źródła. Stanowisko takie zajął m.in. Dyrektora Krajowej Informacji Skarbowej w interpretacji z 2 stycznia 2020 r. (sygn. 0114-KDIP2-1.4010.399.2019.4.SP), w której potwierdził, że usługi wdrażania systemów informatycznych, monitorowanie sieci i zabezpieczeń, wsparcie technicznego nie będą podlegały podatkowi u źródła.",
+      "privateNote": "",
+      "receiverName": "",
+      "id": "bd4cb66d8b2",
+      "paymentDate": "2022-12-21",
+      "paid": 250
+    },
+    {
+      "type": "invoice",
+      "number": "0004/12/2022",
+      "client": {
+        "name": "ŁUKASZ PIOTROWSKI LEXCENTER",
+        "street": "ul. Trzebnicka 48/7",
+        "post": "50-231",
+        "city": "Wrocław",
+        "tin": "8951744276"
+      },
+      "issueDate": "2022-12-19",
+      "saleDate": "2022-12-19",
+      "deadlineDate": "2022-12-31",
+      "issuePlace": "Tbilisi",
+      "currency": "pln",
+      "lang": "pl",
+      "paymentForm": {
+        "name": "Transfer 14 days",
+        "key": "14d"
+      },
+      "items": [
+        {
+          "name": "skanercfg, kancelariomat, wrzesień 2022",
+          "priceNet": 500,
+          "vat": {
+            "name": "zw.",
+            "value": 0
+          },
+          "quantity": 1,
+          "unit": "piece"
+        },
+        {
+          "name": "skanercfg, kancelariomat, październik 2022",
+          "unit": "piece",
+          "vat": {
+            "name": "zw.",
+            "value": 0
+          },
+          "quantity": 1,
+          "priceNet": 500
+        },
+        {
+          "name": "skanercfg, kancelariomat, listopad 2022",
+          "unit": "piece",
+          "vat": {
+            "name": "zw.",
+            "value": 0
+          },
+          "quantity": 1,
+          "priceNet": 500
+        },
+        {
+          "name": "skanercfg, kancelariomat, grudzień 2022",
+          "unit": "piece",
+          "vat": {
+            "name": "zw.",
+            "value": 0
+          },
+          "quantity": 1,
+          "priceNet": 500
+        }
+      ],
+      "issuerName": "Daniel Gustaw",
+      "bankAccountNumber": "PLN Millennium (90 1160 2202 0000 0002 2859 6562)",
+      "publicNote": "W zakresie ogólnych usług informatycznych organy podatkowe uznają, że wynagrodzenie z tytułu świadczenia usług informatycznych nie podlega podatkowi u źródła. Stanowisko takie zajął m.in. Dyrektora Krajowej Informacji Skarbowej w interpretacji z 2 stycznia 2020 r. (sygn. 0114-KDIP2-1.4010.399.2019.4.SP), w której potwierdził, że usługi wdrażania systemów informatycznych, monitorowanie sieci i zabezpieczeń, wsparcie technicznego nie będą podlegały podatkowi u źródła.",
+      "privateNote": "",
+      "receiverName": "",
+      "id": "d4cb66d8b27",
+      "paymentDate": "2022-12-19",
+      "paid": 2000
+    },
+    {
+      "id": "4cb66d8b274",
+      "type": "invoice",
+      "number": "0005/12/2022",
+      "client": {
+        "id": "3de78412f3e",
+        "name": "Centrum Edukacyjno Consultingowe CONCRET ANNA URBAŃSKA",
+        "street": "ul. Mieszka I 7d",
+        "post": "86-300",
+        "city": "Grudziądz",
+        "tin": "8761283234"
+      },
+      "issueDate": "2022-12-19",
+      "saleDate": "2022-12-19",
+      "deadlineDate": "2022-12-31",
+      "issuePlace": "Tbilisi",
+      "currency": "pln",
+      "lang": "pl",
+      "paymentForm": {
+        "name": "Transfer 14 days",
+        "key": "14d"
+      },
+      "items": [
+        {
+          "name": "Servers maintenance - prepilots and virtual coach - October November December",
+          "unit": "piece",
+          "vat": {
+            "name": "zw.",
+            "value": 0
+          },
+          "quantity": 1,
+          "priceNet": 520
+        }
+      ],
+      "issuerName": "Daniel Gustaw",
+      "bankAccountNumber": "PLN Millennium (90 1160 2202 0000 0002 2859 6562)",
+      "publicNote": "W zakresie ogólnych usług informatycznych organy podatkowe uznają, że wynagrodzenie z tytułu świadczenia usług informatycznych nie podlega podatkowi u źródła. Stanowisko takie zajął m.in. Dyrektora Krajowej Informacji Skarbowej w interpretacji z 2 stycznia 2020 r. (sygn. 0114-KDIP2-1.4010.399.2019.4.SP), w której potwierdził, że usługi wdrażania systemów informatycznych, monitorowanie sieci i zabezpieczeń, wsparcie technicznego nie będą podlegały podatkowi u źródła.",
+      "privateNote": "",
+      "paymentDate": "",
+      "paid": 0
+    },
+    {
+      "id": "jvMMlby",
+      "type": "invoice",
+      "number": "0006/12/2022",
+      "client": {
+        "id": "d3cfc3de784",
+        "name": "SHAREO (DOMINIK SMYK)",
+        "street": "ul. Mikołaja Reja 11/1",
+        "post": "05-820",
+        "city": "Piastów",
+        "tin": "5342440041"
+      },
+      "issueDate": "2022-12-29",
+      "saleDate": "2022-12-29",
+      "deadlineDate": "2023-01-12",
+      "issuePlace": "Tbilisi",
+      "currency": "pln",
+      "lang": "pl",
+      "paymentForm": {
+        "name": "Transfer 14 days",
+        "key": "14d"
+      },
+      "items": [
+        {
+          "name": "Dostęp do serwisu mailing.preciselab.io 2023",
+          "unit": "piece",
+          "vat": {
+            "name": "zw.",
+            "value": 0
+          },
+          "quantity": 1,
+          "priceNet": 2200
         }
       ],
       "issuerName": "Daniel Gustaw",
@@ -1575,6 +1984,30 @@
       "post": "11-041",
       "tin": "7393948709",
       "street": "Kardynała Stanisława Hozjusza 1"
+    },
+    {
+      "id": "8c6bf76d852",
+      "name": "S.A.L-MET Łukasz Andryszewki",
+      "city": "Zawadzkie",
+      "post": "47-120",
+      "tin": "7561845454",
+      "street": "Ul. Nowe Osiedle 8/49"
+    },
+    {
+      "id": "1568cb6e996",
+      "name": "Kamil Zurek",
+      "city": "",
+      "post": "",
+      "tin": "",
+      "street": "31B Glen Street Paisley PA3 2JD"
+    },
+    {
+      "id": "02e4308c2c1",
+      "name": "Grupa Lewandowski sp. z o. o.",
+      "city": "Olsztyn",
+      "post": "10-684",
+      "tin": "7393937858",
+      "street": "ul. Murzynowskiego 4/10"
     }
   ]
 }

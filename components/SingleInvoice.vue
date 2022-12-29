@@ -146,7 +146,6 @@ import ItemsInput from "~/components/ItemsInput.vue";
 import DatesInput from "~/components/DatesInput.vue";
 import RightInput from "~/components/RightInput.vue";
 import DetailsInput from "~/components/DetailsInput.vue";
-import dayjs from "dayjs";
 
 type Mode = 'edit' | 'preview';
 
@@ -164,11 +163,12 @@ import {
   ServerIcon,
   SaveIcon
 } from '@heroicons/vue/outline'
-import axios, {AxiosResponse} from "axios";
-import {useRoute, useRouter, useRuntimeConfig} from "#imports";
+import axios from "axios";
+import {nextTick, useRouter, useRuntimeConfig} from "#imports";
 import {Invoice} from "~/interfaces/Invoice";
 import {Company} from "~/interfaces/Company";
 import {nextInvoiceNumber} from "~/helpers/nextInvoiceNumber";
+import {printContent} from "~/helpers/printContent";
 
 const router = useRouter();
 
@@ -185,7 +185,7 @@ onMounted(async () => {
     const {data} = await axios.get<Invoice>(config.JSON_URL + `/invoices/${props.id}`)
     invoice.value = data;
   } else {
-    console.log(" nextInvoiceNumber(invoice.value.issueDate)",  nextInvoiceNumber(invoice.value.issueDate));
+    console.log(" nextInvoiceNumber(invoice.value.issueDate)", nextInvoiceNumber(invoice.value.issueDate));
     invoice.value.number = nextInvoiceNumber(invoice.value.issueDate)
     console.log("invoice.value.number", invoice.value.number);
   }
@@ -207,23 +207,9 @@ async function save() {
   return router.push('/')
 }
 
-const printInvoice = () => {
-  const printContents = printTemplate.value.innerHTML;
-  const printWindow = window.open('', '', 'height=400,width=800');
-  printWindow.document.write('<html lang="en" style="font-size: 13px"><head>');
-  printWindow.document.write(document.head.innerHTML);
-  printWindow.document.write('</head><body >');
-  printWindow.document.write(printContents);
-  printWindow.document.write('</body></html>');
-  printWindow.document.close();
-
-  printWindow.addEventListener('afterprint', () => {
-    printWindow.close();
-  });
-
-  printWindow.document.title = `invoice_${invoice.value.number}.pdf`;
-
-  printWindow.print();
+const printInvoice = async () => {
+  console.log("html", printTemplate.value.innerHTML);
+  return printContent(printTemplate.value.innerHTML, `invoice_${invoice.value.number}.pdf`)
 }
 
 const reload = () => {
