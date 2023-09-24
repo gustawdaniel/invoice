@@ -65,6 +65,25 @@
           {{ displayCurrency(total) }}
         </td>
       </tr>
+      <tr>
+        <th scope="row" colspan="7"
+            class="hidden pl-6 pr-3 pt-4 text-right text-sm font-semibold text-gray-900 sm:table-cell md:pl-0">Paid
+        </th>
+        <th scope="row" class="pl-4 pr-3 pt-4 text-left text-sm font-semibold text-gray-900 sm:hidden">Paid</th>
+        <td class="pl-3 pr-4 pt-4 text-right text-sm font-semibold text-gray-900 sm:pr-6 md:pr-0">
+          <div class="relative rounded-md shadow-sm">
+            <input type="number" name="price" id="price"
+                   class="focus:ring-indigo-500 focus:border-indigo-500 block w-full pr-12 sm:text-sm border-gray-300 rounded-md"
+                   placeholder="0.00" aria-describedby="price-currency" v-model="invoice.paid"/>
+            <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+              <span class="text-gray-500 sm:text-sm" id="price-currency"> {{ invoice.currency }} </span>
+            </div>
+          </div>
+        </td>
+
+
+
+      </tr>
       </tfoot>
     </table>
   </div>

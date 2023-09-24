@@ -5,7 +5,7 @@
           class="bg-white relative w-full border border-gray-300 rounded-md shadow-sm pl-3 pr-3 py-2 text-left cursor-default focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
         <span class="block truncate text-black">{{ selected.name.toUpperCase() }}</span>
         <span class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
-          <SelectorIcon class="h-5 w-5 text-gray-400" aria-hidden="true"/>
+          <ChevronDownIcon class="h-5 w-5 text-gray-400" aria-hidden="true"/>
         </span>
       </ListboxButton>
 
@@ -13,7 +13,7 @@
                   leave-to-class="opacity-0">
         <ListboxOptions
             class="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 min-w-max overflow-auto focus:outline-none sm:text-sm">
-          <ListboxOption as="template" v-for="currency in currencies" :key="currency.name" :value="currency"
+          <ListboxOption as="template" v-for="currency in currencies as any[]" :key="currency.name" :value="currency"
                          v-slot="{ active, selected }">
             <li :class="[active ? 'text-white bg-indigo-600' : 'text-gray-900', 'cursor-default select-none relative py-2 pl-3']">
               <span :class="[selected ? 'font-semibold' : 'font-normal', 'block truncate']">
@@ -28,32 +28,31 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import {computed} from 'vue'
 import {Listbox, ListboxButton, ListboxOption, ListboxOptions} from '@headlessui/vue'
-import {SelectorIcon} from '@heroicons/vue/solid'
+import {ChevronDownIcon} from '@heroicons/vue/20/solid'
 import {Currency} from "~/interfaces/Invoice";
 
-const currencies: { name: Currency }[] = [
-  'pln',
-  'eur',
-  'gbp',
-  'usd',
-].map((currency:Currency):{name: Currency} => ({name: currency}));
+const currencies: { name: Currency }[] = (
+    ['PLN', 'EUR', 'GBP', 'USD'] as const
+).map((currency: Currency): {
+    name: Currency
+} => ({name: currency}));
 
 
 const props = defineProps<{
-  modelValue: string
+    modelValue: string
 }>()
 
 const emit = defineEmits(['update:modelValue'])
 
 const selected = computed({
-  get () {
-    return props.modelValue ? {name: props.modelValue} : currencies[0]
-  },
+    get(): {name: Currency} {
+        return props.modelValue ? {name: props.modelValue as Currency} : currencies[0]
+    },
 
-  set (value: {name: Currency}) {
-    return emit('update:modelValue', value.name)
-  }
+    set(value: { name: Currency }) {
+        return emit('update:modelValue', value.name)
+    }
 })
 </script>

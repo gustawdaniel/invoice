@@ -48,8 +48,8 @@
       <div>
         <div v-text="invoice.client.name"></div>
 <!--        TODO: add united kingdom -->
-        <div v-text="`${invoice.client.street}, ${invoice.client.post} ${invoice.client.city}, Polska`"></div>
-        <div v-text="`NIP: ${invoice.client.tin}`"></div>
+        <div v-text="`${invoice.client.street}, ${invoice.client.post} ${invoice.client.city}, ${invoice.client.country ?? 'Polska'}`"></div>
+        <div v-text="`${invoice.client.idType ?? 'NIP'}: ${invoice.client.tin}`"></div>
       </div>
     </div>
 

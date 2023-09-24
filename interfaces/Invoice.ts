@@ -4,7 +4,7 @@ import {Item} from "~/interfaces/Item";
 export type InvoiceType = 'invoice' | 'proforma' | 'advance' | 'final';
 // Faktura, Proforma, Zaliczkowa, Końcowa
 
-export type Currency = 'pln' | 'eur' | 'usd' | 'gbp';
+export type Currency = 'PLN' | 'EUR' | 'USD' | 'GBP';
 
 export type Language = 'pl';
 

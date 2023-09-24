@@ -12,7 +12,7 @@ export function defaultInvoice():Invoice {
         saleDate: dayjs().format('YYYY-MM-DD'),
         deadlineDate : dayjs().add(14, 'days').format('YYYY-MM-DD'),
         issuePlace: 'Tbilisi',
-        currency: 'pln',
+        currency: 'PLN',
         lang: 'pl',
         paymentForm: {
             name: 'Transfer 14 days',

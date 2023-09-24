@@ -1,10 +1,5 @@
 <template>
   <div>
-    <p>Clients ({{ clients.length }}) |
-      <nuxt-link to="/">Invoices</nuxt-link> |
-      <nuxt-link to="/months">Bookkeeping</nuxt-link>
-    </p>
-
     <ClientModal :openModal="isModalOpen" @close="toggleModal"/>
 
     <button class="border px-2 py-1 hover:bg-gray-100" @click="sync">SYNC</button>
@@ -73,7 +68,7 @@ const clientsToShow = computed(() => {
 
 
 function sync() {
-  axios.get(config.JSON_URL + '/clients').then((res: AxiosResponse<Client[]>) => {
+  axios.get(config.public.JSON_URL + '/clients').then((res: AxiosResponse<Client[]>) => {
     clients.value = res.data
   })
 }
@@ -105,7 +100,7 @@ function edit(client) {
 function remove(id) {
   const yes = confirm('Do you need to remove them?')
   if (yes) {
-    axios.delete(config.JSON_URL + '/clients/' + id).then(sync)
+    axios.delete(config.public.JSON_URL + '/clients/' + id).then(sync)
   }
 }
 </script>

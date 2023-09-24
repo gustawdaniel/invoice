@@ -13,7 +13,7 @@ export type Unit =
     | 'l'
     | 'mh.';
 
-export type VatOption = "23%" | "19%" | "8%" | "5%" | "0%" | "zw." | "np." | "np. EU" | "0% WDT" | "0% Exp." | "o.o.";
+export type VatOption = "23%" | "19%" | "8%" | "5%" | "0%" | "zw." | "exempt." | "np." | "np. EU" | "0% WDT" | "0% Exp." | "o.o.";
 
 export interface Vat {
     value: number

@@ -5,7 +5,7 @@
           class="bg-white relative w-full border border-gray-300 rounded-md shadow-sm pl-3 pr-3 py-2 text-left cursor-default focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
         <span class="block truncate text-black">{{ selected.name }}</span>
         <span class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
-          <SelectorIcon class="h-5 w-5 text-gray-400" aria-hidden="true"/>
+          <ServerIcon class="h-5 w-5 text-gray-400" aria-hidden="true"/>
         </span>
       </ListboxButton>
 
@@ -13,7 +13,7 @@
                   leave-to-class="opacity-0">
         <ListboxOptions
             class="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 min-w-max overflow-auto focus:outline-none sm:text-sm">
-          <ListboxOption as="template" v-for="vat in vats" :key="vat.name" :value="vat"
+          <ListboxOption as="template" v-for="vat in vats as any[]" :key="vat.name" :value="vat"
                          v-slot="{ active, selected }">
             <li :class="[active ? 'text-white bg-indigo-600' : 'text-gray-900', 'cursor-default select-none relative py-2 pl-3']">
               <span :class="[selected ? 'font-semibold' : 'font-normal', 'block truncate']">
@@ -30,7 +30,7 @@
 <script setup lang="ts">
 import {computed} from 'vue'
 import {Listbox, ListboxButton, ListboxOption, ListboxOptions} from '@headlessui/vue'
-import {SelectorIcon} from '@heroicons/vue/solid'
+import {ServerIcon} from '@heroicons/vue/20/solid'
 import {Vat} from "~/interfaces/Item";
 
 const vats: Vat[] = [
@@ -40,6 +40,7 @@ const vats: Vat[] = [
   {name: "5%", value: 0.05},
   {name: "0%", value: 0},
   {name: "zw.", value: 0},
+  {name: "exempt.", value: 0},
   {name: "np.", value: 0},
   {name: "np. EU", value: 0},
   {name: "0% WDT", value: 0},
@@ -56,8 +57,8 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue'])
 
 const selected = computed({
-  get() {
-    return props.modelValue ? props.modelValue : vats[5]
+  get(): Vat {
+    return props.modelValue ? props.modelValue as Vat : vats[5]
   },
 
   set(value: Vat) {

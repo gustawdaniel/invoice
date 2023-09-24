@@ -43,7 +43,7 @@
              class="focus:ring-indigo-500 focus:border-indigo-500 block w-full pr-12 sm:text-sm border-gray-300 rounded-md"
              placeholder="0.00" aria-describedby="price-currency" v-model="item.priceNet"/>
       <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-        <span class="text-gray-500 sm:text-sm" id="price-currency"> USD </span>
+        <span class="text-gray-500 sm:text-sm" id="price-currency"> {{ invoice.currency }} </span>
       </div>
     </div>
   </td>
@@ -60,6 +60,7 @@
 import {computed, onMounted, ref, WritableComputedRef} from "vue";
 import {Item} from "~/interfaces/Item";
 import {displayCurrency} from '~/helpers/displayCurrency';
+import {invoice} from "~/store";
 
 const props = defineProps<{
   item: Item,

@@ -11,7 +11,7 @@
               title="Save!"
               class="text-gray-500 cursor-pointer w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-300 inline-flex items-center justify-center"
               @click="save">
-            <SaveIcon class="h-6 w-6" aria-hidden="true"/>
+            <ArrowDownOnSquareIcon class="h-6 w-6" aria-hidden="true"/>
 
           </div>
         </div>
@@ -22,7 +22,7 @@
               class="text-gray-500 cursor-pointer w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-300 inline-flex items-center justify-center"
               @click="toggleMode()">
             <DocumentTextIcon v-if="mode === 'edit'" class="h-6 w-6" aria-hidden="true"/>
-            <PencilAltIcon v-if="mode === 'preview'" class="h-6 w-6" aria-hidden="true"/>
+            <PencilIcon v-if="mode === 'preview'" class="h-6 w-6" aria-hidden="true"/>
           </div>
         </div>
 
@@ -42,7 +42,7 @@
               title="Export Json"
               class="text-gray-500 cursor-pointer w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-300 inline-flex items-center justify-center"
               @click="exportJson">
-            <DatabaseIcon class="h-6 w-6" aria-hidden="true"/>
+            <CircleStackIcon class="h-6 w-6" aria-hidden="true"/>
           </div>
         </div>
 
@@ -52,7 +52,7 @@
           <label for="import"
                  title="Import Json"
                  class="text-gray-500 cursor-pointer w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-300 inline-flex items-center justify-center">
-            <UploadIcon class="h-6 w-6" aria-hidden="true"/>
+            <ArrowUpTrayIcon class="h-6 w-6" aria-hidden="true"/>
           </label>
         </form>
 
@@ -61,7 +61,7 @@
               title="Reload Page"
               class="text-gray-500 cursor-pointer w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-300 inline-flex items-center justify-center"
               @click="reload">
-            <RefreshIcon class="h-6 w-6" aria-hidden="true"/>
+            <ArrowPathIcon class="h-6 w-6" aria-hidden="true"/>
           </div>
         </div>
 
@@ -152,19 +152,19 @@ type Mode = 'edit' | 'preview';
 const mode = ref<Mode>('edit');
 const config = useRuntimeConfig()
 
-const printTemplate = ref<HTMLElement>(null);
+const printTemplate = ref<HTMLElement | null>(null);
 import {
-  PencilAltIcon,
-  RefreshIcon,
-  UploadIcon,
-  DatabaseIcon,
-  PrinterIcon,
-  DocumentTextIcon,
-  ServerIcon,
-  SaveIcon
-} from '@heroicons/vue/outline'
+    PencilIcon,
+    ArrowPathIcon,
+    ArrowUpTrayIcon,
+    CircleStackIcon,
+    PrinterIcon,
+    DocumentTextIcon,
+    ServerIcon,
+    ArrowDownOnSquareIcon
+} from '@heroicons/vue/20/solid'
 import axios from "axios";
-import {nextTick, useRouter, useRuntimeConfig} from "#imports";
+import { useRouter, useRuntimeConfig} from "#imports";
 import {Invoice} from "~/interfaces/Invoice";
 import {Company} from "~/interfaces/Company";
 import {nextInvoiceNumber} from "~/helpers/nextInvoiceNumber";
@@ -173,92 +173,92 @@ import {printContent} from "~/helpers/printContent";
 const router = useRouter();
 
 const props = defineProps({
-  id: {
-    type: String,
-    required: false
-  }
+    id: {
+        type: String,
+        required: false
+    }
 })
 
 onMounted(async () => {
-  console.log("id", props.id);
-  if (props.id) {
-    const {data} = await axios.get<Invoice>(config.JSON_URL + `/invoices/${props.id}`)
-    invoice.value = data;
-  } else {
-    console.log(" nextInvoiceNumber(invoice.value.issueDate)", nextInvoiceNumber(invoice.value.issueDate));
-    invoice.value.number = nextInvoiceNumber(invoice.value.issueDate)
-    console.log("invoice.value.number", invoice.value.number);
-  }
+    console.log("id", props.id);
+    if (props.id) {
+        const {data} = await axios.get<Invoice>(config.public.JSON_URL + `/invoices/${props.id}`)
+        invoice.value = data;
+    } else {
+        console.log(" nextInvoiceNumber(invoice.value.issueDate)", nextInvoiceNumber(invoice.value.issueDate));
+        invoice.value.number = nextInvoiceNumber(invoice.value.issueDate)
+        console.log("invoice.value.number", invoice.value.number);
+    }
 })
 
 async function syncInvoices() {
-  const {data} = await axios.get<Invoice[]>(config.public.JSON_URL + `/invoices`)
-  invoices.value = data
+    const {data} = await axios.get<Invoice[]>(config.public.JSON_URL + `/invoices`)
+    invoices.value = data
 }
 
 async function save() {
-  console.log("ID", invoice.value.id);
-  if (invoice.value.id) { // edit
-    await axios.put<Invoice>(config.public.JSON_URL + `/invoices/${invoice.value.id}`, invoice.value)
-  } else { // create new
-    await axios.post<Invoice>(config.public.JSON_URL + `/invoices`, invoice.value)
-  }
-  await syncInvoices();
-  return router.push('/')
+    console.log("ID", invoice.value.id);
+    if (invoice.value.id) { // edit
+        await axios.put<Invoice>(config.public.JSON_URL + `/invoices/${invoice.value.id}`, invoice.value)
+    } else { // create new
+        await axios.post<Invoice>(config.public.JSON_URL + `/invoices`, invoice.value)
+    }
+    await syncInvoices();
+    return router.push('/')
 }
 
 const printInvoice = async () => {
-  console.log("html", printTemplate.value.innerHTML);
-  return printContent(printTemplate.value.innerHTML, `invoice_${invoice.value.number}.pdf`)
+    if (!printTemplate.value) return;
+    return printContent(printTemplate.value.innerHTML, `invoice_${invoice.value.number}.pdf`)
 }
 
 const reload = () => {
-  window.location.reload()
+    window.location.reload()
 }
 
 const seed = async () => {
-  localStorage.clear();
-  const {data} = await axios.get<Company>(config.JSON_URL + '/company')
-  company.value = data;
+    localStorage.clear();
+    const {data} = await axios.get<Company>(config.public.JSON_URL + '/company')
+    company.value = data;
 }
 
 const toggleMode = () => {
-  mode.value = mode.value === 'edit' ? 'preview' : 'edit';
+    mode.value = mode.value === 'edit' ? 'preview' : 'edit';
 }
 
 const exportJson = () => {
-  const blob = new Blob([JSON.stringify(invoice.value)], {type: 'application/json'})
-  const link = document.createElement('a')
-  link.href = URL.createObjectURL(blob)
-  link.download = `invoice_${invoice.value.number}.json`
-  link.click()
-  URL.revokeObjectURL(link.href)
+    const blob = new Blob([JSON.stringify(invoice.value)], {type: 'application/json'})
+    const link = document.createElement('a')
+    link.href = URL.createObjectURL(blob)
+    link.download = `invoice_${invoice.value.number}.json`
+    link.click()
+    URL.revokeObjectURL(link.href)
 }
 
-function readFileAsync(file): Promise<string> {
-  return new Promise((resolve, reject) => {
-    let reader = new FileReader();
+function readFileAsync(file: any): Promise<string> {
+    return new Promise((resolve, reject) => {
+        let reader = new FileReader();
 
-    reader.onload = () => {
-      if (typeof reader.result === 'string') {
-        resolve(reader.result);
-      } else {
-        resolve('');
-      }
-    };
+        reader.onload = () => {
+            if (typeof reader.result === 'string') {
+                resolve(reader.result);
+            } else {
+                resolve('');
+            }
+        };
 
-    reader.onerror = reject;
+        reader.onerror = reject;
 
-    reader.readAsText(file);
-  })
+        reader.readAsText(file);
+    })
 }
 
-const importJson = async (event) => {
-  const file = event.target.files[0];
-  let contentBuffer = await readFileAsync(file);
-  const invoiceData = JSON.parse(contentBuffer);
-  console.log(invoiceData);
-  invoice.value = invoiceData;
+const importJson = async (event: any) => {
+    const file = event.target.files[0];
+    let contentBuffer = await readFileAsync(file);
+    const invoiceData = JSON.parse(contentBuffer);
+    console.log(invoiceData);
+    invoice.value = invoiceData;
 }
 
 </script>

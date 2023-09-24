@@ -1,13 +1,5 @@
 <template>
   <div>
-    <p>
-      <nuxt-link to="/">Invoices list</nuxt-link>
-      |
-      <nuxt-link to="/clients">Clients</nuxt-link>
-      |
-      <nuxt-link to="/months">Bookkeeping</nuxt-link>
-    </p>
-
     <table class="min-w-full divide-y divide-gray-300">
       <template :key="month.month" v-for="month in invoicesPaidByMonths.filter(i => i.invoices.length)">
         <thead class="bg-gray-50">
