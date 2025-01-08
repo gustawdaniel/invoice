@@ -26,7 +26,6 @@
           </div>
         </div>
 
-
         <div class="relative mr-4 inline-block">
           <div
               title="Print this invoice!"
@@ -180,14 +179,11 @@ const props = defineProps({
 })
 
 onMounted(async () => {
-    console.log("id", props.id);
     if (props.id) {
         const {data} = await axios.get<Invoice>(config.public.JSON_URL + `/invoices/${props.id}`)
         invoice.value = data;
     } else {
-        console.log(" nextInvoiceNumber(invoice.value.issueDate)", nextInvoiceNumber(invoice.value.issueDate));
         invoice.value.number = nextInvoiceNumber(invoice.value.issueDate)
-        console.log("invoice.value.number", invoice.value.number);
     }
 })
 

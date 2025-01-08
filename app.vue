@@ -23,7 +23,7 @@ useLocalStorage('settings', settings)
 
 useHead({
     htmlAttrs: {
-        style: 'font-size: 13px'
+        style: 'font-size: 13px',
     },
     titleTemplate: `invoice_${invoice.value.number}`,
 })

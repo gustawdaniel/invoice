@@ -37,9 +37,12 @@ const router = useRouter()
 import {clients, invoice} from "~/store";
 import {defaultInvoice} from "~/composables/useInvoice";
 import {useRouter} from "#imports";
+import {setTheme} from "~/composables/theme";
 
 function newInvoice() {
     invoice.value = defaultInvoice()
     router.push(`/invoice`)
 }
+
+setTheme('light')
 </script>

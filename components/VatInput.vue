@@ -36,6 +36,7 @@ import {Vat} from "~/interfaces/Item";
 const vats: Vat[] = [
   {name: "23%", value: 0.23},
   {name: "19%", value: 0.19},
+  {name: "18%", value: 0.18},
   {name: "8%", value: 0.08},
   {name: "5%", value: 0.05},
   {name: "0%", value: 0},

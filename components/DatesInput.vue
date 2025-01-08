@@ -6,6 +6,7 @@
       <input
           class="bg-gray-200 appearance-none border-2 border-gray-200 rounded w-48 py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-blue-500 js-datepicker"
           type="date" id="datepicker1" placeholder="eg. 17 Feb, 2020" v-model="invoice.issueDate"
+          @input="onIssueDateUpdate"
           pattern="\d{4}-\d{2}-\d{2}">
     </div>
   </div>
@@ -48,6 +49,8 @@
 <script setup lang="ts">
 import {invoice} from "~/store";
 import {total} from "~/helpers/total";
+import {nextInvoiceNumber} from "~/helpers/nextInvoiceNumber";
+import dayjs from "dayjs";
 
 function paymentDataUpdated() {
   if(invoice.value.paymentDate) {
@@ -55,6 +58,21 @@ function paymentDataUpdated() {
   } else {
     invoice.value.paid = 0
   }
+}
+
+function onIssueDateUpdate() {
+    console.log("onIssueDateUpdate");
+
+    invoice.value.saleDate = invoice.value.issueDate
+
+    console.log(invoice.value.issueDate);
+
+    if(['14d', '7d'].includes(invoice.value.paymentForm?.key)) {
+        const days = Number(invoice.value.paymentForm?.key.replace('d',''))
+        invoice.value.deadlineDate = dayjs(invoice.value.issueDate).add(days,'d').format('YYYY-MM-DD')
+    }
+
+    invoice.value.number = nextInvoiceNumber(invoice.value.issueDate)
 }
 </script>
 

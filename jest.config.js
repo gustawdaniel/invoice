@@ -13,5 +13,4 @@ module.exports = {
   },
   "setupFilesAfterEnv": [ "fake-indexeddb/auto"],
   "testEnvironment": "jsdom"
-  // "testEnvironment": "node"
 }
