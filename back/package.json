@@ -1,0 +1,32 @@
+{
+  "name": "invoice-api",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "infisical run --env=dev --path=/back -- tsx watch ./src/index.ts",
+    "seed": "infisical run --env=dev --path=/back -- tsx ./scripts/seed.ts",
+    "test": "vitest run"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@9.15.4+sha512.b2dc20e2fc72b3e18848459b37359a32064663e5627a51e4c74b2c29dd8e8e0491483c3abb40789cfd578bf362fb6ba8261b05f0387d76792ed6e23ea3b1b6a0",
+  "devDependencies": {
+    "@types/node": "^22.13.1",
+    "typescript": "^5.7.3",
+    "vitest": "^3.0.5",
+    "@types/jsonwebtoken": "^9.0.7",
+    "prisma": "^6.2.1"
+  },
+  "dependencies": {
+    "@fastify/cors": "^10.0.2",
+    "@fastify/sensible": "^6.0.3",
+    "fastify": "^5.2.1",
+    "zod": "^3.24.1",
+    "google-auth-library": "^9.15.0",
+    "dayjs": "^1.11.13",
+    "jsonwebtoken": "^9.0.2",
+    "@prisma/client": "^6.2.1"
+  }
+}
