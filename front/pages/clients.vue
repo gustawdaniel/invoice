@@ -40,12 +40,11 @@
 </template>
 
 <script lang="ts" setup>
-import axios, {AxiosResponse} from 'axios';
+import axios, {type AxiosResponse} from 'axios';
 
 import {clients} from "~/store";
 import {useRuntimeConfig} from "#app";
-import {Client} from "~/interfaces/Client";
-import {computed, ref} from "#imports";
+import type {Client} from "~/interfaces/Client";
 import {useNuxtApp} from "#imports";
 import {NewClientInput} from "#components";
 const config = useRuntimeConfig()
@@ -74,7 +73,7 @@ function sync() {
 }
 
 
-function edit(client) {
+function edit(client: Client) {
   console.log("client", client);
   $bus.$emit('modal:open', {
     template: NewClientInput, data: client, params: {
@@ -88,7 +87,7 @@ function edit(client) {
         } catch (e) {
           console.log(e);
           if (axios.isAxiosError(e)) {
-            console.log("data", e.response.data);
+            console.log("data", e.response?.data);
           }
         }
 
@@ -97,7 +96,7 @@ function edit(client) {
   })
 }
 
-function remove(id) {
+function remove(id: string) {
   const yes = confirm('Do you need to remove them?')
   if (yes) {
     axios.delete(config.public.JSON_URL + '/clients/' + id).then(sync)

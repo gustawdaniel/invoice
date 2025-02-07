@@ -3,8 +3,8 @@
     <div class="pr-5">
       <div class="w-32 h-32 mb-1 overflow-hidden">
         <img class="object-cover w-40 h-40"
-             :src="company.logo"
-             :alt="company.name"
+             :src="companyStore.company.logo"
+             :alt="companyStore.company.name"
         />
       </div>
     </div>
@@ -37,9 +37,9 @@
     <div class="w-1/2">
       <label class="text-gray-800 block mb-2 font-bold text-xs uppercase tracking-wide">Seller:</label>
       <div>
-        <div v-text="company.name"></div>
-        <div v-text="company.address"></div>
-        <div v-text="company.info"></div>
+        <div v-text="companyStore.company.name"></div>
+        <div v-text="companyStore.company.address"></div>
+        <div v-text="companyStore.company.info"></div>
       </div>
     </div>
 
@@ -143,7 +143,7 @@
     <div class="w-1/2 p-20">
       <p>Issued</p>
       <div class="border w-3/4 m-auto h-28">
-        <img class="m-auto mt-2" :src="company.signature" :alt="invoice.issuerName">
+        <img class="m-auto mt-2" :src="companyStore.company.signature" :alt="invoice.issuerName">
         <p>{{invoice.issuerName}}</p>
       </div>
       <p class="text-xs">Signature of the person authorized to issue an invoice</p>
@@ -161,6 +161,9 @@
 
 <script setup lang="ts">
 import {humanize} from "~/helpers/humanize";
-import {invoice, company, subTotal, tax, total} from '~/store';
+import {invoice, subTotal, tax, total} from '~/store';
 import {displayCurrency} from '~/helpers/displayCurrency';
+import {useCompanyStore} from "~/store/company";
+
+const companyStore = useCompanyStore();
 </script>

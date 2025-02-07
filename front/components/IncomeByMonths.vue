@@ -1,6 +1,5 @@
 <template>
   <Bar
-      class="h-30"
       :chart-options="chartOptions"
       :chart-data="chartData"
       :chart-id="chartId"

@@ -8,7 +8,7 @@
           @click="openFileSelector">
 
         <button
-            v-show="!company.logo"
+            v-show="!companyStore.company.logo"
             type="button"
             style="background-color: rgba(255, 255, 255, 0.65)"
             class="hover:bg-gray-100 text-gray-700 font-semibold py-2 px-4 text-sm border border-gray-300 rounded-lg shadow-sm"
@@ -31,25 +31,33 @@
 </template>
 
 <script setup lang="ts">
-import {computed} from "vue";
-import {company} from "~/store";
+interface InputFileEvent extends Event {
+  target: HTMLInputElement;
+}
+import {useCompanyStore} from "~/store/company";
+
+const companyStore = useCompanyStore();
 
 const openFileSelector = () => {
-  document.getElementById('fileInput').click()
+  document.getElementById('fileInput')?.click()
 }
 
-const setLogo = (event) => {
+const setLogo = (event: InputFileEvent) => {
   console.log("ok");
   const reader = new FileReader();
   reader.onload = (e) => {
-    console.log(e.target.result);
-    company.value.logo = e.target.result.toString();
+    console.log(e.target?.result);
+    if(!e.target?.result) return;
+    const result = e.target.result;
+    companyStore.company.logo = result.toString();
   };
+
+  if(!event.target.files) return;
   reader.readAsDataURL(event.target.files[0]);
 };
 
 const htmlLogo = computed(() => {
-  return company.value.logo || `https://placehold.co/300x300/e2e8f0/e2e8f0`;
+  return companyStore.company.logo || `https://placehold.co/300x300/e2e8f0/e2e8f0`;
 })
 </script>
 

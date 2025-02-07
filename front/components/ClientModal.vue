@@ -39,7 +39,6 @@
 </template>
 
 <script lang="ts" setup>
-import {ref} from 'vue'
 import {Dialog, DialogPanel, TransitionChild, TransitionRoot} from '@headlessui/vue'
 import {Client} from "~/interfaces/Client";
 import {clients} from "~/store";
@@ -85,7 +84,7 @@ async function save() {
   } catch (e) {
     console.log(e);
     if (axios.isAxiosError(e)) {
-      console.log("data", e.response.data);
+      console.log("data", e.response?.data);
     }
   }
 }

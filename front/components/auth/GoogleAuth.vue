@@ -6,6 +6,7 @@ import type {GoogleLoginCallbackPayload} from "~/interfaces/GoogleLoginCallbackP
 import {useUserStore} from "~/store/user";
 import {getErrorMessage} from "~/helpers/getErrorMessage";
 import {useExchangeStore} from "~/store/exchange";
+import {useCompanyStore} from "~/store/company";
 
 const router = useRouter();
 const userStore = useUserStore()
@@ -44,9 +45,10 @@ async function handleSignInWithGoogle(userData: GoogleLoginCallbackPayload) {
   userStore.verifyGoogleCredential(userData.credential)
       .then(async () => {
         await useExchangeStore().syncLatestExchangeRate();
+        await useCompanyStore().getCompany();
         router.push('/');
       })
-      .catch((error) => handleError(error))
+      .catch((error: unknown) => handleError(error))
 }
 
 if (isClient) {

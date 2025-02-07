@@ -1,5 +1,5 @@
 <template>
-  <div class="px-4 sm:px-6 lg:px-8">
+  <div class="max-w-3xl mx-auto bg-white p-6 ">
     <div class="sm:flex sm:items-center">
       <div class="sm:flex-auto">
         <h1 class="text-base font-semibold leading-6 text-gray-900">Exchange Rates</h1>
@@ -23,8 +23,8 @@
               <th scope="col" class="py-3.5 pl-4 pr-4 text-left text-sm font-semibold text-gray-900 sm:pl-0">Base</th>
               <th scope="col" class="px-4 py-3.5 text-left text-sm font-semibold text-gray-900">Date</th>
               <th scope="col" class="px-4 py-3.5 text-left text-sm font-semibold text-gray-900">USD Rate</th>
-              <th scope="col" class="py-3.5 pl-4 pr-4 text-left text-sm font-semibold text-gray-900 sm:pr-0">PLN Rate
-              </th>
+              <th scope="col" class="py-3.5 pl-4 pr-4 text-left text-sm font-semibold text-gray-900 sm:pr-0">PLN Rate</th>
+              <th scope="col" class="py-3.5 pl-4 pr-4 text-left text-sm font-semibold text-gray-900 sm:pr-0">GBP Rate</th>
             </tr>
             </thead>
             <tbody class="divide-y divide-gray-200 bg-white">
@@ -36,6 +36,7 @@
               <td class="whitespace-nowrap p-4 text-sm text-gray-500">{{ exchange.date }}</td>
               <td class="whitespace-nowrap p-4 text-sm text-gray-500">{{ exchange.rates.USD }}</td>
               <td class="whitespace-nowrap py-4 pl-4 pr-4 text-sm text-gray-500 sm:pr-0">{{ exchange.rates.PLN }}</td>
+              <td class="whitespace-nowrap py-4 pl-4 pr-4 text-sm text-gray-500 sm:pr-0">{{ exchange.rates.GBP }}</td>
             </tr>
             </tbody>
           </table>

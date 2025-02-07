@@ -69,7 +69,7 @@
           <div
               title="Load Seed"
               class="text-gray-500 cursor-pointer w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-300 inline-flex items-center justify-center"
-              @click="seed">
+    >
             <ServerIcon class="h-6 w-6" aria-hidden="true"/>
           </div>
         </div>
@@ -107,15 +107,15 @@
           <label class="text-gray-800 block mb-1 font-bold text-sm uppercase tracking-wide">From:</label>
           <input
               class="mb-1 bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-blue-500"
-              id="inline-full-name" type="text" placeholder="Your company name" v-model="company.name">
+              id="inline-full-name" type="text" placeholder="Your company name" v-model="companyStore.company.name">
 
           <input
               class="mb-1 bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-blue-500"
-              id="inline-full-name" type="text" placeholder="Your company address" v-model="company.address">
+              id="inline-full-name" type="text" placeholder="Your company address" v-model="companyStore.company.address">
 
           <input
               class="mb-1 bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-blue-500"
-              id="inline-full-name" type="text" placeholder="Additional info" v-model="company.info">
+              id="inline-full-name" type="text" placeholder="Additional info" v-model="companyStore.company.info">
         </div>
       </div>
 
@@ -139,11 +139,13 @@
 <script setup lang="ts">
 import LogoInput from "~/components/LogoInput.vue";
 
-import {company, invoice, invoices} from "~/store";
+import { invoice, invoices} from "~/store";
 import ItemsInput from "~/components/ItemsInput.vue";
 import DatesInput from "~/components/DatesInput.vue";
 import RightInput from "~/components/RightInput.vue";
 import DetailsInput from "~/components/DetailsInput.vue";
+
+const companyStore = useCompanyStore();
 
 type Mode = 'edit' | 'preview';
 
@@ -167,6 +169,7 @@ import type {Invoice} from "~/interfaces/Invoice";
 import type {Company} from "~/interfaces/Company";
 import {nextInvoiceNumber} from "~/helpers/nextInvoiceNumber";
 import {printContent} from "~/helpers/printContent";
+import {useCompanyStore} from "~/store/company";
 
 const router = useRouter();
 
@@ -209,12 +212,6 @@ const printInvoice = async () => {
 
 const reload = () => {
     window.location.reload()
-}
-
-const seed = async () => {
-    localStorage.clear();
-    const {data} = await axios.get<Company>(config.public.JSON_URL + '/company')
-    company.value = data;
 }
 
 const toggleMode = () => {

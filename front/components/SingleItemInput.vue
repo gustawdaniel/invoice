@@ -57,8 +57,7 @@
 </template>
 
 <script setup lang="ts">
-import {computed, onMounted, ref, WritableComputedRef} from "vue";
-import {Item} from "~/interfaces/Item";
+import type {Item} from "~/interfaces/Item";
 import {displayCurrency} from '~/helpers/displayCurrency';
 import {invoice} from "~/store";
 

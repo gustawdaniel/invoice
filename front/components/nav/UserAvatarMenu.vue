@@ -35,7 +35,7 @@ function logout() {
     <Menu as="div" class="relative ml-3">
       <div>
         <MenuButton
-            class="relative flex rounded-full bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+            class="relative flex rounded-full bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 cursor-pointer"
         >
           <span class="absolute -inset-1.5" />
           <span class="sr-only">Open user menu</span>
@@ -64,11 +64,22 @@ function logout() {
                 to="/settings"
             >
               Profile:
-              <span class="{ 'capitalize': !username.contains('@') }">
-                      {{ username }}
-                    </span>
+              <span :class="{ 'capitalize': !username.includes('@') }">{{ username }}</span>
             </NuxtLink>
           </MenuItem>
+
+          <MenuItem v-slot="{ active }">
+            <NuxtLink
+                :class="[
+                      active ? 'bg-gray-100 outline-none' : '',
+                      'block px-4 py-2 text-sm text-gray-700',
+                    ]"
+                to="/company"
+            >
+              Company
+            </NuxtLink>
+          </MenuItem>
+
 
           <MenuItem v-slot="{ active }" v-if="userStore.isAdmin">
             <NuxtLink

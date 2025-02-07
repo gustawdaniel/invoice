@@ -58,8 +58,6 @@
 
 <script setup lang="ts">
 import {clients, invoice} from "~/store";
-
-import {computed, ref} from 'vue'
 import {CheckIcon, ServerIcon} from '@heroicons/vue/20/solid'
 import {
   Combobox,

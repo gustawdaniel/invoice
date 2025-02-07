@@ -28,7 +28,6 @@
 </template>
 
 <script setup lang="ts">
-import {computed} from 'vue'
 import {Listbox, ListboxButton, ListboxOption, ListboxOptions} from '@headlessui/vue'
 import {ChevronDownIcon} from '@heroicons/vue/20/solid'
 import {PaymentForm} from "~/interfaces/Invoice";

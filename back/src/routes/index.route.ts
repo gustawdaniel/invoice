@@ -9,6 +9,9 @@ import {listExchangeRates} from "../controllers/exchange/listExchangeRates";
 import {latestExchangeRate} from "../controllers/exchange/latestExchangeRate";
 import {syncExchangeRate} from "../controllers/exchange/syncExchangeRate";
 
+import {getCompany} from "../controllers/company/getCompany";
+import {putCompany, type PutCompanyBody} from "../controllers/company/putCompany";
+
 const PUBLIC: RouteShorthandOptions = { config: { isPrivate: false } };
 const SECRET: RouteShorthandOptions = { config: { isPrivate: true } };
 
@@ -27,6 +30,10 @@ export default function indexRoute(
     server.get('/exchange-rates', SECRET, listExchangeRates);
     server.get('/exchange-rates/latest', SECRET, latestExchangeRate);
     server.post('/sync-exchange-rates', SECRET, syncExchangeRate);
+
+    // company
+    server.get('/company', SECRET, getCompany);
+    server.put<PutCompanyBody>('/company', SECRET, putCompany);
 
     next();
 }

@@ -46,7 +46,6 @@ import {invoices, invoice} from "~/store";
 import dayjs from "dayjs";
 import {total} from '~/helpers/total'
 import {printContent} from "~/helpers/printContent";
-import {ref} from "vue";
 
 const printTemplate = ref<HTMLElement>(null);
 
