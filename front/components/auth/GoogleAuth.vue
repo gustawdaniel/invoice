@@ -7,6 +7,8 @@ import {useUserStore} from "~/store/user";
 import {getErrorMessage} from "~/helpers/getErrorMessage";
 import {useExchangeStore} from "~/store/exchange";
 import {useCompanyStore} from "~/store/company";
+import {useClientStore} from "~/store/client";
+import {useInvoiceStore} from "~/store/invoice";
 
 const router = useRouter();
 const userStore = useUserStore()
@@ -46,6 +48,8 @@ async function handleSignInWithGoogle(userData: GoogleLoginCallbackPayload) {
       .then(async () => {
         await useExchangeStore().syncLatestExchangeRate();
         await useCompanyStore().getCompany();
+        await useClientStore().getClients();
+        await useInvoiceStore().getInvoices();
         router.push('/');
       })
       .catch((error: unknown) => handleError(error))

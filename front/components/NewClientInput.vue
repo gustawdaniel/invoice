@@ -1,52 +1,79 @@
 <template>
+  <UModal  :title="title">
 
+    <template #body>
+      <div class="w-full mb-2 md:mb-0">
+        <input
+            class="mb-1 bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-blue-500"
+            type="text" placeholder="Company name" v-model="client.name">
+        <div class="flex">
+          <input
+              class="grow-0 mb-1 bg-gray-200 appearance-none border-2 border-gray-200 rounded w-1/2 py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-blue-500"
+              type="text" placeholder="Address" v-model="client.street">
+          <input
+              class="grow mb-1 bg-gray-200 appearance-none border-2 border-gray-200 rounded w-1/6 py-2 px-2 mx-1 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-blue-500"
+              type="text" placeholder="Post" v-model="client.post">
+          <input
+              class="grow-0 mb-1 bg-gray-200 appearance-none border-2 border-gray-200 rounded w-1/3 py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-blue-500"
+              type="text" placeholder="City" v-model="client.city">
+        </div>
+        <input
+            class="mb-1 bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-blue-500"
+            type="text" placeholder="Tax ID Number" v-model="client.tin">
+      </div>
+    </template>
 
-  <div class="w-full mb-2 md:mb-0" v-if="props.modelValue">
-
-    <input
-        class="mb-1 bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-blue-500"
-        type="text" placeholder="Billing company name" :value="props.modelValue.name" @change="(event) => updateValue({name: event.target.value})">
-    <div class="flex">
-      <input
-          class="grow-0 mb-1 bg-gray-200 appearance-none border-2 border-gray-200 rounded w-1/2 py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-blue-500"
-          type="text" placeholder="Billing company address" :value="props.modelValue.street" @change="event => updateValue({street: event.target.value})">
-      <input
-          class="grow mb-1 bg-gray-200 appearance-none border-2 border-gray-200 rounded w-1/6 py-2 px-2 mx-1 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-blue-500"
-          type="text" placeholder="Additional info" :value="props.modelValue.post" @change="event => updateValue({post: event.target.value})">
-      <input
-          class="grow-0 mb-1 bg-gray-200 appearance-none border-2 border-gray-200 rounded w-1/3 py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-blue-500"
-          type="text" placeholder="Additional info" :value="props.modelValue.city" @change="event => updateValue({city: event.target.value})">
-    </div>
-    <input
-        class="mb-1 bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-blue-500"
-        type="text" placeholder="Additional info" :value="props.modelValue.tin" @change="event => updateValue({tin: event.target.value})">
-
-  </div>
+    <template #footer>
+      <div class="sm:grid sm:grid-cols-2 sm:gap-3 sm:grid-flow-row-dense">
+        <button type="button"
+                class="cursor-pointer w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:col-start-2 sm:text-sm"
+                @click="onConfirm">Save
+        </button>
+        <button type="button"
+                class="cursor-pointer mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:col-start-1 sm:text-sm"
+                @click="closeModal" ref="cancelButtonRef">Cancel
+        </button>
+      </div>
+    </template>
+  </UModal>
 </template>
 
 <script setup lang="ts">
-import {Client} from "~/interfaces/Client";
-import {uid} from "uid";
+import type {Client} from "~/interfaces/Client";
+import {useClientStore} from "~/store/client";
+const toast = useToast();
 
-const props = defineProps({
-  modelValue: {
-    type: Object,
-    required: false,
-    default: ():Client => ({
-      id: uid(),
-      city: '',
-      name: '',
-      post: '',
-      tin: '',
-      street: ''
-    })
-  }
+const props = defineProps<{
+  title: string,
+  initialValue: Client,
+}>()
+
+const modal = useModal();
+const client = ref<Client>(props.initialValue)
+
+watch(() => props.initialValue, (value) => {
+  console.log('watch', value);
+  client.value = value;
 })
 
-const emit = defineEmits(['update:modelValue'])
+const clientStore = useClientStore();
 
-function updateValue(value: { [key in keyof Client]: string }) {
-  emit('update:modelValue', {...props.modelValue, ...value})
+async function onConfirm() {
+  const isNew = !props.initialValue.id;
+
+  if(isNew) {
+    await clientStore.addClient(client.value);
+    await toast.add({ title: "Success", description: "Client was added!" });
+  } else {
+    await clientStore.updateClient(client.value);
+    await toast.add({ title: "Success", description: "Client was updated!" });
+  }
+
+  return modal.close()
+}
+
+function closeModal() {
+  modal.close()
 }
 </script>
 

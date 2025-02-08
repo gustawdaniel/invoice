@@ -5,7 +5,7 @@ export interface Client {
     post: string,
     city: string,
     tin: string
-    idType?: string,
+    tinName?: string,
     country?: string
 }
 

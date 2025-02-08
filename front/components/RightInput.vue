@@ -1,31 +1,33 @@
 <template>
-  <div class="grid grid-cols-2 items-center flex my-1">
+  <div class="grid grid-cols-2 items-center flex my-1" v-if="invoiceStore.invoice">
     <label for="email" class="text-right mr-2">Issue Place</label>
     <input type="email" name="email" id="email"
            class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
            placeholder="City"
-           v-model="invoice.issuePlace"
+           v-model="invoiceStore.invoice.issuePlace"
     />
   </div>
-  <div class="grid grid-cols-2 items-center flex my-1">
+  <div class="grid grid-cols-2 items-center flex my-1" v-if="invoiceStore.invoice">
     <label for="email" class="text-right mr-2">Currency</label>
 
-    <CurrencyInput v-model="invoice.currency"/>
+    <CurrencyInput v-model="invoiceStore.invoice.currency"/>
   </div>
-  <div class="grid grid-cols-2 items-center flex my-1">
+  <div class="grid grid-cols-2 items-center flex my-1" v-if="invoiceStore.invoice">
     <label for="email" class="text-right mr-2">Language</label>
 
-    <LangInput v-model="invoice.lang"/>
+    <LangInput v-model="invoiceStore.invoice.lang"/>
   </div>
-  <div class="grid grid-cols-2 items-center flex my-1">
+  <div class="grid grid-cols-2 items-center flex my-1" v-if="invoiceStore.invoice">
     <label for="email" class="text-right mr-2">Payment Form</label>
 
-    <PaymentFormInput v-model="invoice.paymentForm"/>
+    <PaymentFormInput v-model="invoiceStore.invoice.paymentForm"/>
   </div>
 </template>
 
 <script setup lang="ts">
-import {invoice} from "~/store";
+import {useInvoiceStore} from "~/store/invoice";
+const invoiceStore = useInvoiceStore();
+
 import CurrencyInput from "~/components/CurrencyInput.vue";
 </script>
 

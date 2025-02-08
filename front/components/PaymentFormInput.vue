@@ -30,10 +30,10 @@
 <script setup lang="ts">
 import {Listbox, ListboxButton, ListboxOption, ListboxOptions} from '@headlessui/vue'
 import {ChevronDownIcon} from '@heroicons/vue/20/solid'
-import {PaymentForm} from "~/interfaces/Invoice";
-import {invoice} from "~/store";
+import type {PaymentForm} from "~/interfaces/Invoice";
 import dayjs from "dayjs";
 import {deadlineDate} from "~/helpers/deadlineDate";
+import {useInvoiceStore} from "~/store/invoice";
 
 const forms: PaymentForm[] = [
   {name: "Cash", key: 'cash'},
@@ -64,7 +64,15 @@ const selected = computed({
 
   set(value: PaymentForm) {
     if (['7d', '14d', 'cash'].includes(value.key)) {
-      invoice.value.deadlineDate = deadlineDate(invoice.value.issueDate, value.key);
+      const invoiceStore = useInvoiceStore();
+      if(!invoiceStore.invoice) {
+        return
+      }
+
+      invoiceStore.invoice.deadlineDate = deadlineDate(
+          invoiceStore.invoice.issueDate,
+          value.key
+      );
     }
 
     return emit('update:modelValue', value)

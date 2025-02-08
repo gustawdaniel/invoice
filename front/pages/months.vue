@@ -41,22 +41,24 @@
 
 <script lang="ts" setup>
 import {computed, nextTick} from "#imports";
-import {Invoice} from "~/interfaces/Invoice";
-import {invoices, invoice} from "~/store";
+import type {Invoice} from "~/interfaces/Invoice";
 import dayjs from "dayjs";
 import {total} from '~/helpers/total'
 import {printContent} from "~/helpers/printContent";
+import {useInvoiceStore} from "~/store/invoice";
 
-const printTemplate = ref<HTMLElement>(null);
+const printTemplate = ref<HTMLElement | null>(null);
+const invoiceStore = useInvoiceStore();
 
-function invoicesAgo(monthsAgo): Invoice[] {
+function invoicesAgo(monthsAgo: number): Invoice[] {
   const datePrefix = dayjs().subtract(monthsAgo, 'month').format('YYYY-MM');
-  return invoices.value.filter(inv => inv.paymentDate && inv.paymentDate.startsWith(datePrefix));
+  return invoiceStore.invoices.filter(inv => inv.paymentDate && inv.paymentDate.startsWith(datePrefix));
 }
 
-async function printAllInvoices(invoicesToPrint) {
+// TODO: review types
+async function printAllInvoices(invoicesToPrint: any[]) {
   for(const inv of invoicesToPrint) {
-    invoice.value = inv;
+    invoiceStore.invoice = inv;
     await nextTick();
     await printContent(printTemplate.value.innerHTML, `invoice_${invoice.value.number}.pdf`)
   }

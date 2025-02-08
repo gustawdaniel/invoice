@@ -42,8 +42,8 @@
       <input type="number" name="price" id="price"
              class="focus:ring-indigo-500 focus:border-indigo-500 block w-full pr-12 sm:text-sm border-gray-300 rounded-md"
              placeholder="0.00" aria-describedby="price-currency" v-model="item.priceNet"/>
-      <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-        <span class="text-gray-500 sm:text-sm" id="price-currency"> {{ invoice.currency }} </span>
+      <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none" v-if="invoiceStore.invoice">
+        <span class="text-gray-500 sm:text-sm" id="price-currency"> {{ invoiceStore.invoice.currency }} </span>
       </div>
     </div>
   </td>
@@ -59,17 +59,19 @@
 <script setup lang="ts">
 import type {Item} from "~/interfaces/Item";
 import {displayCurrency} from '~/helpers/displayCurrency';
-import {invoice} from "~/store";
+import {useInvoiceStore} from "~/store/invoice";
+const invoiceStore = useInvoiceStore();
 
 const props = defineProps<{
   item: Item,
   index: number
 }>()
 
-const inputName = ref(null);
+const inputName = ref<HTMLInputElement | null>(null);
 
 onMounted(() => {
   console.log("mounted", inputName);
+  if(!inputName.value) return;
   inputName.value.focus();
 })
 
@@ -77,5 +79,6 @@ const emit = defineEmits(['deleteItem'])
 const deleteItem = (index: number) => emit('deleteItem', index);
 const priceNet = computed<number>(() => props.item.priceNet * props.item.quantity);
 const priceGross = computed<number>(() => priceNet.value * (1 + props.item.vat.value));
+
 
 </script>

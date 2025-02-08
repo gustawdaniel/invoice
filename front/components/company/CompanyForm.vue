@@ -46,7 +46,7 @@ const saveCompany = async () => {
   if (!validate()) return;
   loading.value = true;
   await companyStore.setCompany(form.value);
-  toast.add({ title: "Success", description: "Company details updated successfully!" });
+  await toast.add({ title: "Success", description: "Company details updated successfully!" });
   loading.value = false;
 };
 </script>

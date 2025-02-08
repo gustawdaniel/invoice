@@ -1,10 +1,10 @@
 <template>
 
 
-  <div class="w-full md:w-2/5 mb-2 md:mb-0">
+  <div class="w-full md:w-2/5 mb-2 md:mb-0" v-if="invoiceStore.invoice">
     <label class="text-gray-800 block mb-1 font-bold text-sm uppercase tracking-wide">Bill/Ship To:</label>
 
-    <Combobox as="div" v-model="invoice.client" v-if="!invoice.client.name">
+    <Combobox as="div" v-model="invoiceStore.invoice.client" v-if="!invoiceStore.invoice.client.name">
       <div class="relative mt-1">
         <ComboboxInput
             class="w-full rounded-md border border-gray-300 bg-white py-2 pl-3 pr-10 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 sm:text-sm"
@@ -33,31 +33,30 @@
     </Combobox>
 
 
-    <template v-if="invoice.client.name">
+    <template v-if="invoiceStore.invoice && invoiceStore.invoice.client.name">
       <input
           class="mb-1 bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-blue-500"
-          type="text" placeholder="Billing company name" v-model="invoice.client.name">
+          type="text" placeholder="Billing company name" v-model="invoiceStore.invoice.client.name">
       <div class="flex">
         <input
             class="grow-0 mb-1 bg-gray-200 appearance-none border-2 border-gray-200 rounded w-1/2 py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-blue-500"
-            type="text" placeholder="Billing company address" v-model="invoice.client.street">
+            type="text" placeholder="Billing company address" v-model="invoiceStore.invoice.client.street">
         <input
             class="grow mb-1 bg-gray-200 appearance-none border-2 border-gray-200 rounded w-1/6 py-2 px-2 mx-1 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-blue-500"
-            type="text" placeholder="Additional info" v-model="invoice.client.post">
+            type="text" placeholder="Additional info" v-model="invoiceStore.invoice.client.post">
         <input
             class="grow-0 mb-1 bg-gray-200 appearance-none border-2 border-gray-200 rounded w-1/3 py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-blue-500"
-            type="text" placeholder="Additional info" v-model="invoice.client.city">
+            type="text" placeholder="Additional info" v-model="invoiceStore.invoice.client.city">
       </div>
       <input
           class="mb-1 bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-blue-500"
-          type="text" placeholder="Additional info" v-model="invoice.client.tin">
+          type="text" placeholder="Additional info" v-model="invoiceStore.invoice.client.tin">
     </template>
 
   </div>
 </template>
 
 <script setup lang="ts">
-import {clients, invoice} from "~/store";
 import {CheckIcon, ServerIcon} from '@heroicons/vue/20/solid'
 import {
   Combobox,
@@ -66,12 +65,17 @@ import {
   ComboboxOption,
   ComboboxOptions,
 } from '@headlessui/vue'
+import {useInvoiceStore} from "~/store/invoice";
+import {useClientStore} from "~/store/client";
+
+const invoiceStore = useInvoiceStore();
+const clientStore = useClientStore();
 
 const query = ref('')
 const filteredClients = computed(() =>
     query.value === ''
-        ? clients.value
-        : clients.value.filter((person) => {
+        ? clientStore.clients
+        : clientStore.clients.filter((person) => {
           return person.name.toLowerCase().includes(query.value.toLowerCase())
         })
 );

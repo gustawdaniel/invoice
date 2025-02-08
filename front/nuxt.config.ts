@@ -10,26 +10,30 @@ const env = configSchema.parse(process.env)
 
 // https://v3.nuxtjs.org/api/configuration/nuxt.config
 export default defineNuxtConfig({
-  ssr: false,
+    ssr: false,
 
-  runtimeConfig: {
-      public: {
-          JSON_URL: env.NUXT_PUBLIC_JSON_URL ?? 'http://localhost:4000',
-          googleClientId: env.GOOGLE_CLIENT_ID,
-      }
-  },
+    runtimeConfig: {
+        public: {
+            JSON_URL: env.NUXT_PUBLIC_JSON_URL ?? 'http://localhost:4000',
+            googleClientId: env.GOOGLE_CLIENT_ID,
+        }
+    },
 
-  modules: [
-      '@nuxt/ui',
-      '@pinia/nuxt',
-      'pinia-plugin-persistedstate/nuxt',
-  ],
+    modules: [
+        '@nuxt/ui',
+        '@pinia/nuxt',
+        'pinia-plugin-persistedstate/nuxt',
+    ],
 
-  css: ['~/assets/css/main.css'],
+    piniaPluginPersistedstate: {
+        storage: 'localStorage',
+    },
 
-  colorMode: {
-      preference: 'light'
-  },
+    css: ['~/assets/css/main.css'],
 
-  compatibilityDate: '2025-02-06'
+    colorMode: {
+        preference: 'light'
+    },
+
+    compatibilityDate: '2025-02-06'
 })

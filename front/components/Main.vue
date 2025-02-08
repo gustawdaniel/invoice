@@ -1,6 +1,6 @@
 <template>
   <div>
-    <IncomeByMonths/>
+    <IncomeByMonths v-if="invoiceStore.invoices.length"/>
 
     <div class="flex items-center justify-between">
       <button class="border px-2 py-1 hover:bg-gray-100" @click="sync">SYNC</button>
@@ -132,10 +132,8 @@
 
 import {total} from '~/helpers/total'
 import {status} from '~/helpers/status'
-import {invoice, invoices} from "~/store";
 import type {Invoice} from "~/interfaces/Invoice";
 import {computed, nextTick, useRouter} from "#imports";
-import axios, { type AxiosResponse} from "axios";
 import {useRuntimeConfig} from "#app";
 import dayjs from "dayjs";
 import {deadlineDate} from "~/helpers/deadlineDate";
@@ -145,6 +143,7 @@ import {printContent} from "~/helpers/printContent";
 // @ts-ignore not types
 import {snakecase} from "snakecase";
 import {useCompanyStore} from "~/store/company";
+import {useInvoiceStore} from "~/store/invoice";
 
 const router = useRouter()
 const config = useRuntimeConfig()
@@ -155,24 +154,26 @@ const clientNameFilter = ref<string>('');
 const companyStore = useCompanyStore();
 
 const printInvoice = async (inv: Invoice) => {
-  invoice.value = inv;
+  invoiceStore.invoice = inv;
   await nextTick();
 
   console.log("company.value", companyStore.company);
 
   if(!printTemplate.value) return;
 
-  return printContent(printTemplate.value.innerHTML, `${['invoice', invoice.value.number, snakecase(companyStore.company.name), snakecase(inv.client.name)].join('_')}.pdf`)
+  return printContent(printTemplate.value.innerHTML, `${['invoice', invoiceStore.invoice.number, snakecase(companyStore.company.name), snakecase(inv.client.name)].join('_')}.pdf`)
 }
 
+const invoiceStore = useInvoiceStore();
+const toast = useToast();
+
 async function sync() {
-  return axios.get(config.public.JSON_URL + '/invoices').then((res: AxiosResponse<Invoice[]>) => {
-    invoices.value = res.data
-  })
+ await invoiceStore.getInvoices()
+  await toast.add({ title: "Success", description: "Invoices were synced!" });
 }
 
 const filteredInvoices = computed<Invoice[]>(() => {
-  return invoices.value.filter((inv) => {
+  return invoiceStore.invoices.filter((inv) => {
     return clientNameFilter.value ? new RegExp(clientNameFilter.value, 'i').test(inv.client.name) : true;
   });
 })
@@ -195,15 +196,13 @@ async function clone(invoice: Invoice): Promise<void> {
   inv.issueDate = dayjs().format('YYYY-MM-DD')
   inv.deadlineDate = deadlineDate(inv.issueDate, inv.paymentForm)
   inv.number = nextInvoiceNumber(inv.issueDate)
-  await axios.post(config.public.JSON_URL + '/invoices', inv);
-  await sync();
-  // grayBgOfFutureInvoices()
+  await invoiceStore.addInvoice(inv);
 }
 
 function remove(id: string): void {
   const yes = confirm('Do you need to remove them?')
   if (yes) {
-    axios.delete(config.public.JSON_URL + '/invoices/' + id).then(sync)
+    invoiceStore.deleteInvoice(id)
   }
 }
 
@@ -247,22 +246,4 @@ function firstItemName(invoice: Invoice): string {
 function isFutureDate(date: string): boolean {
   return dayjs(date).diff(dayjs(dayjs().format('YYYY-MM-DD'))) > 0
 }
-
-// dirty hack waiting for https://github.com/nuxt/ui/issues/736
-// function grayBgOfFutureInvoices() {
-//     const rows = document.querySelectorAll('table tbody tr');
-//
-//     rows.forEach(row => {
-//         const dateElement = row.querySelector('.issue-date');
-//         if(dateElement) {
-//             const isFuture = dayjs(dateElement.textContent).diff(dayjs(dayjs().format('YYYY-MM-DD'))) > 0;
-//             if(isFuture) {
-//                 row.classList.add('bg-violet-100')
-//             }
-//         }
-//     })
-// }
-//
-// onMounted(grayBgOfFutureInvoices)
-
 </script>

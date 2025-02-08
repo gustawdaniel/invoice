@@ -4,6 +4,12 @@ function numberWithSpaces(x: string) {
     return parts.join(".");
 }
 
-import {invoice} from "~/store";
+import {useInvoiceStore} from "~/store/invoice";
 
-export const displayCurrency = (value: number) => `${numberWithSpaces(value.toFixed(2))} ${invoice.value.currency.toUpperCase()}`
+export const displayCurrency = (value: number) => {
+    const invoiceStore = useInvoiceStore();
+    if(!invoiceStore.invoice) {
+        return '';
+    }
+    return `${numberWithSpaces(value.toFixed(2))} ${invoiceStore.invoice.currency.toUpperCase()}`
+}

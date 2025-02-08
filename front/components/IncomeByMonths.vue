@@ -25,8 +25,10 @@ import {
   type Plugin
 } from 'chart.js'
 import dayjs from "dayjs";
-import {invoices} from "~/store";
 import {total, paid, exchange} from "~/helpers/total";
+import {useInvoiceStore} from "~/store/invoice";
+
+const invoiceStore = useInvoiceStore();
 
 ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale)
 
@@ -62,7 +64,7 @@ type PaymentCategory = 'paid' | 'waiting' | 'withholding';
 
 function valueOfInvoicesAgo(ago: number, category: PaymentCategory, currency: 'PLN' | 'EUR' | 'USD'): number {
   const datePrefix = dayjs().subtract(ago, 'month').format('YYYY-MM');
-  const selectedInvoices = invoices.value.filter(inv => inv.issueDate.startsWith(datePrefix) && (category === 'waiting' ? !inv.paymentDate : inv.paymentDate));
+  const selectedInvoices =  invoiceStore.invoices.filter(inv => inv.issueDate.startsWith(datePrefix) && (category === 'waiting' ? !inv.paymentDate : inv.paymentDate));
 
   if (category === 'paid') {
     console.log(`ago`, ago, selectedInvoices.map(invoice => [

@@ -61,3 +61,7 @@ https://cloud.mongodb.com/v2/62aa69d1b3e3186c0e189c4b#/overview
 gustaw.daniel+xue@gmail.com
 
 Google Cloud: https://console.cloud.google.com/welcome?inv=1&invt=Abo7tQ&project=invoice-preciselab
+
+todo:
+- go to invoices create (make seed)
+- remove uid

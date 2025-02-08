@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -33,15 +27,17 @@ model users {
 }
 
 model companies {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  id        String     @id @default(auto()) @map("_id") @db.ObjectId
   name      String
-  address   String   @default("")
-  info      String   @default("")
-  logo      String   @default("")
-  signature String   @default("")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  address   String     @default("")
+  info      String     @default("")
+  logo      String     @default("")
+  signature String     @default("")
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
   users     users[]
+  clients   clients[]
+  invoices  invoices[]
 }
 
 model accessLogs {
@@ -61,4 +57,125 @@ model exchangeRates {
   GBP       Float
   USD       Float
   createdAt DateTime @default(now())
+}
+
+model clients {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  company   companies @relation(fields: [companyId], references: [id])
+  companyId String    @db.ObjectId
+
+  name   String
+  street String
+  post   String
+  city   String
+  tin    String
+
+  tinName String @default("NIP")
+  country String @default("Poland")
+
+  invoices invoices[]
+}
+
+enum Currency {
+  EUR
+  PLN
+  GBP
+  USD
+}
+
+enum Language {
+  pl
+  en
+}
+
+enum PaymentForm {
+  cash
+  prepaid
+  d14
+  d7
+  card
+  delivery
+  check
+  dotpay
+  paypal
+  payu
+  other
+}
+
+// "23%" | "19%" | '18%' | "8%" | "5%" | "0%" | "zw." | "exempt." | "np." | "np. EU" | "0% WDT" | "0% Exp." | "o.o."
+enum VatRate {
+  VAT_23
+  VAT_19
+  VAT_18
+  VAT_8
+  VAT_5
+  VAT_0
+  VAT_zw
+  VAT_exempt
+  VAT_np
+  VAT_npEU
+  VAT_0_WDT
+  VAT_0_EXP
+  VAT_oo
+}
+
+type Vat {
+  value Float
+  name  VatRate
+}
+
+enum Unit {
+  piece
+  hour
+  pack
+  box
+  palette
+  t
+  kg
+  m2
+  m3
+  km
+  mb
+  l
+  mh
+}
+
+type InvoiceItem {
+  name     String
+  unit     String
+  quantity Float
+  priceNet Float
+  vat      Vat
+}
+
+model invoices {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  company   companies @relation(fields: [companyId], references: [id])
+  companyId String    @db.ObjectId
+
+  client   clients @relation(fields: [clientId], references: [id])
+  clientId String  @db.ObjectId
+
+  number       String
+  issueDate    String
+  saleDate     String
+  deadlineDate String
+  issuePlace   String   @default("Tbilisi")
+  currency     Currency @default(EUR)
+  lang         Language @default(en)
+
+  paymentForm PaymentForm @default(d14)
+
+  items InvoiceItem[]
+
+  issuerName           String @default("Daniel Gustaw")
+  receiverName         String @default("")
+  bankAccountNumber    String
+  publicNote           String
+  privateNote          String
+  vatBankAccountNumber String @default("")
+  paid                 Float
+  paymentDate          String
 }

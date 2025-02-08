@@ -12,6 +12,14 @@ import {syncExchangeRate} from "../controllers/exchange/syncExchangeRate";
 import {getCompany} from "../controllers/company/getCompany";
 import {putCompany, type PutCompanyBody} from "../controllers/company/putCompany";
 
+import {listClients} from "../controllers/client/listClients";
+import {addClient, AddClientBody} from "../controllers/client/addClient";
+import {updateClient, UpdateClientRoute} from "../controllers/client/updateClient";
+import {deleteClient, DeleteClientRoute} from "../controllers/client/deleteClient";
+
+import {listInvoices} from "../controllers/invoice/listInvoices";
+import {addInvoice, AddInvoiceRoute} from "../controllers/invoice/addInvoice";
+
 const PUBLIC: RouteShorthandOptions = { config: { isPrivate: false } };
 const SECRET: RouteShorthandOptions = { config: { isPrivate: true } };
 
@@ -35,5 +43,15 @@ export default function indexRoute(
     server.get('/company', SECRET, getCompany);
     server.put<PutCompanyBody>('/company', SECRET, putCompany);
 
+    // client
+    server.get('/clients', SECRET, listClients);
+    server.post<AddClientBody>('/clients', SECRET, addClient);
+    server.put<UpdateClientRoute>('/clients/:id', SECRET, updateClient);
+    server.delete<DeleteClientRoute>('/clients/:id', SECRET, deleteClient);
+
+    // invoice
+    server.get('/invoices', SECRET, listInvoices);
+    server.post<AddInvoiceRoute>('/invoices', SECRET, addInvoice);
+    
     next();
 }

@@ -7,7 +7,7 @@
         <div
             class="order-last flex w-full gap-x-8 text-sm font-semibold leading-6 sm:order-none sm:w-auto sm:border-l sm:border-gray-200 sm:pl-6 sm:leading-7">
           <nuxt-link to="/clients" :class="$route.name === 'clients' ? 'text-indigo-600' : 'text-gray-700'">
-            Clients ({{ clients.length }})
+            Clients ({{ clientStore.clients.length }})
           </nuxt-link>
           <nuxt-link to="/" :class="$route.name === 'index' ? 'text-indigo-600' : 'text-gray-700'">
             Invoices
@@ -36,15 +36,18 @@
 <script setup lang="ts">
 import {PlusIcon} from '@heroicons/vue/20/solid'
 const router = useRouter()
-import {clients, invoice} from "~/store";
-import {defaultInvoice} from "~/composables/useInvoice";
-import {useRouter} from "#imports";
 import {setTheme} from "~/composables/theme";
 import {useUserStore} from "~/store/user";
 import UserAvatarMenu from "~/components/nav/UserAvatarMenu.vue";
+import {useClientStore} from "~/store/client";
+import {defaultInvoice} from "~/helpers/defaultInvoice";
+import {useInvoiceStore} from "~/store/invoice";
+const invoiceStore = useInvoiceStore();
+
+const clientStore = useClientStore();
 
 function newInvoice() {
-    invoice.value = defaultInvoice()
+  invoiceStore.invoice = defaultInvoice()
     router.push(`/invoice`)
 }
 const userStore = useUserStore()

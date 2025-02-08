@@ -28,9 +28,9 @@
         </th>
       </tr>
       </thead>
-      <tbody>
-      <tr v-for="(_, index) in invoice.items" :key="index" class="border-b border-gray-200">
-        <SingleItemInput v-model:item="invoice.items[index]" :index="index" @deleteItem="deleteItem"/>
+      <tbody v-if="invoiceStore.invoice">
+      <tr v-for="(_, index) in invoiceStore.invoice.items" :key="index" class="border-b border-gray-200">
+        <SingleItemInput v-model:item="invoiceStore.invoice.items[index]" :index="index" @deleteItem="deleteItem"/>
       </tr>
       </tbody>
       <tfoot>
@@ -71,12 +71,12 @@
         </th>
         <th scope="row" class="pl-4 pr-3 pt-4 text-left text-sm font-semibold text-gray-900 sm:hidden">Paid</th>
         <td class="pl-3 pr-4 pt-4 text-right text-sm font-semibold text-gray-900 sm:pr-6 md:pr-0">
-          <div class="relative rounded-md shadow-sm">
+          <div class="relative rounded-md shadow-sm" v-if="invoiceStore.invoice">
             <input type="number" name="price" id="price"
                    class="focus:ring-indigo-500 focus:border-indigo-500 block w-full pr-12 sm:text-sm border-gray-300 rounded-md"
-                   placeholder="0.00" aria-describedby="price-currency" v-model="invoice.paid"/>
+                   placeholder="0.00" aria-describedby="price-currency" v-model="invoiceStore.invoice.paid"/>
             <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-              <span class="text-gray-500 sm:text-sm" id="price-currency"> {{ invoice.currency }} </span>
+              <span class="text-gray-500 sm:text-sm" id="price-currency"> {{ invoiceStore.invoice.currency }} </span>
             </div>
           </div>
         </td>
@@ -90,13 +90,17 @@
 </template>
 
 <script setup lang="ts">
-import {invoice, subTotal, tax, total} from "~/store";
+import { subTotal, tax, total} from "~/store";
 import {displayCurrency} from "~/helpers/displayCurrency";
+import {useInvoiceStore} from "~/store/invoice";
+const invoiceStore = useInvoiceStore();
 
-const addItem = () => {
-  const prevItem = invoice.value.items.length ? invoice.value.items[invoice.value.items.length - 1] : null;
+const addItem = (): void => {
+  if(!invoiceStore.invoice) return;
 
-  invoice.value.items.push({
+  const prevItem = invoiceStore.invoice.items.length ? invoiceStore.invoice.items[invoiceStore.invoice.items.length - 1] : null;
+
+  invoiceStore.invoice.items.push({
     name: '',
     unit: prevItem?.unit ?? 'hour',
     vat: prevItem?.vat ?? {
@@ -108,8 +112,10 @@ const addItem = () => {
   });
 }
 
-const deleteItem = (index) => {
-  invoice.value.items.splice(index, 1);
+const deleteItem = (index: number): void => {
+  if(!invoiceStore.invoice) return;
+
+  invoiceStore.invoice.items.splice(index, 1);
 }
 
 </script>

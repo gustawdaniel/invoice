@@ -1,20 +1,18 @@
 import {FastifyReply, FastifyRequest} from "fastify";
 import {prisma} from "../../db";
 
-export const getCompany = async (
+export const listClients = async (
     req: FastifyRequest,
     reply: FastifyReply,
 ): Promise<FastifyReply> => {
     const companyId = req.user?.companyId;
     if(!companyId) return reply.unauthorized('No company');
 
-    const company = await prisma.companies.findFirst({
+    const clients = await prisma.clients.findMany({
         where: {
-            id: companyId
+            companyId: companyId
         }
     });
 
-    if(!company) return reply.notFound('No company');
-
-    return reply.send(company);
+    return reply.send(clients);
 }

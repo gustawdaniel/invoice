@@ -28,10 +28,9 @@
 </template>
 
 <script setup lang="ts">
-import {computed} from 'vue'
 import {Listbox, ListboxButton, ListboxOption, ListboxOptions} from '@headlessui/vue'
 import {ServerIcon} from '@heroicons/vue/20/solid'
-import {Vat} from "~/interfaces/Item";
+import type {Vat} from "~/interfaces/Item";
 
 const vats: Vat[] = [
   {name: "23%", value: 0.23},

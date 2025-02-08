@@ -1,4 +1,5 @@
 <template>
+  <div v-if="invoiceStore.invoice">
   <div class="mb-8 flex justify-between items-center">
     <div class="pr-5">
       <div class="w-32 h-32 mb-1 overflow-hidden">
@@ -11,17 +12,17 @@
     <div>
       <div class="mb-1 flex items-center">
         <label class="w-32 text-gray-800 block font-bold text-xs uppercase tracking-wide">Issued in.</label>
-        <div v-text="invoice.issuePlace"></div>
+        <div v-text="invoiceStore.invoice.issuePlace"></div>
       </div>
 
       <div class="mb-1 flex items-center">
         <label class="w-32 text-gray-800 block font-bold text-xs uppercase tracking-wide">Issue Date</label>
-        <div v-text="invoice.issueDate"></div>
+        <div v-text="invoiceStore.invoice.issueDate"></div>
       </div>
 
       <div class="mb-1 flex items-center">
         <label class="w-32 text-gray-800 block font-bold text-xs uppercase tracking-wide">Sell date:</label>
-        <div v-text="invoice.saleDate"></div>
+        <div v-text="invoiceStore.invoice.saleDate"></div>
       </div>
 
     </div>
@@ -29,7 +30,7 @@
   </div>
 
   <div>
-    <h2 class="text-lg font-bold mb-6 pb-2 tracking-wider uppercase">Invoice {{ invoice.number }}</h2>
+    <h2 class="text-lg font-bold mb-6 pb-2 tracking-wider uppercase">Invoice {{ invoiceStore.invoice.number }}</h2>
   </div>
 
 
@@ -46,10 +47,10 @@
     <div class="w-1/2">
       <label class="text-gray-800 block mb-2 font-bold text-xs uppercase tracking-wide">Buyer and payer:</label>
       <div>
-        <div v-text="invoice.client.name"></div>
+        <div v-text="invoiceStore.invoice.client.name"></div>
 <!--        TODO: add united kingdom -->
-        <div v-text="`${invoice.client.street}, ${invoice.client.post} ${invoice.client.city}, ${invoice.client.country ?? 'Polska'}`"></div>
-        <div v-text="`${invoice.client.idType ?? 'NIP'}: ${invoice.client.tin}`"></div>
+        <div v-text="`${invoiceStore.invoice.client.street}, ${invoiceStore.invoice.client.post} ${invoiceStore.invoice.client.city}, ${invoiceStore.invoice.client.country ?? 'Polska'}`"></div>
+        <div v-text="`${invoiceStore.invoice.client.tinName ?? 'NIP'}: ${invoiceStore.invoice.client.tin}`"></div>
       </div>
     </div>
 
@@ -71,7 +72,7 @@
     </tr>
     </thead>
     <tbody>
-    <tr v-for="(item, index) in invoice.items" :key="index">
+    <tr v-for="(item, index) in invoiceStore.invoice.items" :key="index">
       <td>{{ index + 1 }}</td>
       <td>{{ item.name }}</td>
       <td>{{ item.unit }}</td>
@@ -100,23 +101,23 @@
         <tbody class="divide-y divide-gray-200 bg-white">
         <tr>
           <td class="whitespace-nowrap py-2 text-sm text-gray-900">Payment Type:</td>
-          <td class="whitespace-nowrap py-2 text-sm text-gray-900 text-right">{{invoice.paymentForm.name}}</td>
+          <td class="whitespace-nowrap py-2 text-sm text-gray-900 text-right">{{invoiceStore.invoice.paymentForm.name}}</td>
         </tr>
         <tr>
           <td class="whitespace-nowrap py-2 text-sm text-gray-900">Bank account number:</td>
-          <td class="whitespace-nowrap py-2 text-sm text-gray-900 text-right">{{invoice.bankAccountNumber}}</td>
+          <td class="whitespace-nowrap py-2 text-sm text-gray-900 text-right">{{invoiceStore.invoice.bankAccountNumber}}</td>
         </tr>
         <tr>
           <td class="whitespace-nowrap py-2 text-sm text-gray-900">Due date:</td>
-          <td class="whitespace-nowrap py-2 text-sm text-gray-900 text-right">{{invoice.deadlineDate}}</td>
+          <td class="whitespace-nowrap py-2 text-sm text-gray-900 text-right">{{invoiceStore.invoice.deadlineDate}}</td>
         </tr>
         <tr>
           <td class="whitespace-nowrap py-2 text-sm text-gray-900">Paid:</td>
-          <td class="whitespace-nowrap py-2 text-sm text-gray-900 text-right">{{displayCurrency(invoice.paid || 0)}}</td>
+          <td class="whitespace-nowrap py-2 text-sm text-gray-900 text-right">{{displayCurrency(invoiceStore.invoice.paid || 0)}}</td>
         </tr>
         <tr>
           <td class="whitespace-nowrap py-2 text-sm text-gray-900">Amount due:</td>
-          <td class="whitespace-nowrap py-2 text-sm text-gray-900 text-right">{{displayCurrency(total - (invoice.paid || 0))}}</td>
+          <td class="whitespace-nowrap py-2 text-sm text-gray-900 text-right">{{displayCurrency(total - (invoiceStore.invoice.paid || 0))}}</td>
         </tr>
         </tbody>
       </table>
@@ -129,7 +130,7 @@
         <tbody class="divide-y divide-gray-200 bg-white">
         <tr>
           <td class="whitespace-nowrap py-2 text-sm text-gray-900">In words:</td>
-          <td class="whitespace-nowrap py-2 text-sm text-gray-900 text-right">{{ humanize(Math.round(total)) }} and {{Math.round(100*(total - (Math.round(total))))}}/100 {{invoice.currency.toUpperCase()}}</td>
+          <td class="whitespace-nowrap py-2 text-sm text-gray-900 text-right">{{ humanize(Math.round(total)) }} and {{Math.round(100*(total - (Math.round(total))))}}/100 {{invoiceStore.invoice.currency.toUpperCase()}}</td>
         </tr>
         </tbody>
       </table>
@@ -137,33 +138,35 @@
     </div>
   </div>
 
-  <p v-if="invoice.publicNote" class="mt-8 text-gray-700 text-sm">{{invoice.publicNote}}</p>
+  <p v-if="invoiceStore.invoice.publicNote" class="mt-8 text-gray-700 text-sm">{{invoiceStore.invoice.publicNote}}</p>
 
   <div class="flex text-center mt-8">
     <div class="w-1/2 p-20">
       <p>Issued</p>
       <div class="border w-3/4 m-auto h-28">
-        <img class="m-auto mt-2" :src="companyStore.company.signature" :alt="invoice.issuerName">
-        <p>{{invoice.issuerName}}</p>
+        <img class="m-auto mt-2" :src="companyStore.company.signature" :alt="invoiceStore.invoice.issuerName">
+        <p>{{invoiceStore.invoice.issuerName}}</p>
       </div>
       <p class="text-xs">Signature of the person authorized to issue an invoice</p>
     </div>
     <div class="w-1/2 p-20">
       <p>Collected</p>
       <div class="border w-3/4 m-auto h-28 flex items-end justify-center">
-        <p>{{invoice.receiverName}}</p>
+        <p>{{invoiceStore.invoice.receiverName}}</p>
       </div>
       <p class="text-xs">Signature of the person authorized to collect the invoice</p>
     </div>
   </div>
-
+  </div>
 </template>
 
 <script setup lang="ts">
 import {humanize} from "~/helpers/humanize";
-import {invoice, subTotal, tax, total} from '~/store';
+import { subTotal, tax, total} from '~/store';
 import {displayCurrency} from '~/helpers/displayCurrency';
 import {useCompanyStore} from "~/store/company";
+import {useInvoiceStore} from "~/store/invoice";
+const invoiceStore = useInvoiceStore();
 
 const companyStore = useCompanyStore();
 </script>
