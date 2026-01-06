@@ -1,8 +1,8 @@
-import {beforeAll, describe, expect, it} from "@jest/globals";
-import {exchange} from "~/helpers/total";
+import { beforeAll, describe, expect, it } from "vitest";
+import { exchange } from "~/helpers/total";
 import dayjs from "dayjs";
 import { setActivePinia, createPinia } from 'pinia'
-import {useExchangeStore} from "~/store/exchange";
+import { useExchangeStore } from "~/store/exchange";
 
 describe('exchange', () => {
     beforeAll(() => {
@@ -37,6 +37,6 @@ describe('exchange', () => {
     })
 
     it('from pln to usd', () => {
-        expect(exchange(1, 'PLN', "USD")).toEqual(1.12/4.46)
+        expect(exchange(1, 'PLN', "USD")).toEqual(1.12 / 4.46)
     })
 })
