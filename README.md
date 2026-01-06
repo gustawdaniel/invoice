@@ -1,67 +1,61 @@
-[![Deploy Nuxt site to Pages](https://github.com/gustawdaniel/invoice/actions/workflows/nuxtjs.yml/badge.svg?branch=main)](https://github.com/gustawdaniel/invoice/actions/workflows/nuxtjs.yml)
+# Open Invoice
 
-# Nuxt 3 Minimal Starter
+Open source accounting software compatible with KSeF (Polish National System of e-Invoices).
 
-Look at the [nuxt 3 documentation](https://v3.nuxtjs.org) to learn more.
+## Features
 
-## Setup
+- **KSeF Integration**: Seamlessly obtain tokens and manage invoices in compliance with Polish regulations.
+- **Open Source**: Built for the community, transparent and extensible.
+- **Modern Stack**:
+  - **Frontend**: Nuxt 3 (Vue 3), TailwindCSS, Pinia.
+  - **Backend**: Node.js, Fastify, Prisma, MongoDB.
+  - **Testing**: Vitest.
 
-Make sure to install the dependencies:
+## Getting Started
+
+### Prerequisites
+
+- Node.js
+- pnpm
+- Docker (optional, for deployment)
+
+### Installation
+
+1.  Clone the repository.
+2.  Install dependencies:
+
+    ```bash
+    # Frontend
+    cd front
+    pnpm install
+
+    # Backend
+    cd back
+    pnpm install
+    ```
+
+3.  Set up environment variables (see `.env.example` in both directories).
+
+### Running Locally
+
+**Frontend:**
 
 ```bash
-# yarn
-yarn install
-
-# npm
-npm install
-
-# pnpm
-pnpm install --shamefully-hoist
+cd front
+pnpm dev
 ```
 
-## Development Server
-
-Start the development server on http://localhost:3000
+**Backend:**
 
 ```bash
-npm run dev
+cd back
+pnpm dev
 ```
 
-## Production
+## Contributing
 
-Build the application for production:
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-```bash
-npm run build
-```
+## License
 
-Locally preview production build:
-
-```bash
-npm run preview
-```
-
-Checkout the [deployment documentation](https://v3.nuxtjs.org/docs/deployment) for more information.
-
-
-Logo: https://www.flaticon.com/free-icon/folders_2821739?term=doc&page=1&position=12&origin=search&related_id=2821739
-
-TODO:
-- [x] setup backend
-- [ ] add endpoints for /auth
-- [ ] add endpoints for /invoices
-- [ ] add endpoints for /clients
-- [ ] add endpoints for /company
-- [ ] add endpoints for /settings
-- [ ] add endpoints for /exchange-rates
-
-Mongo:
-
-https://cloud.mongodb.com/v2/62aa69d1b3e3186c0e189c4b#/overview
-gustaw.daniel+xue@gmail.com
-
-Google Cloud: https://console.cloud.google.com/welcome?inv=1&invt=Abo7tQ&project=invoice-preciselab
-
-todo:
-- go to invoices create (make seed)
-- remove uid
+[ISC](LICENSE)
