@@ -1,26 +1,28 @@
-import {FastifyInstance, FastifyPluginOptions, RouteShorthandOptions} from "fastify";
+import { FastifyInstance, FastifyPluginOptions, RouteShorthandOptions } from "fastify";
 
 import { version } from '../controllers/app/version';
 
 import { googleVerify } from '../controllers/auth/googleVerify';
 import { logout } from '../controllers/auth/logout';
 
-import {listExchangeRates} from "../controllers/exchange/listExchangeRates";
-import {latestExchangeRate} from "../controllers/exchange/latestExchangeRate";
-import {syncExchangeRate} from "../controllers/exchange/syncExchangeRate";
+import { listExchangeRates } from "../controllers/exchange/listExchangeRates";
+import { latestExchangeRate } from "../controllers/exchange/latestExchangeRate";
+import { syncExchangeRate } from "../controllers/exchange/syncExchangeRate";
 
-import {getCompany} from "../controllers/company/getCompany";
-import {putCompany, type PutCompanyBody} from "../controllers/company/putCompany";
+import { getCompany } from "../controllers/company/getCompany";
+import { putCompany, type PutCompanyBody } from "../controllers/company/putCompany";
 
-import {listClients} from "../controllers/client/listClients";
-import {addClient, AddClientBody} from "../controllers/client/addClient";
-import {updateClient, UpdateClientRoute} from "../controllers/client/updateClient";
-import {deleteClient, DeleteClientRoute} from "../controllers/client/deleteClient";
+import { listClients } from "../controllers/client/listClients";
+import { addClient, AddClientBody } from "../controllers/client/addClient";
+import { updateClient, UpdateClientRoute } from "../controllers/client/updateClient";
+import { deleteClient, DeleteClientRoute } from "../controllers/client/deleteClient";
 
-import {listInvoices} from "../controllers/invoice/listInvoices";
-import {addInvoice, AddInvoiceRoute} from "../controllers/invoice/addInvoice";
-import {updateInvoice, UpdateInvoiceRoute} from "../controllers/invoice/updateInvoice";
-import {deleteInvoice, DeleteInvoiceRoute} from "../controllers/invoice/deleteInvoice";
+import { listInvoices } from "../controllers/invoice/listInvoices";
+import { addInvoice, AddInvoiceRoute } from "../controllers/invoice/addInvoice";
+import { updateInvoice, UpdateInvoiceRoute } from "../controllers/invoice/updateInvoice";
+import { deleteInvoice, DeleteInvoiceRoute } from "../controllers/invoice/deleteInvoice";
+
+import { sendToKsef } from "../controllers/ksef/sendToKsef";
 
 const PUBLIC: RouteShorthandOptions = { config: { isPrivate: false } };
 const SECRET: RouteShorthandOptions = { config: { isPrivate: true } };
@@ -56,6 +58,7 @@ export default function indexRoute(
     server.post<AddInvoiceRoute>('/invoices', SECRET, addInvoice);
     server.put<UpdateInvoiceRoute>('/invoices/:id', SECRET, updateInvoice);
     server.delete<DeleteInvoiceRoute>('/invoices/:id', SECRET, deleteInvoice);
+    server.post<{ Params: { id: string } }>('/invoices/:id/ksef', SECRET, sendToKsef);
 
     next();
 }

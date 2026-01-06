@@ -178,4 +178,7 @@ model invoices {
   vatBankAccountNumber String  @default("")
   paid                 Float
   paymentDate          String?
+
+  ksefReferenceNumber  String?
+  ksefStatus           String?   // 'Sent', 'Accepted', 'Rejected'
 }

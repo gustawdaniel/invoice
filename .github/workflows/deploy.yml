@@ -35,8 +35,9 @@ jobs:
           # We might need to map Github Secrets to these build args if they contain sensitive or env-specific data.
           # Assuming NUXT_PUBLIC_JSON_URL needs to be the PUBLIC domain for production.
           build-args: |
-             NUXT_PUBLIC_JSON_URL=https://api.openinvoice.in
-             GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
+            NUXT_PUBLIC_JSON_URL: ${{ secrets.NUXT_PUBLIC_JSON_URL }}
+            GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+            VITE_API_URL: "https://api.openinvoice.in"
           tags: registry.digitalocean.com/main/open-invoice-front
 
   deploy:

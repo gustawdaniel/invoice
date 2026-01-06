@@ -19,6 +19,9 @@ export const serverVariables = z.object({
     GOOGLE_CLIENT_SECRET: z.string(),
 
     EXCHANGE_RATES_API_TOKEN: z.string(),
+
+    KSEF_API_URL: z.string().default('https://ksef-test.mf.gov.pl/api'),
+    KSEF_TOKEN: z.string().optional(), // For test environment authorization
 });
 
 export const config = serverVariables.parse(process.env);
