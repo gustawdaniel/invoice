@@ -4,13 +4,13 @@ import {prisma} from '../../db';
 import {tokenizeUser} from "../../helpers/tokenize";
 import {defaultUserInput} from "../../helpers/defaultUserInput";
 import {config} from "../../config";
+import {cacheAvatar} from "../../helpers/cacheAvatar";
 
 export const googleVerify = async (
     req: FastifyRequest<{ Body: { credential: string } }>,
     reply: FastifyReply,
 ): Promise<FastifyReply> => {
     try {
-        console.log("credential", req.body.credential);
         const client = new OAuth2Client({
             clientId: config.GOOGLE_CLIENT_ID,
             clientSecret: config.GOOGLE_CLIENT_SECRET
@@ -43,11 +43,11 @@ export const googleVerify = async (
             })
         }
 
-        if (user.avatar !== payload.picture && payload.picture) {
-            user.avatar = payload.picture
+        if (!user.avatar && payload.picture) {
+            user.avatar = await cacheAvatar(user.id, payload.picture)
             await prisma.users.update({
                 where: {id: user.id},
-                data: {avatar: payload.picture, lastVerifiedAt: new Date()}
+                data: {avatar: user.avatar, lastVerifiedAt: new Date()}
             })
         } else {
             await prisma.users.update({

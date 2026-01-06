@@ -48,7 +48,7 @@ const clientStore = useClientStore();
 
 function newInvoice() {
   invoiceStore.invoice = defaultInvoice()
-    router.push(`/invoice`)
+  router.push(`/invoice`)
 }
 const userStore = useUserStore()
 

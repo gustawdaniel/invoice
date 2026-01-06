@@ -10,5 +10,6 @@ server.listen(
             throw err;
         }
         console.info(`server listening on ${host}`);
+        console.log(config.MONGO_URI)
     },
 );

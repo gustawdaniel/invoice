@@ -32,6 +32,7 @@ export const useUserStore = defineStore(
             async function logout() {
                 user.value = null;
                 token.value = null;
+                localStorage.clear();
             }
 
             async function verifyGoogleCredential(credential: string) {

@@ -170,12 +170,12 @@ model invoices {
 
   items InvoiceItem[]
 
-  issuerName           String @default("Daniel Gustaw")
-  receiverName         String @default("")
+  issuerName           String  @default("Daniel Gustaw")
+  receiverName         String  @default("")
   bankAccountNumber    String
   publicNote           String
   privateNote          String
-  vatBankAccountNumber String @default("")
+  vatBankAccountNumber String  @default("")
   paid                 Float
-  paymentDate          String
+  paymentDate          String?
 }

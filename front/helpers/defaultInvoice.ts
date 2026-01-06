@@ -1,22 +1,20 @@
-import type {Invoice} from "~/interfaces/Invoice";
+import type { Invoice } from "~/interfaces/Invoice";
 import dayjs from "dayjs";
+import { paymentForms } from "~/helpers/paymentForms";
 
-export function defaultInvoice():Invoice {
+export function defaultInvoice(): Invoice {
     return {
         id: '',
         type: 'invoice',
         number: '',
-        client: {id: '', name: '', tin: '', post: '', city: '', street: ''},
+        client: { id: '', name: '', tin: '', post: '', city: '', street: '' },
         issueDate: dayjs().format('YYYY-MM-DD'), // YYYY-MM-DD
         saleDate: dayjs().format('YYYY-MM-DD'),
-        deadlineDate : dayjs().add(14, 'days').format('YYYY-MM-DD'),
+        deadlineDate: dayjs().add(14, 'days').format('YYYY-MM-DD'),
         issuePlace: 'Tbilisi',
         currency: 'PLN',
         lang: 'pl',
-        paymentForm: {
-            name: 'Transfer 14 days',
-            key: '14d'
-        },
+        paymentForm: paymentForms[2],
         items: [
             //     {
             //     name: 'New Advertising Campaign',

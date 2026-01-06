@@ -46,7 +46,7 @@
 
     <div class="w-1/2">
       <label class="text-gray-800 block mb-2 font-bold text-xs uppercase tracking-wide">Buyer and payer:</label>
-      <div>
+      <div v-if="invoiceStore.invoice.client">
         <div v-text="invoiceStore.invoice.client.name"></div>
 <!--        TODO: add united kingdom -->
         <div v-text="`${invoiceStore.invoice.client.street}, ${invoiceStore.invoice.client.post} ${invoiceStore.invoice.client.city}, ${invoiceStore.invoice.client.country ?? 'Polska'}`"></div>

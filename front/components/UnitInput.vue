@@ -31,7 +31,7 @@
 import { computed } from 'vue'
 import {Listbox, ListboxButton, ListboxOption, ListboxOptions} from '@headlessui/vue'
 import {ChevronUpDownIcon} from '@heroicons/vue/20/solid'
-import {Unit} from "~/interfaces/Item";
+import type {Unit} from "~/interfaces/Item";
 
 const units: { name: Unit }[] = [
   'piece',
@@ -47,7 +47,7 @@ const units: { name: Unit }[] = [
   'mb',
   'l',
   'mh.',
-].map((unit:Unit):{name: Unit} => ({name: unit}));
+].map((unit) => ({name: unit as Unit}));
 
 
 const props = defineProps({

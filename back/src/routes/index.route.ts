@@ -19,6 +19,8 @@ import {deleteClient, DeleteClientRoute} from "../controllers/client/deleteClien
 
 import {listInvoices} from "../controllers/invoice/listInvoices";
 import {addInvoice, AddInvoiceRoute} from "../controllers/invoice/addInvoice";
+import {updateInvoice, UpdateInvoiceRoute} from "../controllers/invoice/updateInvoice";
+import {deleteInvoice, DeleteInvoiceRoute} from "../controllers/invoice/deleteInvoice";
 
 const PUBLIC: RouteShorthandOptions = { config: { isPrivate: false } };
 const SECRET: RouteShorthandOptions = { config: { isPrivate: true } };
@@ -52,6 +54,8 @@ export default function indexRoute(
     // invoice
     server.get('/invoices', SECRET, listInvoices);
     server.post<AddInvoiceRoute>('/invoices', SECRET, addInvoice);
-    
+    server.put<UpdateInvoiceRoute>('/invoices/:id', SECRET, updateInvoice);
+    server.delete<DeleteInvoiceRoute>('/invoices/:id', SECRET, deleteInvoice);
+
     next();
 }

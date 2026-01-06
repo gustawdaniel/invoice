@@ -1,6 +1,6 @@
 <template>
   <div>
-  <SingleInvoice :id="String(route.params.id)"/>
+  <SingleInvoice :id="invoiceId"/>
   </div>
 </template>
 
@@ -8,6 +8,14 @@
 import {useRoute} from "#imports";
 
 const route = useRoute()
+
+const invoiceId = computed<string | undefined>(() => {
+  if(!route.params.id) {
+    return undefined;
+  }
+
+  return String(route.params.id);
+});
 </script>
 
 <style scoped>

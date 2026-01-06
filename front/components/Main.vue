@@ -14,7 +14,7 @@
         <UButton
             icon="i-heroicons-view-columns"
             size="xs"
-            color="white"
+            color="neutral"
             class="ml-10"
         >
           Columns
@@ -24,52 +24,33 @@
 
     <hr>
 
-    <!--    <UTable :rows="orderedInvoices" :columns="columnTable" :ui="{thead: 'bg-gray-50', base: 'min-w-full table-auto'}">-->
-    <!--      <template #client-header="{}"><span class="flex items-center justify-between">-->
-    <!--        <span class="mr-4">client</span><input v-model="clientNameFilter" type="text" class="w-1/2 py-0 border">-->
-    <!--      </span></template>-->
-    <!--      <template #actions-header="{}"><span></span></template>-->
-
-    <!--      <template #lp-data="{ index }"><span class="text-gray-900">{{ index + 1 }}</span></template>-->
-    <!--      <template #id-data="{ row: invoice }"><span class="whitespace-nowrap">{{ invoice.id }}</span></template>-->
-    <!--      <template #date-data="{ row: invoice }"><span class="whitespace-nowrap issue-date">{{ invoice.issueDate }}</span></template>-->
-    <!--      <template #client-data="{ row: invoice }"><span class="whitespace-nowrap">{{ invoice.client.name }}<br><span class="text-gray-400">{{firstItemName(invoice)}}</span></span>-->
-    <!--      </template>-->
-    <!--      <template #value-data="{ row: invoice }"><span class="whitespace-nowrap">{{ total(invoice) }} {{ invoice.currency }}</span></template>-->
-    <!--      <template #status-data="{ row: invoice }"><span class="whitespace-nowrap">{{ status(invoice) }} <span-->
-    <!--          v-if="status(invoice) === 'paid'"><span-->
-    <!--          class="text-gray-700">{{ invoice.paid }}</span><br>{{ invoice.paymentDate }}</span></span></template>-->
-
-    <!--      <template #actions-data="{ row: invoice }">-->
-    <!--        <button class="border px-2 py-1 hover:bg-gray-100 text-black" @click="printInvoice(invoice)">PRINT</button>-->
-    <!--        <button class="border px-2 py-1 hover:bg-gray-100 text-black" @click="clone(invoice)">COPY</button>-->
-    <!--        <button class="text-indigo-600 hover:text-indigo-900" @click="edit(invoice)">Edit</button>-->
-    <!--        <button class="border px-2 py-1 hover:bg-gray-100 text-black" @click="remove(invoice.id)">DEL</button>-->
-    <!--      </template>-->
-    <!--    </UTable>-->
-
     <table class="min-w-full divide-y divide-gray-300">
       <thead class="bg-gray-50">
       <tr>
         <th v-if="columnTable.includes('lp')" scope="col"
             class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">lp
         </th>
-        <th v-if="columnTable.includes('id')" scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+        <th v-if="columnTable.includes('id')" scope="col"
+            class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
           id
         </th>
-        <th v-if="columnTable.includes('number')" scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+        <th v-if="columnTable.includes('number')" scope="col"
+            class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
           number
         </th>
-        <th v-if="columnTable.includes('date')" scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+        <th v-if="columnTable.includes('date')" scope="col"
+            class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
           date
         </th>
         <th v-if="columnTable.includes('client')" scope="col"
             class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 flex justify-between items-center"><span
             class="mr-4">client</span><input v-model="clientNameFilter" type="text" class="w-1/2 py-0 border"></th>
-        <th v-if="columnTable.includes('value')" scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+        <th v-if="columnTable.includes('value')" scope="col"
+            class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
           value
         </th>
-        <th v-if="columnTable.includes('status')" scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+        <th v-if="columnTable.includes('status')" scope="col"
+            class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
           status
         </th>
         <th v-if="columnTable.includes('actions')" scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6">
@@ -83,33 +64,33 @@
         <td v-if="columnTable.includes('lp')"
             class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">{{ index + 1 }}
         </td>
-        <td v-if="columnTable.includes('id')" class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{{ invoice.id }}</td>
-        <td v-if="columnTable.includes('number')" class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{{
-            invoice.number
-          }}
-        </td>
-        <td v-if="columnTable.includes('date')" class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{{
-            invoice.issueDate
-          }}
-        </td>
-        <td v-if="columnTable.includes('client')" class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{{
-            invoice.client.name
-          }}<br><span
-              class="text-gray-400">{{ firstItemName(invoice) }}</span></td>
-        <td v-if="columnTable.includes('value')" class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{{ total(invoice) }}
-          {{ invoice.currency }}
-        </td>
-        <td v-if="columnTable.includes('status')" class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-          {{ status(invoice) }} <span v-if="status(invoice) === 'paid'"><span
-            class="text-gray-700">{{ invoice.paid }}</span><br>{{ invoice.paymentDate }}</span>
-        </td>
-        <td v-if="columnTable.includes('actions')"
-            class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-          <button class="border px-2 py-1 hover:bg-gray-100" @click="printInvoice(invoice)">PRINT</button>
-          <button class="border px-2 py-1 hover:bg-gray-100" @click="clone(invoice)">COPY</button>
-          <button class="text-indigo-600 hover:text-indigo-900" @click="edit(invoice)">Edit</button>
-          <button class="border px-2 py-1 hover:bg-gray-100" @click="remove(invoice.id)">DEL</button>
-        </td>
+                <td v-if="columnTable.includes('id')" class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{{ invoice.id }}</td>
+                <td v-if="columnTable.includes('number')" class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{{
+                    invoice.number
+                  }}
+                </td>
+                <td v-if="columnTable.includes('date')" class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{{
+                    invoice.issueDate
+                  }}
+                </td>
+                <td v-if="columnTable.includes('client')" class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{{
+                    invoice.client?.name
+                  }}<br><span
+                      class="text-gray-400">{{ firstItemName(invoice) }}</span></td>
+                <td v-if="columnTable.includes('value')" class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{{ total(invoice) }}
+                  {{ invoice.currency }}
+                </td>
+                <td v-if="columnTable.includes('status')" class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                  {{ status(invoice) }} <span v-if="status(invoice) === 'paid'"><span
+                    class="text-gray-700">{{ invoice.paid }}</span><br>{{ invoice.paymentDate }}</span>
+                </td>
+                <td v-if="columnTable.includes('actions')"
+                    class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                  <button class="border px-2 py-1 hover:bg-gray-100" @click="printInvoice(invoice)">PRINT</button>
+                  <button class="border px-2 py-1 hover:bg-gray-100" @click="clone(invoice)">COPY</button>
+                  <button class="text-indigo-600 hover:text-indigo-900" @click="edit(invoice)">Edit</button>
+                  <button class="border px-2 py-1 hover:bg-gray-100" @click="remove(invoice.id)">DEL</button>
+                </td>
       </tr>
       </tbody>
       <InvoicesTableFoot
@@ -129,7 +110,6 @@
 </template>
 
 <script lang="ts" setup>
-
 import {total} from '~/helpers/total'
 import {status} from '~/helpers/status'
 import type {Invoice} from "~/interfaces/Invoice";
@@ -159,17 +139,21 @@ const printInvoice = async (inv: Invoice) => {
 
   console.log("company.value", companyStore.company);
 
-  if(!printTemplate.value) return;
+  if (!printTemplate.value) return;
 
   return printContent(printTemplate.value.innerHTML, `${['invoice', invoiceStore.invoice.number, snakecase(companyStore.company.name), snakecase(inv.client.name)].join('_')}.pdf`)
 }
+
+onMounted(async () => {
+  await invoiceStore.getInvoices()
+})
 
 const invoiceStore = useInvoiceStore();
 const toast = useToast();
 
 async function sync() {
- await invoiceStore.getInvoices()
-  await toast.add({ title: "Success", description: "Invoices were synced!" });
+  await invoiceStore.getInvoices()
+  await toast.add({title: "Success", description: "Invoices were synced!"});
 }
 
 const filteredInvoices = computed<Invoice[]>(() => {
@@ -184,6 +168,7 @@ const orderedInvoices = computed<Invoice[]>(() => {
 
 
 function edit(invoice: Invoice): void {
+  console.log("edit invoice", invoice)
   router.push(`/invoice/${invoice.id}`)
 }
 

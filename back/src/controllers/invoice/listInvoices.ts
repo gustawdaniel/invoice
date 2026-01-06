@@ -17,5 +17,7 @@ export const listInvoices = async (
         }
     });
 
+    console.log('invoices', invoices);
+
     return reply.send(invoices);
 }

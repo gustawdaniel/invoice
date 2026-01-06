@@ -168,6 +168,7 @@ import {printContent} from "~/helpers/printContent";
 import {useCompanyStore} from "~/store/company";
 import {useInvoiceStore} from "~/store/invoice";
 import {defaultInvoice} from "~/helpers/defaultInvoice";
+import Swal from 'sweetalert2';
 
 const router = useRouter();
 
@@ -185,10 +186,9 @@ onMounted(async () => {
     invoiceStore.invoice = invoiceStore.invoices.find(invoice => invoice.id === props.id) ?? null;
   } else {
     if (!invoiceStore.invoice) {
-      invoiceStore.invoice = defaultInvoice()
+      invoiceStore.invoice = defaultInvoice();
     }
     invoiceStore.invoice.number = nextInvoiceNumber(invoiceStore.invoice.issueDate)
-
   }
 })
 
@@ -196,15 +196,31 @@ async function syncInvoices() {
   await invoiceStore.getInvoices();
 }
 
-async function save() {
-  if(!invoiceStore.invoice) return;
-
-  if (invoiceStore.invoice.id) { // edit
-    await invoiceStore.updateInvoice(invoiceStore.invoice);
-  } else { // create new
-    await invoiceStore.addInvoice(invoiceStore.invoice);
+function getErrorMessage(error: unknown) {
+  if (error instanceof Error) {
+    return error.message;
   }
-  return router.push('/')
+
+  return 'Unknown error';
+}
+
+async function save() {
+  try {
+    if (!invoiceStore.invoice) return;
+
+    if (invoiceStore.invoice.id) { // edit
+      await invoiceStore.updateInvoice(invoiceStore.invoice);
+    } else { // create new
+      await invoiceStore.addInvoice(invoiceStore.invoice);
+    }
+    return router.push('/')
+  } catch (error) {
+    await Swal.fire({
+      title: 'Error',
+      text: getErrorMessage(error),
+      icon: 'error',
+    })
+  }
 }
 
 const printInvoice = async () => {

@@ -23,13 +23,10 @@ useHead({
   }],
 });
 
-function signOut() {
-  console.log('window,gapi', window.gapi);
-
+async function signOut() {
   const auth2 = window.gapi.auth2.getAuthInstance();
-  auth2.signOut().then(function () {
-    console.log('User signed out.');
-  });
+  await auth2.signOut();
+  return userStore.logout();
 }
 
 function handleError(error: unknown) {
@@ -63,14 +60,6 @@ if (isClient) {
 
 <template>
   <div v-if="loading">
-<!--    <div class="flex space-x-2 justify-center items-center">-->
-<!--      <span class="w-3 h-3 bg-blue-500 rounded-full animate-bounce"></span>-->
-<!--      <span class="w-3 h-3 bg-blue-500 rounded-full animate-bounce [animation-delay:-0.2s]"></span>-->
-<!--      <span class="w-3 h-3 bg-blue-500 rounded-full animate-bounce [animation-delay:-0.4s]"></span>-->
-<!--      <span class="w-3 h-3 bg-blue-500 rounded-full animate-bounce [animation-delay:-0.6s]"></span>-->
-<!--      <span class="w-3 h-3 bg-blue-500 rounded-full animate-bounce [animation-delay:-0.8s]"></span>-->
-<!--    </div>-->
-
     <div class="flex space-x-2 justify-center items-center">
     <span v-for="i in 5" :key="i" class="w-3 h-3 bg-blue-500 rounded-full animate-bounce-fast"
           :style="`animation-delay: ${-0.09 * i}s`"></span>

@@ -6,6 +6,12 @@ export const serverVariables = z.object({
         .default('development'),
     PORT: z.coerce.number().int().default(5000),
 
+    SPACE_ACCESS_KEY: z.string(),
+    SPACE_SECRET_KEY: z.string(),
+    SPACE_BUCKET: z.string(),
+    SPACE_ENDPOINT: z.string(),
+    SPACE_REGION: z.string().default('fra1'),
+
     MONGO_URI: z.string(),
     JWT_SECRET: z.string(),
 

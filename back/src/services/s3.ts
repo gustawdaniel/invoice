@@ -8,8 +8,14 @@ import { config } from '../config';
 
 const spacesEndpoint = new URL(`https://${config.SPACE_ENDPOINT}`).toString();
 
-const composeUrl = (path: string): string =>
-  `https://${config.SPACE_BUCKET}.${config.SPACE_ENDPOINT}/${path}`;
+export function composeKey(path: { id: string }): string {
+  const BASE_FOLDER = 'invoice';
+
+  return `${BASE_FOLDER}/avatar/${path.id}.png`;
+}
+
+const composeUrl = (key: string): string =>
+  `https://${config.SPACE_BUCKET}.${config.SPACE_ENDPOINT}/${key}`;
 
 const s3 = new S3Client({
   forcePathStyle: false,

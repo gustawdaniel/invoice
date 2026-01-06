@@ -37,8 +37,8 @@ const NewInvoiceSchema = z.object({
     bankAccountNumber: z.string(),
     publicNote: z.string(),
     privateNote: z.string(),
-    paid: z.number(),
-    paymentDate: z.string(),
+    paid: z.number().default(0),
+    paymentDate: z.string().optional(),
 });
 
 export const addInvoice = async (

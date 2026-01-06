@@ -1,7 +1,8 @@
-import {ref} from "vue";
-import {defineStore} from "pinia";
+import { ref } from "vue";
+import { defineStore } from "pinia";
 import type { Invoice } from "~/interfaces/Invoice";
-import {useUserStore} from "~/store/user";
+import { useUserStore } from "~/store/user";
+import { paymentForms } from "~/helpers/paymentForms";
 
 export const useInvoiceStore = defineStore('invoiceStore', (): {
     invoices: Ref<Invoice[]>,
@@ -21,31 +22,52 @@ export const useInvoiceStore = defineStore('invoiceStore', (): {
                 Authorization: `Bearer ${userStore.token}`
             }
         });
-        invoices.value = response;
+        invoices.value = response.map((invoice: any) => ({
+            ...invoice,
+            paymentForm: paymentForms.find(p => p.key === invoice.paymentForm)
+        }));
     }
 
     const addInvoice = async (invoiceData: Partial<Invoice>) => {
-        const response = await $fetch<Invoice>(`${import.meta.env.VITE_API_URL}/invoices`, {
+        if (!invoiceData.client) throw new Error('No client');
+
+        const response = await $fetch<any>(`${import.meta.env.VITE_API_URL}/invoices`, {
             method: 'POST',
-            body: JSON.stringify(invoiceData),
+            body: JSON.stringify({
+                ...invoiceData,
+                clientId: invoiceData.client.id,
+                paymentForm: invoiceData.paymentForm?.key,
+            }),
             headers: {
                 'Content-Type': 'application/json',
                 Authorization: `Bearer ${userStore.token}`
             }
         });
-        invoices.value.push(response);
+        invoices.value.push({
+            ...response,
+            paymentForm: paymentForms.find(p => p.key === response.paymentForm)
+        });
     }
 
     const updateInvoice = async (invoiceData: Partial<Invoice> & { id: string }) => {
-        const response = await $fetch<Invoice>(`${import.meta.env.VITE_API_URL}/invoices/${invoiceData.id}`, {
+        if (!invoiceData.client) throw new Error('No client');
+
+        const response = await $fetch<any>(`${import.meta.env.VITE_API_URL}/invoices/${invoiceData.id}`, {
             method: 'PUT',
-            body: JSON.stringify(invoiceData),
+            body: JSON.stringify({
+                ...invoiceData,
+                clientId: invoiceData.client.id,
+                paymentForm: invoiceData.paymentForm?.key,
+            }),
             headers: {
                 'Content-Type': 'application/json',
                 Authorization: `Bearer ${userStore.token}`
             }
         });
-        invoices.value.splice(invoices.value.findIndex(invoice => invoice.id === invoiceData.id), 1, response);
+        invoices.value.splice(invoices.value.findIndex(invoice => invoice.id === invoiceData.id), 1, {
+            ...response,
+            paymentForm: paymentForms.find(p => p.key === response.paymentForm)
+        });
     }
 
     const deleteInvoice = async (id: string) => {
@@ -66,6 +88,6 @@ export const useInvoiceStore = defineStore('invoiceStore', (): {
         updateInvoice,
         deleteInvoice
     }
-},{
+}, {
     persist: true,
 })

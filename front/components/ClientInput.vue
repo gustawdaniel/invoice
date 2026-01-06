@@ -1,10 +1,8 @@
 <template>
-
-
   <div class="w-full md:w-2/5 mb-2 md:mb-0" v-if="invoiceStore.invoice">
     <label class="text-gray-800 block mb-1 font-bold text-sm uppercase tracking-wide">Bill/Ship To:</label>
 
-    <Combobox as="div" v-model="invoiceStore.invoice.client" v-if="!invoiceStore.invoice.client.name">
+    <Combobox as="div" v-model="invoiceStore.invoice.client" v-if="!invoiceStore.invoice.client?.name">
       <div class="relative mt-1">
         <ComboboxInput
             class="w-full rounded-md border border-gray-300 bg-white py-2 pl-3 pr-10 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 sm:text-sm"
@@ -33,7 +31,7 @@
     </Combobox>
 
 
-    <template v-if="invoiceStore.invoice && invoiceStore.invoice.client.name">
+    <template v-if="invoiceStore.invoice && invoiceStore.invoice.client && invoiceStore.invoice.client.name">
       <input
           class="mb-1 bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-blue-500"
           type="text" placeholder="Billing company name" v-model="invoiceStore.invoice.client.name">

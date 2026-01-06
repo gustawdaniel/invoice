@@ -60,7 +60,10 @@ async function printAllInvoices(invoicesToPrint: any[]) {
   for(const inv of invoicesToPrint) {
     invoiceStore.invoice = inv;
     await nextTick();
-    await printContent(printTemplate.value.innerHTML, `invoice_${invoice.value.number}.pdf`)
+    if(!printTemplate.value) throw new Error('No print template');
+    if(!invoiceStore.invoice) throw new Error('No invoice');
+
+    await printContent(printTemplate.value.innerHTML, `invoice_${invoiceStore.invoice.number}.pdf`)
   }
 }
 
