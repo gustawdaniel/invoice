@@ -6,7 +6,8 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "test": "vitest run",
-    "json-server": "json-server --watch db.json --port 4000"
+    "json-server": "json-server --watch db.json --port 4000",
+    "postinstall": "nuxt prepare"
   },
   "devDependencies": {
     "@pinia/nuxt": "0.9.0",
