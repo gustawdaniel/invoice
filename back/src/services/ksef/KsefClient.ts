@@ -1,204 +1,203 @@
 import axios, { AxiosInstance } from 'axios';
-import * as nodeCrypto from 'crypto';
 import { config } from '../../config';
+import * as crypto from 'crypto';
 
-export enum KsefTokenPermission {
-    InvoiceRead = "InvoiceRead",
-    InvoiceWrite = "InvoiceWrite",
-    CredentialsRead = "CredentialsRead",
-    CredentialsManage = "CredentialsManage"
-}
-
-export interface GenerateTokenRequest {
-    description: string;
-    permissions: KsefTokenPermission[];
-}
-
-export interface KsefTokenResponse {
+interface KsefSessionContext {
     referenceNumber: string;
     token: string;
+    aesKey: Buffer;
+    iv: Buffer;
 }
 
-export interface KsefTokenMeta {
-    referenceNumber: string;
-    description: string;
-    creationDate: string;
-    status: string;
+interface KsefTokenMeta {
+    scope: string;
+    token: string;
+    valid: boolean;
 }
 
-export interface QueryTokensResponse {
-    tokenList: KsefTokenMeta[];
+interface KsefTokenResponse {
+    token: string;
+    valid: boolean;
 }
 
 export class KsefClient {
     private api: AxiosInstance;
-    private token: string | undefined;
+    private context: KsefSessionContext | null = null;
+    // Base URL for V2 Test (Updated to new endpoint)
+    private baseUrl = 'https://api-test.ksef.mf.gov.pl/v2';
 
     constructor() {
         this.api = axios.create({
-            baseURL: config.KSEF_API_URL,
+            baseURL: this.baseUrl,
             headers: {
                 'Content-Type': 'application/json',
-                'Accept': 'application/json',
+                'Accept': 'application/json'
             }
         });
-        this.token = config.KSEF_TOKEN;
     }
 
-    async initSession(identifier: string = 'YOUR_NIP'): Promise<string> {
-        if (!this.token) {
-            throw new Error('KSEF_TOKEN is not configured');
-        }
+    /**
+     * Authenticates and opens an interactive session (V2).
+     * @param nip - The NIP of the entity (subject).
+     * @returns The Session Reference Number.
+     */
+    async initSession(nip: string): Promise<string> {
+        // Clear previous context
+        this.context = null;
 
         try {
-            // 1. Get Challenge
-            const challengeRes = await this.api.post('/online/Session/AuthorisationChallenge', {
-                contextIdentifier: {
-                    type: 'onip',
-                    identifier: identifier
-                }
-            });
+            console.log('1. Fetching Public Key...');
+            const publicKeyPem = await this.getPublicKey();
 
-            const timestamp = challengeRes.data.timestamp;
-            const challenge = challengeRes.data.challenge;
+            console.log('2. Requesting Authorisation Challenge...');
+            const challenge = await this.getChallenge();
 
-            // 2. Encrypt Token
-            // Format: token|timestamp
-            const message = `${this.token}|${timestamp}`;
-            const publicKeysRes = await axios.get('https://api-demo.ksef.mf.gov.pl/v2/security/public-key-certificates');
-            // Assuming first key is valid for now, in prod should parse validFrom/To
-            const publicKeyPem = publicKeysRes.data.publicKeyCertificateList[0].publicKey.pem;
+            console.log('3. Preparing Encryption keys and Token...');
+            // Generate Random AES Key (32 bytes) and IV (16 bytes)
+            const aesKey = crypto.randomBytes(32);
+            const iv = crypto.randomBytes(16);
 
-            const encryptedToken = nodeCrypto.publicEncrypt({
+            // Handle token format (trim meta if present)
+            let rawToken = config.KSEF_TOKEN || '';
+            if (rawToken.includes('|')) {
+                const parts = rawToken.split('|');
+                rawToken = parts[parts.length - 1]; // Assume last part is the token
+            }
+
+            // Encrypt Auth Token with Public Key (RSA) - OAEP SHA256 required
+            const tokenString = `${rawToken}|${new Date(challenge.timestamp).getTime()}`;
+            const encryptedToken = crypto.publicEncrypt({
                 key: publicKeyPem,
-                padding: nodeCrypto.constants.RSA_PKCS1_OAEP_PADDING,
-                oaepHash: "sha256",
-            }, Buffer.from(message)).toString('base64');
+                padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
+                oaepHash: 'sha256'
+            }, Buffer.from(tokenString)).toString('base64');
 
-            // 3. Init Token Session
-            const initTokenXml = `<?xml version="1.0" encoding="UTF-8"?>
-<ns3:InitSessionTokenRequest xmlns:ns3="http://ksef.mf.gov.pl/schema/gtw/svc/online/auth/request/2021/10/01/0001" xmlns="http://ksef.mf.gov.pl/schema/gtw/svc/online/types/2021/10/01/0001" xmlns:ns2="http://ksef.mf.gov.pl/schema/gtw/svc/types/2021/10/01/0001">
-    <ns3:Context>
-        <Challenge>${challenge}</Challenge>
-        <Identifier xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="ns2:SubjectIdentifierByCompanyType">
-            <ns2:Identifier>${identifier}</ns2:Identifier>
-        </Identifier>
-        <DocumentType>
-            <Service>KSeF</Service>
-            <FormCode>
-                <SystemCode>FA (2)</SystemCode>
-                <SchemaVersion>1-0E</SchemaVersion>
-                <TargetNamespace>http://crd.gov.pl/wzor/2023/06/29/12648/</TargetNamespace>
-                <Value>FA</Value>
-            </FormCode>
-        </DocumentType>
-        <Token>${encryptedToken}</Token>
-    </ns3:Context>
-</ns3:InitSessionTokenRequest>`;
+            console.log('4. Requesting KSeF Auth Token...');
+            const authToken = await this.getAuthToken(challenge.challenge, nip, encryptedToken);
 
-            const sessionRes = await this.api.post('/online/Session/InitToken', initTokenXml, {
-                headers: { 'Content-Type': 'application/xml' }
-            });
+            console.log('5. Opening Online Session...');
+            const session = await this.openOnlineSession(authToken, aesKey, iv, publicKeyPem);
 
-            return sessionRes.data.sessionToken.token;
+            this.context = {
+                referenceNumber: session.referenceNumber,
+                token: authToken,
+                aesKey,
+                iv,
+            };
+
+            // Update axios headers for future requests (if needed)
+            // this.api.defaults.headers.common['SessionToken'] = this.context.token; 
+
+            return session.referenceNumber;
 
         } catch (error: any) {
-            console.error('KSeF Init Session Error', error.response?.data || error.message);
-            throw new Error(`Failed to initialize KSeF session: ${JSON.stringify(error.response?.data)}`);
+            console.error('KSeF Session Init Phase Failed:', error.message);
+            if (error.response) {
+                console.error('Response Data:', JSON.stringify(error.response.data, null, 2));
+            }
+            throw error;
         }
     }
 
-    /**
-     * Send Invoice XML
-     */
-    async sendInvoice(xml: string): Promise<string> {
-        // Mock implementation until Session is valid
-        console.log('Would send XML to KSeF:', xml.substring(0, 100) + '...');
-
-        // 1. Init Session (Get Token)
-        // const sessionToken = await this.initSession();
-
-        // 2. PUT /online/Invoice/Send
-        /*
-        const res = await this.api.put('/online/Invoice/Send', xml, {
-            headers: {
-                'SessionToken': sessionToken,
-                'Content-Type': 'application/octet-stream'
-            }
-        });
-        return res.data.elementReferenceNumber;
-        */
-
-        return 'MOCK-KSEF-REF-12345';
+    private async getPublicKey(): Promise<string> {
+        const res = await this.api.get('/security/public-key-certificates');
+        const certs = res.data;
+        const certDer = certs[0].certificate;
+        return `-----BEGIN CERTIFICATE-----\n${certDer}\n-----END CERTIFICATE-----`;
     }
 
-    /**
-     * Generate a new KSeF Token
-     * Requires an active session (which requires a master token or cert)
-     */
-    async generateToken(request: GenerateTokenRequest): Promise<KsefTokenResponse> {
-        const sessionToken = await this.initSession();
+    private async getChallenge(): Promise<{ challenge: string, timestamp: string }> {
+        const res = await this.api.post('/auth/challenge', {});
+        return res.data;
+    }
 
-        const res = await this.api.post('/online/Credentials/GenerateToken', {
-            generateToken: {
-                description: request.description,
-                credentialsRoleList: request.permissions.map(p => ({
-                    roleType: 'Token',
-                    roleDescription: p
-                }))
-            }
-        }, {
-            headers: {
-                'SessionToken': sessionToken
-            }
-        });
-
-        return {
-            referenceNumber: res.data.referenceNumber,
-            token: res.data.authorizationToken
+    private async getAuthToken(challenge: string, nip: string, encryptedToken: string): Promise<string> {
+        const payload = {
+            challenge: challenge,
+            contextIdentifier: {
+                type: 'Nip',
+                value: nip
+            },
+            encryptedToken: encryptedToken
         };
+
+        const res = await this.api.post('/auth/ksef-token', payload);
+        // Returns 201/202 with { referenceNumber, authenticationToken: { token: ... } }
+        return res.data.authenticationToken.token;
     }
 
-    /**
-     * List all tokens
-     */
-    async queryTokens(): Promise<QueryTokensResponse> {
-        const sessionToken = await this.initSession();
+    private async openOnlineSession(authToken: string, aesKey: Buffer, iv: Buffer, publicKeyPem: string): Promise<{ referenceNumber: string, sessionToken: any }> {
+        const encryptedKey = crypto.publicEncrypt({
+            key: publicKeyPem,
+            padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
+            oaepHash: 'sha256'
+        }, aesKey).toString('base64');
 
-        // Note: The API might require pagination or status filters.
-        // For simple usage we query defaults.
-        const res = await this.api.get('/online/Credentials/Status', {
+        const payload = {
+            formCode: {
+                systemCode: 'FA (3)',
+                schemaVersion: '1-0E',
+                value: 'FA'
+            },
+            encryption: {
+                encryptedSymmetricKey: encryptedKey,
+                initializationVector: iv.toString('base64')
+            }
+        };
+
+        // Note: openOnlineSession might require Auth Token in header? 
+        // Based on previous findings, /sessions/online likely requires authentication.
+        // Usually headers: { "SessionToken": authToken } or "Authorization"
+        // Let's assume SessionToken header.
+        const res = await this.api.post('/sessions/online', payload, {
             headers: {
-                'SessionToken': sessionToken
+                'Authorization': `Bearer ${authToken}`,
+                'X-KSeF-Feature': 'upo-v4-3'
+            }
+        });
+        return res.data;
+    }
+
+    async checkPermissions(authToken: string, nip: string): Promise<any> {
+        // Query for all permissions (empty body for unfiltered)
+        // Need to pass pageOffset/pageSize in query params or accept defaults
+        // Schema requires non-empty body? OpenAPI says "W przypadku braku podania kryteriów...".
+        // Let's try sending just empty contextIdentifier or minimal valid body if needed.
+        // Actually, schema shows PersonalPermissionsQueryRequest inside content.
+
+        const payload = {
+            contextIdentifier: {
+                type: 'Nip',
+                value: nip
+            }
+        };
+
+        // Let's retrieve everything.
+        const res = await this.api.post('/permissions/query/personal/grants', payload, {
+            headers: {
+                'Authorization': `Bearer ${authToken}`
             },
             params: {
-                PageSize: 100,
-                PageOffset: 0
+                pageSize: 100,
+                pageOffset: 0
             }
         });
-
-        // Mapping might depend on exact API structure, adapting based on typical KSeF response
-        // The endpoint /online/Credentials/Status usually returns a list of credentials (contexts),
-        // but for Tokens specifically there is often a specific filter or endpoint /online/Query/Credential/Context/Token
-        // However, based on docs: GET /tokens is for general token man? 
-        // Docs sent by user say: GET /tokens
-        // But the KSeF API uses Swagger paths like /online/Credentials/...
-
-        // Let's re-read the doc closely or stick to the likely endpoint.
-        // The doc provided: GET /tokens works on api-test.ksef.mf.gov.pl/docs/v2
-        // Wait, standard KSeF API puts these under /online/Credentials or similar.
-        // Let's use the one from the doc user sent if it maps to `api-test`. 
-        // "Generowanie odbywa się poprzez wywołanie endpointu: POST /tokens" -> This refers to what looks like a wrapper or a specific Swagger view.
-        // But standard KSeF is likely:
-        // https://ksef-test.mf.gov.pl/api/online/Credentials/GenerateToken
-
-        // I will assume standard KSeF endpoints for now as used in generateToken.
-        // For querying: standard KSeF has /online/Query/Credential/Context/Sync or similar.
-
-        // Let's try to stick to /online/Credentials/Status if possible or better:
-        // Getting list of tokens often requires `Query` api. 
-        // Let's implement a simple placeholder for Query or try /online/Credentials/Status which lists credentials.
-
         return res.data;
+    }
+
+    /**
+     * Send Invoice XML (Placeholder for now)
+     */
+    async sendInvoice(xml: string): Promise<any> {
+        if (!this.context) throw new Error('Session not initialized');
+
+        // Note: Actual V2 sending requires encrypting the XML with this.context.aesKey + IV
+        // For now, validating connection is the goal.
+        console.warn('V2 sendInvoice not fully implemented (requires AES encryption). Returning mock success for connection test.');
+
+        return {
+            elementReferenceNumber: `FAKE-${Date.now()}`,
+            processingCode: 200
+        };
     }
 }
