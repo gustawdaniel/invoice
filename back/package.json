@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "infisical run --env=dev --path=/back -- tsx watch ./src/index.ts",
     "seed": "infisical run --env=dev --path=/back -- tsx ./scripts/seed.ts",
-    "test": "vitest run"
+    "test": "vitest run",
+    "build": "tsc",
+    "start": "node dist/src/index.js"
   },
   "keywords": [],
   "author": "",
