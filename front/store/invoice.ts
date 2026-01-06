@@ -24,7 +24,7 @@ export const useInvoiceStore = defineStore('invoiceStore', (): {
         });
         invoices.value = response.map((invoice: any) => ({
             ...invoice,
-            paymentForm: paymentForms.find(p => p.key === invoice.paymentForm)
+            paymentForm: paymentForms.find(p => p.key === invoice.paymentForm || (p.key === '14d' && invoice.paymentForm === 'd14') || (p.key === '7d' && invoice.paymentForm === 'd7'))
         }));
     }
 
