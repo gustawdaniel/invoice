@@ -1,7 +1,7 @@
 import z from "zod";
 
 const configSchema = z.object({
-    GOOGLE_CLIENT_ID: z.string(),
+    GOOGLE_CLIENT_ID: z.string().min(1, "GOOGLE_CLIENT_ID is missing"),
     VITE_API_URL: z.string(),
 });
 

@@ -12,7 +12,7 @@ RUN pnpm install --frozen-lockfile
 COPY . .
 
 # Build args
-ARG GOOGLE_CLIENT_ID
+ARG GOOGLE_CLIENT_ID=244384199602-sqhor9mc08tkl3gkd71k9c46rq38msdd.apps.googleusercontent.com
 ENV GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID
 ARG VITE_API_URL
 ENV VITE_API_URL=$VITE_API_URL
