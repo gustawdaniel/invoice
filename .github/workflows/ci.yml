@@ -23,6 +23,7 @@ jobs:
           cache: 'pnpm'
           cache-dependency-path: front/pnpm-lock.yaml
       - run: pnpm install
+      - run: pnpm run postinstall
       - run: pnpm test
 
   backend-test:

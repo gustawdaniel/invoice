@@ -1,5 +1,5 @@
 <template>
-  <UModal  :title="title">
+  <UModal  :title="title" :description="title">
 
     <template #body>
       <div class="w-full mb-2 md:mb-0">
