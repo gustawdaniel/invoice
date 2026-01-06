@@ -27,6 +27,8 @@ COPY package.json pnpm-lock.yaml ./
 # Install only production dependencies
 RUN pnpm install --prod --frozen-lockfile
 
+COPY --from=builder /app/node_modules/.prisma /app/node_modules/.prisma
+
 COPY --from=builder /app/dist ./dist
 
 EXPOSE 5000
