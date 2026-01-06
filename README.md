@@ -2,6 +2,11 @@
 
 Open source accounting software compatible with KSeF (Polish National System of e-Invoices).
 
+## Demo
+
+Check out the live demo: [https://openinvoice.in/](https://openinvoice.in/)
+
+
 ## Features
 
 - **KSeF Integration**: Seamlessly obtain tokens and manage invoices in compliance with Polish regulations.
