@@ -11,6 +11,7 @@ export const useInvoiceStore = defineStore('invoiceStore', (): {
     addInvoice: (client: Partial<Invoice>) => Promise<void>
     updateInvoice: (client: Partial<Invoice> & { id: string }) => Promise<void>
     deleteInvoice: (id: string) => Promise<void>
+    sendKsef: (id: string) => Promise<void>
 } => {
     const invoices = ref<Invoice[]>([]);
     const invoice = ref<Invoice | null>(null);
@@ -80,13 +81,24 @@ export const useInvoiceStore = defineStore('invoiceStore', (): {
         invoices.value.splice(invoices.value.findIndex(invoice => invoice.id === id), 1);
     }
 
+    const sendKsef = async (id: string) => {
+        await $fetch(`${import.meta.env.VITE_API_URL}/invoices/${id}/ksef`, {
+            method: 'POST',
+            headers: {
+                Authorization: `Bearer ${userStore.token}`
+            }
+        });
+        await getInvoices();
+    }
+
     return {
         invoices,
         invoice,
         getInvoices,
         addInvoice,
         updateInvoice,
-        deleteInvoice
+        deleteInvoice,
+        sendKsef
     }
 }, {
     persist: true,

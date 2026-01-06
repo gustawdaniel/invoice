@@ -28,7 +28,7 @@ export const sendToKsef = async (
 
         // 3. Send to KSeF
         const ksefClient = new KsefClient();
-        // await ksefClient.initSession(); // TODO: Enable when real auth is ready
+        await ksefClient.initSession(invoice.company.tin);
         const ksefRef = await ksefClient.sendInvoice(xml);
 
         // 4. Update Database

@@ -86,6 +86,7 @@
                 </td>
                 <td v-if="columnTable.includes('actions')"
                     class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                  <button class="border px-2 py-1 hover:bg-gray-100" @click="sendKsef(invoice)">SEND KSEF</button>
                   <button class="border px-2 py-1 hover:bg-gray-100" @click="printInvoice(invoice)">PRINT</button>
                   <button class="border px-2 py-1 hover:bg-gray-100" @click="clone(invoice)">COPY</button>
                   <button class="text-indigo-600 hover:text-indigo-900" @click="edit(invoice)">Edit</button>
@@ -112,6 +113,7 @@
 <script lang="ts" setup>
 import {total} from '~/helpers/total'
 import {status} from '~/helpers/status'
+import {getErrorMessage} from '~/helpers/getErrorMessage'
 import type {Invoice} from "~/interfaces/Invoice";
 import {computed, nextTick, useRouter} from "#imports";
 import {useRuntimeConfig} from "#app";
@@ -142,6 +144,15 @@ const printInvoice = async (inv: Invoice) => {
   if (!printTemplate.value) return;
 
   return printContent(printTemplate.value.innerHTML, `${['invoice', invoiceStore.invoice.number, snakecase(companyStore.company.name), snakecase(inv.client.name)].join('_')}.pdf`)
+}
+
+const sendKsef = async (inv: Invoice) => {
+    try {
+        await invoiceStore.sendKsef(inv.id);
+        toast.add({title: "Success", description: "Invoice sent to KSeF!"});
+    } catch (e) {
+        toast.add({title: "Error", description: getErrorMessage(e)});
+    }
 }
 
 onMounted(async () => {

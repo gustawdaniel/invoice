@@ -29,6 +29,7 @@ model users {
 model companies {
   id        String     @id @default(auto()) @map("_id") @db.ObjectId
   name      String
+  tin       String     @default("")
   address   String     @default("")
   info      String     @default("")
   logo      String     @default("")

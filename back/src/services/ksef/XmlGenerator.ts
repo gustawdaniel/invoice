@@ -26,7 +26,7 @@ export class XmlGenerator {
         // Adjust fields based on company model. Assuming NIP (TIN) is available.
         const podmiot1 = doc.ele('Podmiot1');
         const daneId1 = podmiot1.ele('DaneIdentyfikacyjne');
-        daneId1.ele('NIP').txt('REPLACE_WITH_COMPANY_NIP').up(); // TODO: Add NIP to company model or config
+        daneId1.ele('NIP').txt(invoice.company.tin).up();
         daneId1.ele('NazwaPelna').txt(invoice.company.name).up();
         daneId1.up();
 
