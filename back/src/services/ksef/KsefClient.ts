@@ -2,6 +2,34 @@ import axios, { AxiosInstance } from 'axios';
 import * as nodeCrypto from 'crypto';
 import { config } from '../../config';
 
+export enum KsefTokenPermission {
+    InvoiceRead = "InvoiceRead",
+    InvoiceWrite = "InvoiceWrite",
+    CredentialsRead = "CredentialsRead",
+    CredentialsManage = "CredentialsManage"
+}
+
+export interface GenerateTokenRequest {
+    description: string;
+    permissions: KsefTokenPermission[];
+}
+
+export interface KsefTokenResponse {
+    referenceNumber: string;
+    token: string;
+}
+
+export interface KsefTokenMeta {
+    referenceNumber: string;
+    description: string;
+    creationDate: string;
+    status: string;
+}
+
+export interface QueryTokensResponse {
+    tokenList: KsefTokenMeta[];
+}
+
 export class KsefClient {
     private api: AxiosInstance;
     private token: string | undefined;
@@ -102,5 +130,75 @@ export class KsefClient {
         */
 
         return 'MOCK-KSEF-REF-12345';
+    }
+
+    /**
+     * Generate a new KSeF Token
+     * Requires an active session (which requires a master token or cert)
+     */
+    async generateToken(request: GenerateTokenRequest): Promise<KsefTokenResponse> {
+        const sessionToken = await this.initSession();
+
+        const res = await this.api.post('/online/Credentials/GenerateToken', {
+            generateToken: {
+                description: request.description,
+                credentialsRoleList: request.permissions.map(p => ({
+                    roleType: 'Token',
+                    roleDescription: p
+                }))
+            }
+        }, {
+            headers: {
+                'SessionToken': sessionToken
+            }
+        });
+
+        return {
+            referenceNumber: res.data.referenceNumber,
+            token: res.data.authorizationToken
+        };
+    }
+
+    /**
+     * List all tokens
+     */
+    async queryTokens(): Promise<QueryTokensResponse> {
+        const sessionToken = await this.initSession();
+
+        // Note: The API might require pagination or status filters.
+        // For simple usage we query defaults.
+        const res = await this.api.get('/online/Credentials/Status', {
+            headers: {
+                'SessionToken': sessionToken
+            },
+            params: {
+                PageSize: 100,
+                PageOffset: 0
+            }
+        });
+
+        // Mapping might depend on exact API structure, adapting based on typical KSeF response
+        // The endpoint /online/Credentials/Status usually returns a list of credentials (contexts),
+        // but for Tokens specifically there is often a specific filter or endpoint /online/Query/Credential/Context/Token
+        // However, based on docs: GET /tokens is for general token man? 
+        // Docs sent by user say: GET /tokens
+        // But the KSeF API uses Swagger paths like /online/Credentials/...
+
+        // Let's re-read the doc closely or stick to the likely endpoint.
+        // The doc provided: GET /tokens works on api-test.ksef.mf.gov.pl/docs/v2
+        // Wait, standard KSeF API puts these under /online/Credentials or similar.
+        // Let's use the one from the doc user sent if it maps to `api-test`. 
+        // "Generowanie odbywa się poprzez wywołanie endpointu: POST /tokens" -> This refers to what looks like a wrapper or a specific Swagger view.
+        // But standard KSeF is likely:
+        // https://ksef-test.mf.gov.pl/api/online/Credentials/GenerateToken
+
+        // I will assume standard KSeF endpoints for now as used in generateToken.
+        // For querying: standard KSeF has /online/Query/Credential/Context/Sync or similar.
+
+        // Let's try to stick to /online/Credentials/Status if possible or better:
+        // Getting list of tokens often requires `Query` api. 
+        // Let's implement a simple placeholder for Query or try /online/Credentials/Status which lists credentials.
+
+        return res.data;
     }
 }

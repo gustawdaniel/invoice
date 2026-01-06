@@ -24,8 +24,8 @@ services:
     build:
       context: ./front
       args:
-        - NUXT_PUBLIC_JSON_URL
-        - GOOGLE_CLIENT_ID
+        - VITE_API_URL
+        - GOOGLE_CLIENT_ID=244384199602-sqhor9mc08tkl3gkd71k9c46rq38msdd.apps.googleusercontent.com
     ports:
       - "7482:80"
     depends_on:
