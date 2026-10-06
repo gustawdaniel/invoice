@@ -17,6 +17,7 @@ services:
       - SPACE_ENDPOINT
       - SPACE_REGION
       - EXCHANGE_RATES_API_TOKEN
+      - KSEF_SECRET_KEY
     restart: always
 
   frontend:

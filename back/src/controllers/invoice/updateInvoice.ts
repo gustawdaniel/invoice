@@ -45,7 +45,7 @@ export const updateInvoice = async (
     req: FastifyRequest<UpdateInvoiceRoute>,
     reply: FastifyReply,
 ): Promise<FastifyReply> => {
-    const companyId = req.user?.companyId;
+    const companyId = req.companyId;
     if(!companyId) return reply.unauthorized('No company');
 
     const id = req.params.id;
@@ -64,7 +64,8 @@ export const updateInvoice = async (
 
     const invoice = await prisma.invoices.findFirst({
         where: {
-            id: id
+            id: id,
+            companyId: companyId,
         },
         include: {
             client: true
@@ -72,6 +73,7 @@ export const updateInvoice = async (
     });
 
     if(!invoice) return reply.notFound('Invoice not found');
+    if(invoice.ksefNumber) return reply.conflict('Invoice is in KSeF and cannot be changed, issue a correction instead');
 
     const invoiceData = {
         ...newInvoicePayload,

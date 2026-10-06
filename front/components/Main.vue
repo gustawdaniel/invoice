@@ -68,6 +68,13 @@
                 <td v-if="columnTable.includes('number')" class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{{
                     invoice.number
                   }}
+                  <br v-if="invoice.ksefNumber || invoice.ksefError">
+                  <span v-if="invoice.ksefNumber" class="text-xs text-green-700" :title="`KSeF ${invoice.ksefEnv}`">
+                    {{ invoice.ksefEnv === 'test' ? 'KSeF TEST' : 'KSeF' }}: {{ invoice.ksefNumber }}
+                  </span>
+                  <span v-else-if="invoice.ksefError" class="text-xs text-red-600 whitespace-normal" :title="invoice.ksefError">
+                    KSeF: {{ invoice.ksefError.slice(0, 80) }}
+                  </span>
                 </td>
                 <td v-if="columnTable.includes('date')" class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{{
                     invoice.issueDate
@@ -86,11 +93,16 @@
                 </td>
                 <td v-if="columnTable.includes('actions')"
                     class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                  <button class="border px-2 py-1 hover:bg-gray-100" @click="sendKsef(invoice)">SEND KSEF</button>
+                  <button v-if="companyStore.usesKsef && companyStore.company.ksefConnected && !invoice.ksefNumber"
+                          class="border px-2 py-1 hover:bg-gray-100 disabled:opacity-50"
+                          :disabled="sendingKsef === invoice.id"
+                          @click="sendKsef(invoice)">{{ sendingKsef === invoice.id ? 'SENDING...' : 'SEND KSEF' }}</button>
                   <button class="border px-2 py-1 hover:bg-gray-100" @click="printInvoice(invoice)">PRINT</button>
                   <button class="border px-2 py-1 hover:bg-gray-100" @click="clone(invoice)">COPY</button>
-                  <button class="text-indigo-600 hover:text-indigo-900" @click="edit(invoice)">Edit</button>
-                  <button class="border px-2 py-1 hover:bg-gray-100" @click="remove(invoice.id)">DEL</button>
+                  <template v-if="!invoice.ksefNumber">
+                    <button class="text-indigo-600 hover:text-indigo-900" @click="edit(invoice)">Edit</button>
+                    <button class="border px-2 py-1 hover:bg-gray-100" @click="remove(invoice.id)">DEL</button>
+                  </template>
                 </td>
       </tr>
       </tbody>
@@ -113,7 +125,7 @@
 <script lang="ts" setup>
 import {total} from '~/helpers/total'
 import {status} from '~/helpers/status'
-import {getErrorMessage} from '~/helpers/getErrorMessage'
+import {apiErrorMessage} from '~/helpers/apiErrorMessage'
 import type {Invoice} from "~/interfaces/Invoice";
 import {computed, nextTick, useRouter} from "#imports";
 import {useRuntimeConfig} from "#app";
@@ -146,12 +158,19 @@ const printInvoice = async (inv: Invoice) => {
   return printContent(printTemplate.value.innerHTML, `${['invoice', invoiceStore.invoice.number, snakecase(companyStore.company.name), snakecase(inv.client.name)].join('_')}.pdf`)
 }
 
+const sendingKsef = ref<string | null>(null);
+
 const sendKsef = async (inv: Invoice) => {
+    const target = companyStore.company.ksefEnv === 'prod' ? 'PRODUCTION KSeF (legally binding, cannot be undone)' : 'KSeF TEST';
+    if (!confirm(`Send invoice ${inv.number} to ${target}?`)) return;
+    sendingKsef.value = inv.id;
     try {
         await invoiceStore.sendKsef(inv.id);
-        toast.add({title: "Success", description: "Invoice sent to KSeF!"});
+        toast.add({title: "Success", description: "Invoice accepted by KSeF!"});
     } catch (e) {
-        toast.add({title: "Error", description: getErrorMessage(e)});
+        toast.add({title: "KSeF error", description: apiErrorMessage(e), color: 'error'});
+    } finally {
+        sendingKsef.value = null;
     }
 }
 

@@ -1,7 +1,7 @@
 import { ref } from "vue";
 import { defineStore } from "pinia";
 import type { Invoice } from "~/interfaces/Invoice";
-import { useUserStore } from "~/store/user";
+import { authHeaders } from "~/helpers/authHeaders";
 import { paymentForms } from "~/helpers/paymentForms";
 
 export const useInvoiceStore = defineStore('invoiceStore', (): {
@@ -15,12 +15,11 @@ export const useInvoiceStore = defineStore('invoiceStore', (): {
 } => {
     const invoices = ref<Invoice[]>([]);
     const invoice = ref<Invoice | null>(null);
-    const userStore = useUserStore();
 
     const getInvoices = async () => {
         const response = await $fetch<Invoice[]>(`${import.meta.env.VITE_API_URL}/invoices`, {
             headers: {
-                Authorization: `Bearer ${userStore.token}`
+                ...authHeaders()
             }
         });
         invoices.value = response.map((invoice: any) => ({
@@ -41,7 +40,7 @@ export const useInvoiceStore = defineStore('invoiceStore', (): {
             }),
             headers: {
                 'Content-Type': 'application/json',
-                Authorization: `Bearer ${userStore.token}`
+                ...authHeaders()
             }
         });
         invoices.value.push({
@@ -62,7 +61,7 @@ export const useInvoiceStore = defineStore('invoiceStore', (): {
             }),
             headers: {
                 'Content-Type': 'application/json',
-                Authorization: `Bearer ${userStore.token}`
+                ...authHeaders()
             }
         });
         invoices.value.splice(invoices.value.findIndex(invoice => invoice.id === invoiceData.id), 1, {
@@ -75,20 +74,24 @@ export const useInvoiceStore = defineStore('invoiceStore', (): {
         const response = await $fetch<Invoice>(`${import.meta.env.VITE_API_URL}/invoices/${id}`, {
             method: 'DELETE',
             headers: {
-                Authorization: `Bearer ${userStore.token}`
+                ...authHeaders()
             }
         });
         invoices.value.splice(invoices.value.findIndex(invoice => invoice.id === id), 1);
     }
 
     const sendKsef = async (id: string) => {
-        await $fetch(`${import.meta.env.VITE_API_URL}/invoices/${id}/ksef`, {
-            method: 'POST',
-            headers: {
-                Authorization: `Bearer ${userStore.token}`
-            }
-        });
-        await getInvoices();
+        try {
+            await $fetch(`${import.meta.env.VITE_API_URL}/invoices/${id}/ksef`, {
+                method: 'POST',
+                headers: {
+                    ...authHeaders()
+                }
+            });
+        } finally {
+            // status or error of the KSeF submission is stored on the invoice either way
+            await getInvoices();
+        }
     }
 
     return {
