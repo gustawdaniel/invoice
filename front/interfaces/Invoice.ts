@@ -71,5 +71,10 @@ export interface Invoice {
     paid?: number,
     wasPrinted?: boolean,
     wasSend?: boolean,
-    wasCancelled?: boolean
+    wasCancelled?: boolean,
+    ksefEnv?: 'test' | 'prod' | null,
+    ksefStatus?: 'Accepted' | 'Rejected' | null,
+    ksefNumber?: string | null,
+    ksefQrUrl?: string | null,
+    ksefError?: string | null,
 }

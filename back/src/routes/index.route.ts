@@ -11,6 +11,8 @@ import { syncExchangeRate } from "../controllers/exchange/syncExchangeRate";
 
 import { getCompany } from "../controllers/company/getCompany";
 import { putCompany, type PutCompanyBody } from "../controllers/company/putCompany";
+import { listCompanies } from "../controllers/company/listCompanies";
+import { addCompany, type AddCompanyRoute } from "../controllers/company/addCompany";
 
 import { listClients } from "../controllers/client/listClients";
 import { addClient, AddClientBody } from "../controllers/client/addClient";
@@ -22,7 +24,14 @@ import { addInvoice, AddInvoiceRoute } from "../controllers/invoice/addInvoice";
 import { updateInvoice, UpdateInvoiceRoute } from "../controllers/invoice/updateInvoice";
 import { deleteInvoice, DeleteInvoiceRoute } from "../controllers/invoice/deleteInvoice";
 
-import { sendToKsef } from "../controllers/ksef/sendToKsef";
+import { sendToKsef, type SendToKsefRoute } from "../controllers/ksef/sendToKsef";
+import {
+    connectKsefTest,
+    disconnectKsef,
+    ksefProdAuthRequest,
+    ksefProdAuthSigned,
+    type KsefProdAuthSignedRoute,
+} from "../controllers/ksef/connectKsef";
 
 const PUBLIC: RouteShorthandOptions = { config: { isPrivate: false } };
 const SECRET: RouteShorthandOptions = { config: { isPrivate: true } };
@@ -43,9 +52,17 @@ export default function indexRoute(
     server.get('/exchange-rates/latest', SECRET, latestExchangeRate);
     server.post('/sync-exchange-rates', SECRET, syncExchangeRate);
 
-    // company
+    // companies of the user; /company is the one selected by the x-company-id header
+    server.get('/companies', SECRET, listCompanies);
+    server.post<AddCompanyRoute>('/companies', SECRET, addCompany);
     server.get('/company', SECRET, getCompany);
     server.put<PutCompanyBody>('/company', SECRET, putCompany);
+
+    // ksef connection of the selected company
+    server.post('/company/ksef/test-connect', SECRET, connectKsefTest);
+    server.get('/company/ksef/auth-request', SECRET, ksefProdAuthRequest);
+    server.post<KsefProdAuthSignedRoute>('/company/ksef/auth-signed', SECRET, ksefProdAuthSigned);
+    server.delete('/company/ksef', SECRET, disconnectKsef);
 
     // client
     server.get('/clients', SECRET, listClients);
@@ -58,7 +75,7 @@ export default function indexRoute(
     server.post<AddInvoiceRoute>('/invoices', SECRET, addInvoice);
     server.put<UpdateInvoiceRoute>('/invoices/:id', SECRET, updateInvoice);
     server.delete<DeleteInvoiceRoute>('/invoices/:id', SECRET, deleteInvoice);
-    server.post<{ Params: { id: string } }>('/invoices/:id/ksef', SECRET, sendToKsef);
+    server.post<SendToKsefRoute>('/invoices/:id/ksef', SECRET, sendToKsef);
 
     next();
 }

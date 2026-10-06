@@ -8,8 +8,14 @@ export const deleteInvoice = async (
     req: FastifyRequest<DeleteInvoiceRoute>,
     reply: FastifyReply,
 ): Promise<FastifyReply> => {
-    const companyId = req.user?.companyId;
+    const companyId = req.companyId;
     if(!companyId) return reply.unauthorized('No company');
+
+    const invoice = await prisma.invoices.findFirst({
+        where: {id: req.params.id, companyId: companyId},
+    });
+    if(!invoice) return reply.notFound('Invoice not found');
+    if(invoice.ksefNumber) return reply.conflict('Invoice is in KSeF and cannot be deleted');
 
     const client = await prisma.invoices.delete({
         where: {

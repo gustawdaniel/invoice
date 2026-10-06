@@ -23,7 +23,19 @@ model users {
   lastVerifiedAt DateTime?
   company        companies    @relation(fields: [companyId], references: [id])
   companyId      String       @db.ObjectId
+  // further companies the user can switch to; companyId is the default one
+  companyIds     String[]     @default([]) @db.ObjectId
   accessLogs     accessLogs[]
+}
+
+enum Country {
+  GE
+  PL
+}
+
+enum KsefEnv {
+  test
+  prod
 }
 
 model companies {
@@ -34,6 +46,15 @@ model companies {
   info      String     @default("")
   logo      String     @default("")
   signature String     @default("")
+
+  country           Country  @default(GE)
+  // only for PL companies; null means KSeF is not connected
+  ksefEnv           KsefEnv?
+  // AES-256-GCM encrypted KSeF token, see services/ksef/tokenCrypto.ts
+  ksefTokenEnc      String?
+  // e.g. "Art. 113 ust. 1 ustawy o VAT", printed and sent when items are VAT exempt
+  vatExemptionBasis String   @default("")
+
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
   users     users[]
@@ -128,6 +149,7 @@ type Vat {
 
 enum Unit {
   piece
+  service
   hour
   pack
   box
@@ -180,6 +202,12 @@ model invoices {
   paid                 Float
   paymentDate          String?
 
+  ksefEnv              KsefEnv?
+  ksefStatus           String?   // 'Accepted' | 'Rejected'
   ksefReferenceNumber  String?
-  ksefStatus           String?   // 'Sent', 'Accepted', 'Rejected'
+  ksefNumber           String?
+  ksefSentAt           DateTime?
+  ksefXml              String?
+  ksefQrUrl            String?
+  ksefError            String?
 }
