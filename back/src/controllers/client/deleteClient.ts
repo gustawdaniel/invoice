@@ -8,7 +8,7 @@ export const deleteClient = async (
     req: FastifyRequest<DeleteClientRoute>,
     reply: FastifyReply,
 ): Promise<FastifyReply> => {
-    const companyId = req.user?.companyId;
+    const companyId = req.companyId;
     if(!companyId) return reply.unauthorized('No company');
 
     const client = await prisma.clients.delete({

@@ -1,5 +1,6 @@
 export type Unit =
     'piece'
+    | 'service'
     | 'hour'
     | 'pack.'
     | 'box'

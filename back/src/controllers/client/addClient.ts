@@ -21,7 +21,7 @@ export const addClient = async (
     req: FastifyRequest<AddClientBody>,
     reply: FastifyReply,
 ): Promise<FastifyReply> => {
-    const companyId = req.user?.companyId;
+    const companyId = req.companyId;
     if(!companyId) return reply.unauthorized('No company');
 
     const newClientPayload = NewClientSchema.parse(req.body);
