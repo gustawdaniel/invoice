@@ -3,6 +3,7 @@ import {Unit} from "@prisma/client";
 export function getUnit(unit: string): Unit {
     switch (unit) {
         case 'piece': return Unit.piece;
+        case 'service': return Unit.service;
         case 'hour': return Unit.hour;
         case 'pack.': return Unit.pack;
         case 'box': return Unit.box;

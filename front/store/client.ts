@@ -1,6 +1,6 @@
 import {ref} from "vue";
 import {defineStore} from "pinia";
-import {useUserStore} from "~/store/user";
+import {authHeaders} from "~/helpers/authHeaders";
 
 interface Client {
     id: string,
@@ -21,12 +21,11 @@ export const useClientStore = defineStore('clientStore', (): {
     deleteClient: (id: string) => Promise<void>
 } => {
     const clients = ref<Client[]>([]);
-    const userStore = useUserStore();
 
     const getClients = async () => {
         const response = await $fetch<Client[]>(`${import.meta.env.VITE_API_URL}/clients`, {
             headers: {
-                Authorization: `Bearer ${userStore.token}`
+                ...authHeaders()
             }
         });
         clients.value = response;
@@ -38,7 +37,7 @@ export const useClientStore = defineStore('clientStore', (): {
             body: JSON.stringify(clientData),
             headers: {
                 'Content-Type': 'application/json',
-                Authorization: `Bearer ${userStore.token}`
+                ...authHeaders()
             }
         });
         clients.value.push(response);
@@ -50,7 +49,7 @@ export const useClientStore = defineStore('clientStore', (): {
             body: JSON.stringify(clientData),
             headers: {
                 'Content-Type': 'application/json',
-                Authorization: `Bearer ${userStore.token}`
+                ...authHeaders()
             }
         });
         clients.value.splice(clients.value.findIndex(client => client.id === clientData.id), 1, response);
@@ -60,7 +59,7 @@ export const useClientStore = defineStore('clientStore', (): {
         const response = await $fetch<Client>(`${import.meta.env.VITE_API_URL}/clients/${id}`, {
             method: 'DELETE',
             headers: {
-                Authorization: `Bearer ${userStore.token}`
+                ...authHeaders()
             }
         });
         clients.value.splice(clients.value.findIndex(client => client.id === id), 1);

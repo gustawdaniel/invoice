@@ -1,53 +1,56 @@
-import { FastifyReply, FastifyRequest } from "fastify";
-import { prisma } from "../../db";
-import { XmlGenerator } from "../../services/ksef/XmlGenerator";
-import { KsefClient } from "../../services/ksef/KsefClient";
+import {FastifyReply, FastifyRequest} from "fastify";
+import {KSeFInvoiceRejectedError} from "ksef-client-ts";
+import {prisma} from "../../db";
+import {buildFa3} from "../../services/ksef/buildFa3";
+import {sendInvoiceToKsef} from "../../services/ksef/ksef";
+import {getErrorMessage} from "../../helpers/getErrorMessage";
+
+export type SendToKsefRoute = { Params: { id: string } };
 
 export const sendToKsef = async (
-    request: FastifyRequest<{ Params: { id: string } }>,
+    req: FastifyRequest<SendToKsefRoute>,
     reply: FastifyReply
-) => {
-    const { id } = request.params;
+): Promise<FastifyReply> => {
+    const invoice = await prisma.invoices.findFirst({
+        where: {id: req.params.id, companyId: req.companyId},
+        include: {company: true, client: true},
+    });
+
+    if (!invoice) return reply.notFound('Invoice not found');
+    if (invoice.ksefNumber) return reply.conflict(`Invoice is already in KSeF as ${invoice.ksefNumber}`);
+
+    let xml: string;
+    try {
+        xml = buildFa3(invoice);
+    } catch (error) {
+        return reply.badRequest(getErrorMessage(error));
+    }
 
     try {
-        // 1. Fetch Invoice
-        const invoice = await prisma.invoices.findUnique({
-            where: { id },
-            include: {
-                company: true,
-                client: true,
-            },
-        });
-
-        if (!invoice) {
-            return reply.notFound('Invoice not found');
-        }
-
-        // 2. Generate XML
-        const xml = XmlGenerator.generate(invoice);
-
-        // 3. Send to KSeF
-        const ksefClient = new KsefClient();
-        await ksefClient.initSession(invoice.company.tin);
-        const ksefRef = await ksefClient.sendInvoice(xml);
-
-        // 4. Update Database
-        await prisma.invoices.update({
-            where: { id },
+        const {status, qrUrl} = await sendInvoiceToKsef(invoice.company, xml, invoice.issueDate);
+        const updated = await prisma.invoices.update({
+            where: {id: invoice.id},
             data: {
-                ksefReferenceNumber: ksefRef,
-                ksefStatus: 'Sent'
-            }
+                ksefEnv: invoice.company.ksefEnv,
+                ksefStatus: 'Accepted',
+                ksefNumber: status.ksefNumber,
+                ksefReferenceNumber: status.referenceNumber,
+                ksefSentAt: new Date(),
+                ksefXml: xml,
+                ksefQrUrl: qrUrl,
+                ksefError: null,
+            },
+            include: {client: true},
         });
-
-        return reply.send({
-            message: 'Invoice sent to KSeF successfully',
-            ksefReferenceNumber: ksefRef,
-            xmlPreview: xml // Optional: for debugging
-        });
-
+        return reply.send(updated);
     } catch (error) {
-        request.log.error(error);
-        return reply.internalServerError('Failed to send invoice to KSeF');
+        req.log.error(error);
+        const rejected = error instanceof KSeFInvoiceRejectedError;
+        const message = getErrorMessage(error);
+        await prisma.invoices.update({
+            where: {id: invoice.id},
+            data: {ksefStatus: rejected ? 'Rejected' : invoice.ksefStatus, ksefError: message},
+        });
+        return rejected ? reply.unprocessableEntity(message) : reply.badGateway(message);
     }
 };

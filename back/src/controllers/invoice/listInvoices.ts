@@ -5,7 +5,7 @@ export const listInvoices = async (
     req: FastifyRequest,
     reply: FastifyReply,
 ): Promise<FastifyReply> => {
-    const companyId = req.user?.companyId;
+    const companyId = req.companyId;
     if(!companyId) return reply.unauthorized('No company');
 
     const invoices = await prisma.invoices.findMany({
@@ -16,8 +16,6 @@ export const listInvoices = async (
             client: true
         }
     });
-
-    console.log('invoices', invoices);
 
     return reply.send(invoices);
 }
