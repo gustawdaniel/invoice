@@ -93,20 +93,25 @@
 import { subTotal, tax, total} from "~/store";
 import {displayCurrency} from "~/helpers/displayCurrency";
 import {useInvoiceStore} from "~/store/invoice";
+import {useCompanyStore} from "~/store/company";
 const invoiceStore = useInvoiceStore();
+const companyStore = useCompanyStore();
 
 const addItem = (): void => {
   if(!invoiceStore.invoice) return;
 
   const prevItem = invoiceStore.invoice.items.length ? invoiceStore.invoice.items[invoiceStore.invoice.items.length - 1] : null;
 
+  // Polish VAT payers default to 23%, exempt companies (with an exemption basis) to "zw."
+  const company = companyStore.company;
+  const defaultVat = company.country === 'PL' && !company.vatExemptionBasis
+      ? {name: '23%' as const, value: 0.23}
+      : {name: 'zw.' as const, value: 0};
+
   invoiceStore.invoice.items.push({
     name: '',
-    unit: prevItem?.unit ?? 'hour',
-    vat: prevItem?.vat ?? {
-      name: 'zw.',
-      value: 0,
-    },
+    unit: prevItem?.unit ?? (company.country === 'PL' ? 'service' : 'hour'),
+    vat: prevItem?.vat ?? defaultVat,
     quantity: 1,
     priceNet: prevItem?.priceNet ?? 100
   });

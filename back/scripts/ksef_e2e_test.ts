@@ -110,6 +110,11 @@ async function main() {
     assert.match(r.data.ksefQrUrl, /^https:\/\/qr-test\.ksef\.mf\.gov\.pl\/invoice\//);
     console.log('KSeF number:', r.data.ksefNumber);
 
+    // the accepted XML can be downloaded
+    r = await call('GET', `/invoices/${invoiceId}/ksef/xml`, undefined, pl);
+    assert.equal(r.status, 200);
+    assert.match(r.data, /<P_19A>Art\. 113 ust\. 1 ustawy o VAT<\/P_19A>/);
+
     // accepted invoices are immutable
     r = await call('POST', `/invoices/${invoiceId}/ksef`, undefined, pl);
     assert.equal(r.status, 409);

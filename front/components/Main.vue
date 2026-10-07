@@ -97,6 +97,9 @@
                           class="border px-2 py-1 hover:bg-gray-100 disabled:opacity-50"
                           :disabled="sendingKsef === invoice.id"
                           @click="sendKsef(invoice)">{{ sendingKsef === invoice.id ? 'SENDING...' : 'SEND KSEF' }}</button>
+                  <button v-if="invoice.ksefNumber" class="border px-2 py-1 hover:bg-gray-100"
+                          title="Download the FA(3) XML accepted by KSeF"
+                          @click="invoiceStore.downloadKsefXml(invoice)">XML</button>
                   <button class="border px-2 py-1 hover:bg-gray-100" @click="printInvoice(invoice)">PRINT</button>
                   <button class="border px-2 py-1 hover:bg-gray-100" @click="clone(invoice)">COPY</button>
                   <template v-if="!invoice.ksefNumber">
