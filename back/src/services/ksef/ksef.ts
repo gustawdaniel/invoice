@@ -45,7 +45,9 @@ export async function sendInvoiceToKsef(company: companies, xml: string, issueDa
     try {
         const invoiceRef = await session.sendInvoice(xml);
         const status = await session.waitForInvoice(invoiceRef);
-        const qrUrl = client.qr.buildInvoiceVerificationUrl(nip, issueDate, sha256Base64(Buffer.from(xml, 'utf8')));
+        // KSeF returns the hash of the document it accepted, the QR code must point to exactly that
+        const hash = status.invoiceHash || sha256Base64(Buffer.from(xml, 'utf8'));
+        const qrUrl = client.qr.buildInvoiceVerificationUrl(nip, issueDate, hash);
         return {status, qrUrl};
     } finally {
         await session.close();
@@ -74,11 +76,11 @@ export async function connectTestEnvironment(company: companies): Promise<string
     return generateToken(client, 'openinvoice (test)');
 }
 
-// PROD step 1: XML to be signed by the user (e.g. Profil Zaufany on podpis.gov.pl).
-// The challenge is embedded in the XML and valid for 10 minutes.
-export async function createProdAuthRequest(company: companies): Promise<string> {
+// Step 1 of signature based connection (PROD): XML to be signed by the user
+// (e.g. Profil Zaufany on podpis.gov.pl). The challenge is embedded in the XML and valid for 10 minutes.
+export async function createAuthRequest(company: companies, env: KsefEnv): Promise<string> {
     const nip = companyNip(company);
-    const client = ksefClient('prod');
+    const client = ksefClient(env);
     const challenge = await client.auth.getChallenge();
     return buildUnsignedAuthTokenRequestXml({
         challenge: challenge.challenge,
@@ -87,9 +89,9 @@ export async function createProdAuthRequest(company: companies): Promise<string>
     });
 }
 
-// PROD step 2: authenticate with the signed XML and exchange it for a long-lived KSeF token
-export async function connectProdEnvironment(signedXml: string): Promise<string> {
-    const client = ksefClient('prod');
+// Step 2: authenticate with the signed XML and exchange it for a long-lived KSeF token
+export async function connectWithSignedRequest(env: KsefEnv, signedXml: string): Promise<string> {
+    const client = ksefClient(env);
     const init = await client.auth.submitXadesAuthRequest(signedXml);
     const authToken = init.authenticationToken.token;
     const status = await pollUntil(
@@ -99,10 +101,16 @@ export async function connectProdEnvironment(signedXml: string): Promise<string>
     );
     if (status.status.code !== 200) {
         const details = status.status.details?.join('; ') ?? '';
-        throw new Error(`KSeF authentication failed: ${status.status.code} ${status.status.description} ${details}`.trim());
+        // 415: the signer has no permissions for this NIP. For a company (sp. z o.o.) KSeF does not take
+        // representatives from KRS automatically, permissions come from a ZAW-FA notification or a company seal.
+        const hint = status.status.code === 415
+            ? ' The signing person has no KSeF permissions for this NIP. For a company file ZAW-FA at the tax office'
+              + ' for this person (or sign with a qualified company seal), then try again.'
+            : '';
+        throw new Error(`KSeF authentication failed: ${status.status.code} ${status.status.description} ${details}.${hint}`.replace(/\s+\./, '.'));
     }
     const tokens = await client.auth.getAccessToken(authToken);
     client.authManager.setAccessToken(tokens.accessToken.token);
     client.authManager.setRefreshToken(tokens.refreshToken.token);
-    return generateToken(client, 'openinvoice');
+    return generateToken(client, env === 'prod' ? 'openinvoice' : 'openinvoice (test)');
 }

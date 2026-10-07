@@ -2,7 +2,7 @@ import {FastifyReply, FastifyRequest} from "fastify";
 import {z} from "zod";
 import {prisma} from "../../db";
 import {publicCompany} from "../../helpers/publicCompany";
-import {connectProdEnvironment, connectTestEnvironment, createProdAuthRequest} from "../../services/ksef/ksef";
+import {connectTestEnvironment, connectWithSignedRequest, createAuthRequest} from "../../services/ksef/ksef";
 import {encryptKsefToken} from "../../services/ksef/tokenCrypto";
 import {getErrorMessage} from "../../helpers/getErrorMessage";
 
@@ -37,7 +37,7 @@ export const ksefProdAuthRequest = async (req: FastifyRequest, reply: FastifyRep
     try {
         const company = await polishCompany(req.companyId);
         if (company.ksefEnv !== 'prod') return reply.badRequest('Company is not in KSeF production mode');
-        const xml = await createProdAuthRequest(company);
+        const xml = await createAuthRequest(company, 'prod');
         return reply
             .header('content-type', 'application/xml; charset=utf-8')
             .header('content-disposition', 'attachment; filename="ksef-auth-request.xml"')
@@ -59,7 +59,7 @@ export const ksefProdAuthSigned = async (
         const company = await polishCompany(req.companyId);
         if (company.ksefEnv !== 'prod') return reply.badRequest('Company is not in KSeF production mode');
         const {signedXml} = SignedSchema.parse(req.body);
-        const token = await connectProdEnvironment(signedXml);
+        const token = await connectWithSignedRequest('prod', signedXml);
         return reply.send(await saveToken(company.id, token));
     } catch (error) {
         req.log.error(error);
