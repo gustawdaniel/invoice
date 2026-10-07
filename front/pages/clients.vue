@@ -116,7 +116,8 @@ function openNewClientModal() {
       name: '',
       post: '',
       tin: '',
-      street: ''
+      street: '',
+      country: 'Poland',
     }})
 }
 

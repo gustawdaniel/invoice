@@ -12,6 +12,7 @@ export const useInvoiceStore = defineStore('invoiceStore', (): {
     updateInvoice: (client: Partial<Invoice> & { id: string }) => Promise<void>
     deleteInvoice: (id: string) => Promise<void>
     sendKsef: (id: string) => Promise<void>
+    downloadKsefXml: (invoice: Invoice) => Promise<void>
 } => {
     const invoices = ref<Invoice[]>([]);
     const invoice = ref<Invoice | null>(null);
@@ -94,7 +95,20 @@ export const useInvoiceStore = defineStore('invoiceStore', (): {
         }
     }
 
+    const downloadKsefXml = async (invoice: Invoice) => {
+        const xml = await $fetch<string>(`${import.meta.env.VITE_API_URL}/invoices/${invoice.id}/ksef/xml`, {
+            headers: authHeaders(),
+            responseType: 'text',
+        });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(new Blob([xml], {type: 'application/xml'}));
+        link.download = `${invoice.ksefNumber ?? invoice.number}.xml`;
+        link.click();
+        URL.revokeObjectURL(link.href);
+    }
+
     return {
+        downloadKsefXml,
         invoices,
         invoice,
         getInvoices,
