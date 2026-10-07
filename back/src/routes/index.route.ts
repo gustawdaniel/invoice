@@ -25,6 +25,8 @@ import { updateInvoice, UpdateInvoiceRoute } from "../controllers/invoice/update
 import { deleteInvoice, DeleteInvoiceRoute } from "../controllers/invoice/deleteInvoice";
 
 import { sendToKsef, type SendToKsefRoute } from "../controllers/ksef/sendToKsef";
+import { lookupNip, type LookupNipRoute } from "../controllers/lookup/lookupNip";
+import { getKsefXml, type GetKsefXmlRoute } from "../controllers/ksef/getKsefXml";
 import {
     connectKsefTest,
     disconnectKsef,
@@ -52,6 +54,9 @@ export default function indexRoute(
     server.get('/exchange-rates/latest', SECRET, latestExchangeRate);
     server.post('/sync-exchange-rates', SECRET, syncExchangeRate);
 
+    // Polish taxpayer data by NIP (MF White List)
+    server.get<LookupNipRoute>('/lookup/nip/:nip', SECRET, lookupNip);
+
     // companies of the user; /company is the one selected by the x-company-id header
     server.get('/companies', SECRET, listCompanies);
     server.post<AddCompanyRoute>('/companies', SECRET, addCompany);
@@ -76,6 +81,7 @@ export default function indexRoute(
     server.put<UpdateInvoiceRoute>('/invoices/:id', SECRET, updateInvoice);
     server.delete<DeleteInvoiceRoute>('/invoices/:id', SECRET, deleteInvoice);
     server.post<SendToKsefRoute>('/invoices/:id/ksef', SECRET, sendToKsef);
+    server.get<GetKsefXmlRoute>('/invoices/:id/ksef/xml', SECRET, getKsefXml);
 
     next();
 }
