@@ -1,7 +1,12 @@
 <script setup lang="ts">
 import { useCompanyStore, type Company } from "~/store/company";
+import { lookupNip } from "~/helpers/lookupNip";
+import { useCompanySwitch } from "~/composables/useCompanySwitch";
 const companyStore = useCompanyStore();
+const { createCompany } = useCompanySwitch();
 const toast = useToast();
+const lookingUp = ref(false);
+const newPolishName = ref('');
 
 const form = ref<Company>({ ...companyStore.company });
 const loading = ref(false);
@@ -87,6 +92,54 @@ async function ksefAction(action: () => Promise<void>, success: string) {
   }
 }
 
+// Fill name and address from the MF White List; also suggests the VAT exemption basis
+async function fillFromMf() {
+  if (!isValidNip(form.value.tin)) {
+    errors.value = { ...errors.value, tin: "Enter a valid NIP first." };
+    return;
+  }
+  lookingUp.value = true;
+  try {
+    const data = await lookupNip(form.value.tin);
+    form.value.name = data.name;
+    form.value.address = data.address;
+    form.value.tin = data.nip;
+    let description = `VAT status: ${data.statusVat}.`;
+    if (data.statusVat !== 'Czynny' && !form.value.vatExemptionBasis) {
+      form.value.vatExemptionBasis = 'Art. 113 ust. 1 ustawy o VAT';
+      description += ' Not an active VAT payer, so the art. 113 exemption was filled in — check it.';
+    }
+    toast.add({ title: "Filled from MF White List", description: `${description} Remember to save.` });
+  } catch (e) {
+    toast.add({ title: "MF lookup failed", description: (e as Error).message, color: 'error' });
+  } finally {
+    lookingUp.value = false;
+  }
+}
+
+// Setup steps of a Polish company, based on the saved state
+const steps = computed(() => {
+  const c = companyStore.company;
+  return [
+    { done: isValidNip(c.tin), label: 'NIP' },
+    { done: Boolean(c.address), label: 'Address' },
+    { done: Boolean(c.ksefEnv), label: 'KSeF mode (test or production)' },
+    { done: c.ksefConnected, label: 'KSeF connected' },
+  ];
+});
+const ready = computed(() => steps.value.every(step => step.done));
+
+async function addPolishCompany() {
+  if (!newPolishName.value.trim()) return;
+  try {
+    await createCompany(newPolishName.value.trim(), 'PL');
+    newPolishName.value = '';
+    toast.add({ title: "Company added", description: "Now fill in its NIP and connect KSeF." });
+  } catch (e) {
+    toast.add({ title: "Error", description: (e as Error).message, color: 'error' });
+  }
+}
+
 const connectTest = () => ksefAction(() => companyStore.connectKsefTest(), 'Connected to KSeF TEST.');
 
 const downloadAuthRequest = () => ksefAction(async () => {
@@ -114,6 +167,28 @@ const disconnect = () => {
   <div class="max-w-3xl mx-auto bg-white p-6 ">
     <h2 class="text-xl font-semibold mb-4">Company Information</h2>
 
+    <!-- Georgian company: point to adding a Polish one, KSeF lives there -->
+    <div v-if="companyStore.company.country === 'GE'" class="mb-6 rounded-md border border-indigo-200 bg-indigo-50 p-4 text-sm">
+      <p class="mb-2">
+        This company is Georgian, its invoices do not go to KSeF.
+        To issue Polish invoices with KSeF, add a Polish company — you switch between companies in the header.
+      </p>
+      <form class="flex flex-wrap gap-2" @submit.prevent="addPolishCompany">
+        <input v-model="newPolishName" placeholder="Polish company name, e.g. Precise Lab" class="grow rounded-md border-gray-300 text-sm">
+        <button type="submit" class="rounded bg-indigo-600 px-3 py-1 text-white cursor-pointer">Add Polish company</button>
+      </form>
+    </div>
+
+    <!-- Polish company: what is left before invoices can be sent to KSeF -->
+    <div v-else-if="companyStore.company.country === 'PL'"
+         :class="ready ? 'border-green-200 bg-green-50' : 'border-amber-200 bg-amber-50'"
+         class="mb-6 rounded-md border p-4 text-sm">
+      <p class="font-semibold mb-1">{{ ready ? 'Ready to send invoices to KSeF' : 'KSeF setup' }}</p>
+      <ul>
+        <li v-for="step in steps" :key="step.label">{{ step.done ? '✅' : '⬜' }} {{ step.label }}</li>
+      </ul>
+    </div>
+
     <form @submit.prevent="saveCompany" class="space-y-4">
       <!-- Name -->
       <div>
@@ -134,7 +209,13 @@ const disconnect = () => {
       <!-- Tax ID -->
       <div>
         <label class="block text-sm font-medium text-gray-700">{{ isPolish ? 'NIP' : 'Tax ID' }}</label>
-        <UInput v-model="form.tin" type="text" class="mt-1 block w-full" />
+        <div class="mt-1 flex gap-2">
+          <UInput v-model="form.tin" type="text" class="block w-full" />
+          <button v-if="isPolish" type="button" :disabled="lookingUp"
+                  class="whitespace-nowrap rounded border border-gray-300 px-3 text-sm hover:bg-gray-100 disabled:opacity-50 cursor-pointer"
+                  title="Fill name, address and VAT status from the MF White List"
+                  @click="fillFromMf">{{ lookingUp ? 'Loading...' : 'Fill from MF' }}</button>
+        </div>
         <p v-if="errors.tin" class="text-red-500 text-xs mt-1">{{ errors.tin }}</p>
       </div>
 

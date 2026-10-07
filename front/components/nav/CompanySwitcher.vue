@@ -1,11 +1,9 @@
 <script lang="ts" setup>
 import {useCompanyStore, type Country} from "~/store/company";
-import {useClientStore} from "~/store/client";
-import {useInvoiceStore} from "~/store/invoice";
+import {useCompanySwitch} from "~/composables/useCompanySwitch";
 
 const companyStore = useCompanyStore();
-const clientStore = useClientStore();
-const invoiceStore = useInvoiceStore();
+const {switchCompany, createCompany} = useCompanySwitch();
 const toast = useToast();
 const router = useRouter();
 
@@ -18,24 +16,15 @@ onMounted(async () => {
   await companyStore.getCompany();
 });
 
-async function reloadCompanyData() {
-  invoiceStore.invoice = null;
-  invoiceStore.invoices = [];
-  clientStore.clients = [];
-  await Promise.all([clientStore.getClients(), invoiceStore.getInvoices()]);
-}
-
 async function onSelect(event: Event) {
-  await companyStore.selectCompany((event.target as HTMLSelectElement).value);
-  await reloadCompanyData();
+  await switchCompany((event.target as HTMLSelectElement).value);
   await router.push('/');
 }
 
 async function add() {
   if (!newName.value.trim()) return;
   try {
-    await companyStore.addCompany({name: newName.value.trim(), country: newCountry.value});
-    await reloadCompanyData();
+    await createCompany(newName.value.trim(), newCountry.value);
     adding.value = false;
     newName.value = '';
     await router.push('/company');
@@ -62,7 +51,10 @@ async function add() {
       {{ companyStore.company.ksefEnv === 'prod' ? 'KSeF' : 'KSeF TEST' }}{{ companyStore.company.ksefConnected ? '' : ' ⚠' }}
     </span>
 
-    <button v-if="!adding" class="text-gray-500 hover:text-gray-900" title="Add company" @click="adding = true">+</button>
+    <button v-if="!adding"
+            class="rounded-md border border-gray-300 px-2 py-1 text-gray-700 hover:bg-gray-100 cursor-pointer"
+            title="Add another company (e.g. a Polish one with KSeF)"
+            @click="adding = true">+ New company</button>
     <form v-else class="flex items-center gap-1" @submit.prevent="add">
       <input v-model="newName" placeholder="Company name" class="rounded-md border-gray-300 py-1 text-sm" autofocus>
       <select v-model="newCountry" class="rounded-md border-gray-300 py-1 text-sm">
