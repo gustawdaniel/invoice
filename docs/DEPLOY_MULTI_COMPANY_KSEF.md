@@ -24,6 +24,17 @@ Cel biznesowy: wystawić z appki fakturę `0001/10/2026` od Precise Lab dla Patr
   `POST /company/ksef/auth-signed`, `DELETE /company/ksef`, `POST /invoices/:id/ksef`.
 - Biblioteka: `ksef-client-ts@0.14.0` (KSeF API 2.x, FA(3)).
 
+## Stan na 2026-10-07 rano
+
+- Kod jest na `main` i wdrożony (`openinvoice.in`, serwer `lexidrift`, `/root/openinvoice.in`).
+- `KSEF_SECRET_KEY` jest w `.env` na serwerze i w kontenerze backendu (sprawdzone: 32 bajty) — **krok 1 zrobiony**.
+- Deploy zweryfikowany — **krok 2 zrobiony**. Zdrowie: `curl https://api.openinvoice.in/health` → `{"status":"ok","db":"ok"}`
+  (503 gdy baza nieosiągalna — w nocy 6/7.10 klaster Atlas był chwilowo niedostępny, DNS NXDOMAIN; wrócił sam/po wznowieniu).
+- Krok 3 (migracja) jest opcjonalny — Prisma uzupełnia brakujące pola wartościami domyślnymi przy odczycie.
+- Przepływ z podpisem (jak dla Profilu Zaufanego) przetestowany na KSeF TEST: `scripts/ksef_signed_flow_test.ts`.
+
+Zostały kroki 4–6 (UI, robi Daniel).
+
 ## Krok 1 — sekret `KSEF_SECRET_KEY` na serwerze
 
 `docker-compose.yml` przekazuje do backendu zmienną `KSEF_SECRET_KEY` (bez wartości, więc bierze ją z środowiska
@@ -82,18 +93,19 @@ Istniejąca firma Daniela (gruzińska) dostaje `GE` — to poprawne, jej faktury
 
 Podaj Danielowi te kroki i dane:
 
-1. Wyloguj / zaloguj się ponownie (świeży stan aplikacji).
-2. W nagłówku przycisk **„+”** → nazwa `PRECISE LAB SPÓŁKA Z OGRANICZONĄ ODPOWIEDZIALNOŚCIĄ`, kraj `PL` → Add.
-3. Zakładka **Company** dla tej firmy:
-   - NIP: `5272923603`
-   - Address: `ul. Grzybowska 85A/32, 00-844 Warszawa`
-   - VAT exemption basis: `Art. 113 ust. 1 ustawy o VAT`
-     (Precise Lab nie jest czynnym podatnikiem VAT — Biała Lista MF: „Niezarejestrowany”, wykreślony 16.04.2026)
+1. Przeładuj stronę (Ctrl/Cmd+Shift+R), żeby załadować nowy frontend; w razie problemów wyloguj i zaloguj.
+2. Dodaj firmę: w nagłówku **„+ New company”** (nazwa, kraj `PL`) albo na stronie **Company** gruzińskiej firmy
+   pole „Add Polish company”. Nazwa dowolna — i tak nadpisze ją przycisk z punktu 3.
+3. Zakładka **Company** nowej firmy (na górze jest lista kroków konfiguracji z ✅/⬜):
+   - NIP: `5272923603` → przycisk **Fill from MF** (Biała Lista MF) wypełni nazwę, adres
+     i — bo firma nie jest czynnym podatnikiem VAT — podstawę zwolnienia `Art. 113 ust. 1 ustawy o VAT`.
+     Limit Białej Listy to ok. 10 zapytań dziennie; gdyby nie zadziałało, wpisz ręcznie:
+     nazwa `PRECISE LAB SPÓŁKA Z OGRANICZONĄ ODPOWIEDZIALNOŚCIĄ`, adres `ul. Grzybowska 85A/32, 00-844 Warszawa`.
    - KSeF mode: `Production` → **Save Changes**
 4. Sekcja „KSeF production”:
    1. **1. Download request** → plik `ksef-auth-request.xml` (ważny **10 minut**).
    2. Podpis Profilem Zaufanym: https://www.gov.pl/web/gov/podpisz-dokument-elektronicznie-wykorzystaj-podpis-zaufany
-      — wgrać plik, podpisać, pobrać podpisany XML.
+      — wgrać plik, podpisać, pobrać podpisany plik (`.xml` albo `.xades` — oba przyjmowane).
    3. Wybrać podpisany plik → **3. Upload signed XML**. Oczekiwany wynik: „connected”.
    Jeśli minęło 10 minut — pobrać request od nowa.
 
@@ -101,7 +113,8 @@ Podaj Danielowi te kroki i dane:
 
 Dla spółki z o.o. KSeF nie rozpoznaje prezesa z KRS automatycznie (powiązanie PESEL↔NIP działa tylko dla JDG).
 Osoba podpisująca musi mieć uprawnienia nadane zgłoszeniem **ZAW-FA** (albo podpis pieczęcią kwalifikowaną z NIP spółki).
-Jeśli upload zwróci błąd autoryzacji (status 4xx z opisem o braku uprawnień / nieuprawnionym podmiocie):
+Wtedy upload zwraca: `KSeF authentication failed: 415 Uwierzytelnianie zakończone niepowodzeniem Brak przypisanych uprawnień...`
+(komunikat w appce od razu podpowiada ZAW-FA). W takim przypadku:
 
 - przekaż Danielowi dokładny komunikat,
 - poinformuj, że trzeba złożyć ZAW-FA w urzędzie skarbowym dla PESEL Daniela w kontekście NIP 5272923603,
@@ -112,12 +125,12 @@ Kody błędów KSeF: https://github.com/CIRFMF/ksef-docs.
 
 ## Krok 5 — faktura dla Patronad (robi Daniel w UI)
 
-1. Zakładka **Clients** → nowy klient:
+1. Zakładka **Clients** → nowy klient: wpisz NIP `1133022863` → **Fill from MF** (sprawdzone: zwraca dokładnie dane z umowy):
    - PATRONAD SPÓŁKA Z OGRANICZONĄ ODPOWIEDZIALNOŚCIĄ
-   - ul. Londyńska 25, `03-921`, Warszawa, kraj `Poland`, NIP `1133022863`
+   - ul. Londyńska 25, `03-921`, Warszawa, kraj `Poland`
 2. **New invoice** (będąc w firmie Precise Lab):
    - numer: `0001/10/2026` (podpowiada się sam; format `NNNN/MM/RRRR`), data wystawienia i sprzedaży: dzień wystawienia
-   - pozycja: `Wykonanie modułu integracji feedów produktowych dla serwisu net-pocket.space (MVP) zgodnie z Umową o dzieło nr 01/09/2026 z dnia 14.09.2026`,
+   - pozycja (pierwsza pozycja w polskiej firmie domyślnie ma jednostkę `service` i VAT `zw.`): `Wykonanie modułu integracji feedów produktowych dla serwisu net-pocket.space (MVP) zgodnie z Umową o dzieło nr 01/09/2026 z dnia 14.09.2026`,
      jednostka `service`, ilość 1, cena netto `3000`, VAT `zw.`
    - forma płatności: przelew 14 dni, rachunek: `22 1140 2004 0000 3502 7991 1652`
    - waluta `PLN` (inne waluty KSeF w appce jeszcze nieobsługiwane)
@@ -126,6 +139,7 @@ Kody błędów KSeF: https://github.com/CIRFMF/ksef-docs.
 3. Podgląd/wydruk — sprawdź: NIP-y obu stron, kwota 3 000,00 PLN, „Podstawa zwolnienia z VAT: Art. 113 ust. 1 ustawy o VAT”.
 4. Lista faktur → **SEND KSEF** → potwierdzenie (produkcja, nieodwracalne).
    Wynik: pod numerem faktury pojawia się numer KSeF. Wydruk zawiera kod QR i numer KSeF.
+   Przycisk **XML** pobiera prawnie wiążący XML faktury z KSeF.
 5. Wydruk (PDF) Daniel wysyła Patronad mailem — sama faktura i tak trafia do nich przez KSeF.
 
 ## Krok 6 — zamknięcie

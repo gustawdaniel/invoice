@@ -67,6 +67,9 @@ export const addInvoice = async (
             paymentForm: getPaymentForm(newInvoicePayload.paymentForm),
             items,
             companyId: companyId,
+        },
+        include: {
+            client: true
         }
     });
 
