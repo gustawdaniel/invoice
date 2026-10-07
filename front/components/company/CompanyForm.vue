@@ -316,7 +316,8 @@ const disconnect = () => {
           <button class="rounded bg-indigo-600 px-3 py-1 text-white disabled:opacity-50" :disabled="ksefBusy" @click="downloadAuthRequest">
             1. Download request
           </button>
-          <input type="file" accept=".xml,application/xml,text/xml"
+          <!-- podpis.gov.pl may return the signed file as .xml or .xades -->
+          <input type="file" accept=".xml,.xades,application/xml,text/xml"
                  @change="(e) => signedFile = (e.target as HTMLInputElement).files?.[0] ?? null" />
           <button class="rounded bg-indigo-600 px-3 py-1 text-white disabled:opacity-50" :disabled="ksefBusy || !signedFile" @click="uploadSigned">
             {{ ksefBusy ? 'Connecting...' : '3. Upload signed XML' }}
