@@ -1,6 +1,7 @@
 import { FastifyInstance, FastifyPluginOptions, RouteShorthandOptions } from "fastify";
 
 import { version } from '../controllers/app/version';
+import { health } from '../controllers/app/health';
 
 import { googleVerify } from '../controllers/auth/googleVerify';
 import { logout } from '../controllers/auth/logout';
@@ -44,6 +45,7 @@ export default function indexRoute(
     next: () => void,
 ): void {
     server.get('/', PUBLIC, version);
+    server.get('/health', PUBLIC, health);
 
     // auth
     server.post('/logout', SECRET, logout);
