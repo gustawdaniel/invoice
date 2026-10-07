@@ -84,12 +84,15 @@ export const updateInvoice = async (
         companyId: companyId,
     }
 
-    await prisma.invoices.update({
+    const updated = await prisma.invoices.update({
         where: {
             id: invoice.id
         },
-        data: invoiceData
+        data: invoiceData,
+        include: {
+            client: true
+        }
     });
 
-    return reply.send(invoice);
+    return reply.send(updated);
 }
