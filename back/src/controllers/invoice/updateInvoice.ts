@@ -33,6 +33,8 @@ const UpdateInvoiceSchema = z.object({
     publicNote: z.string(),
     privateNote: z.string(),
     paid: z.number().default(0),
+    // optional: an update without it keeps the stored value
+    withholdingTax: z.number().min(0).optional(),
     paymentDate: z.string().optional(),
 });
 

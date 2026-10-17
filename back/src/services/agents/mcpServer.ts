@@ -244,6 +244,28 @@ export function createMcpServer(ctx: AgentContext): McpServer {
         return json(agentInvoice(invoice));
     });
 
+    server.registerTool('record_payment', {
+        description: 'Record what the client paid, also on invoices already in KSeF. withholding_tax: the part a '
+            + 'foreign client withheld for its tax office; paid + withholding_tax covering the gross amount settles it.',
+        inputSchema: {
+            company_id: z.string(),
+            invoice_id: z.string(),
+            paid: z.number().min(0).describe('Total received, in the invoice currency'),
+            payment_date: DATE.optional(),
+            withholding_tax: z.number().min(0).optional(),
+        },
+    }, async ({company_id, invoice_id, paid, payment_date, withholding_tax}) => {
+        await requireCompany(ctx, company_id);
+        const invoice = await prisma.invoices.findFirst({where: {id: invoice_id, companyId: company_id}});
+        if (!invoice) throw new Error('Invoice not found');
+        const updated = await prisma.invoices.update({
+            where: {id: invoice.id},
+            data: {paid, paymentDate: payment_date, withholdingTax: withholding_tax},
+            include: {client: true},
+        });
+        return json(agentInvoice(updated));
+    });
+
     server.registerTool('create_invoice_draft', {
         description: 'Create an invoice draft. It is not sent anywhere; the user sees it in the app marked as made by '
             + 'this agent. With test_mode it is a test invoice, visible in the test mode of the app.',
