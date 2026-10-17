@@ -10,6 +10,8 @@
 	import { ui } from '../state/ui.svelte';
 	import { newClient } from './clients';
 	import Kbd from './Kbd.svelte';
+	import { theme } from '../state/theme.svelte';
+	import ThemeToggle from './ThemeToggle.svelte';
 
 	let { children }: { children: Snippet } = $props();
 	let menuOpen = $state(false);
@@ -61,6 +63,7 @@
 			n: () => goto('/invoices/new'),
 			c: () => newClient(),
 			t: toggleTest,
+			T: () => theme.cycle(),
 			'ctrl-o': () => history.back()
 		})
 	);
@@ -94,6 +97,7 @@
 				<button class={['px-2.5 py-1.5', !session.testMode ? 'bg-ink text-bg' : 'bg-panel text-muted hover:bg-sunken']} aria-pressed={!session.testMode} onclick={() => session.testMode && toggleTest()}>Live</button>
 				<button class={['px-2.5 py-1.5', session.testMode ? 'bg-test text-on-test' : 'bg-panel text-muted hover:bg-sunken']} aria-pressed={session.testMode} onclick={() => !session.testMode && toggleTest()}>Test <Kbd keys="t" tone={session.testMode ? 'inverse' : 'muted'} /></button>
 			</div>
+			<ThemeToggle />
 			<div class="relative">
 				<button class="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-sunken text-xs font-semibold" aria-label="Account" aria-expanded={menuOpen} onclick={() => (menuOpen = !menuOpen)}>
 					{#if session.user?.avatar}<img src={session.user.avatar} alt="" class="h-full w-full object-cover" referrerpolicy="no-referrer" />{:else}{initials(session.user?.full_name ?? '')}{/if}

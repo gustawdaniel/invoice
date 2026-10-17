@@ -146,7 +146,7 @@
 							search?.blur();
 						}
 					}}
-					placeholder="is:unpaid client:patro month:2026-10 >1000"
+					placeholder="is:unpaid client:acme month:2026-10 >1000"
 					class="min-w-0 flex-1 bg-transparent outline-none placeholder:text-faint"
 					autocomplete="off"
 					spellcheck="false"

@@ -6,6 +6,7 @@
 	import { data } from '../state/data.svelte';
 	import { keys } from '../state/keys.svelte';
 	import { session } from '../state/session.svelte';
+	import { theme } from '../state/theme.svelte';
 	import { toasts } from '../state/toast.svelte';
 	import { ui } from '../state/ui.svelte';
 	import { newClient } from './clients';
@@ -30,7 +31,7 @@
 	const lang = $derived(data.company.country === 'PL' ? 'pl' : 'en');
 	const text = $derived(query.replace(/^:/, '').trim());
 
-	// "invoice patronad 12000 net october" → a prefilled draft
+	// "invoice acme 12000 net october" → a prefilled draft
 	const intent = $derived(isInvoiceCommand(query) ? parseInvoiceCommand(query, data.clients) : null);
 
 	function createFromIntent() {
@@ -86,6 +87,13 @@
 				hint: company.country,
 				run: async () => { close(); await data.switchCompany(company.id); }
 			})),
+		...(['system', 'light', 'dark'] as const).map((value) => ({
+			id: `theme-${value}`,
+			group: 'Commands',
+			label: `Theme: ${value}`,
+			hint: theme.value === value ? 'current' : undefined,
+			run: () => { theme.set(value); close(); }
+		})),
 		{ id: 'keys', group: 'Commands', label: 'Keyboard shortcuts', keys: '?', run: () => { close(); ui.keymapOpen = true; } },
 		{ id: 'logout', group: 'Commands', label: 'Log out', run: async () => { close(); await data.logout(); await goto('/login'); } }
 	]);
@@ -200,7 +208,7 @@
 			{onkeydown}
 			autocomplete="off"
 			spellcheck="false"
-			placeholder="Search, run a command, or type: invoice patronad 12000 net october"
+			placeholder="Search, run a command, or type: invoice acme 12000 net october"
 			class="min-w-0 flex-1 bg-transparent text-base outline-none placeholder:text-faint"
 		/>
 		<Kbd keys="esc" />

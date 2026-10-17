@@ -73,7 +73,7 @@
 
 <main class="flex min-h-dvh items-center justify-center px-4">
 	<div class="w-full max-w-sm">
-		<p class="font-mono text-lg font-medium tracking-tight">open<span class="text-accent">invoice</span></p>
+		<a href="/" class="font-mono text-lg font-medium tracking-tight">open<span class="text-accent">invoice</span></a>
 		<h1 class="mt-6 text-2xl font-semibold tracking-tight">Invoices your agents draft and you approve.</h1>
 		<p class="mt-2 text-muted">Polish KSeF and international invoices. Keyboard first, MCP for AI agents.</p>
 		<div class="mt-8 min-h-11" bind:this={button} aria-busy={busy}></div>

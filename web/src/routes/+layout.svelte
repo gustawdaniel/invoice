@@ -10,6 +10,7 @@
 	import { ui } from '#lib/state/ui.svelte.js';
 	import ClientDialog from '#lib/ui/ClientDialog.svelte';
 	import Keymap from '#lib/ui/Keymap.svelte';
+	import Landing from '#lib/ui/Landing.svelte';
 	import Palette from '#lib/ui/Palette.svelte';
 	import Shell from '#lib/ui/Shell.svelte';
 	import Toasts from '#lib/ui/Toasts.svelte';
@@ -20,8 +21,11 @@
 	const bare = $derived(page.url.pathname.startsWith('/login') || page.url.pathname.startsWith('/print'));
 	let loadError = $state('');
 
+	// visitors see the landing page on /, every other page needs a session
+	const landing = $derived(!session.loggedIn && page.url.pathname === '/');
+
 	$effect(() => {
-		if (!session.loggedIn && !page.url.pathname.startsWith('/login')) void goto('/login');
+		if (!session.loggedIn && !landing && !page.url.pathname.startsWith('/login')) void goto('/login');
 	});
 
 	$effect(() => {
@@ -46,7 +50,9 @@
 	onoffline={() => toasts.show('You are offline', 'Nothing is saved until the connection is back.', 'warn')}
 />
 
-{#if bare}
+{#if landing}
+	<Landing />
+{:else if bare}
 	{@render children()}
 {:else if session.loggedIn}
 	<Shell>

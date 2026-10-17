@@ -103,9 +103,13 @@
 		--series-2: #eb6834;
 	}
 	@media (prefers-color-scheme: dark) {
-		.viz {
+		:global(:root:not([data-theme='light'])) .viz {
 			--series-1: #3987e5;
 			--series-2: #d95926;
 		}
+	}
+	:global(:root[data-theme='dark']) .viz {
+		--series-1: #3987e5;
+		--series-2: #d95926;
 	}
 </style>

@@ -2,7 +2,7 @@ import dayjs from 'dayjs';
 import { score } from './search';
 import type { Client, Currency } from './types';
 
-// "invoice patronad 12 000 net october consulting" → a draft ready to create
+// "invoice acme 12 000 net october consulting" → a draft ready to create
 export interface InvoiceIntent {
 	client: Client | null;
 	amount: number | null;

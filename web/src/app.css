@@ -55,8 +55,9 @@
 	color-scheme: light;
 }
 
+/* dark: chosen in the app (data-theme="dark"), or following the system unless light was chosen */
 @media (prefers-color-scheme: dark) {
-	:root {
+	:root:not([data-theme='light']) {
 		--bg: #121110;
 		--panel: #1a1918;
 		--sunken: #232120;
@@ -81,6 +82,32 @@
 		--bad-soft: #2f1414;
 		color-scheme: dark;
 	}
+}
+
+:root[data-theme='dark'] {
+	--bg: #121110;
+	--panel: #1a1918;
+	--sunken: #232120;
+	--line: #2e2c2a;
+	--line-soft: #232120;
+	--ink: #f5f5f4;
+	--muted: #b5b0ab;
+	--faint: #9a948e;
+	--accent: #7b93f5;
+	--accent-ink: #c3cdfb;
+	--accent-soft: #1f2645;
+	--accent-line: #34407a;
+	--on-accent: #0b1020;
+	--test: #fb923c;
+	--test-soft: #2a1a0e;
+	--on-test: #1c0d02;
+	--ok: #86efac;
+	--ok-soft: #12291b;
+	--warn: #fcd34d;
+	--warn-soft: #2b2310;
+	--bad: #fca5a5;
+	--bad-soft: #2f1414;
+	color-scheme: dark;
 }
 
 html,
@@ -137,4 +164,23 @@ kbd {
 	.label-caps {
 		@apply text-[11px] font-semibold tracking-[0.06em] text-faint uppercase;
 	}
+}
+
+/* screenshots in both themes: the one matching the page shows */
+.only-dark {
+	display: none;
+}
+@media (prefers-color-scheme: dark) {
+	:root:not([data-theme='light']) .only-dark {
+		display: block;
+	}
+	:root:not([data-theme='light']) .only-light {
+		display: none;
+	}
+}
+:root[data-theme='dark'] .only-dark {
+	display: block;
+}
+:root[data-theme='dark'] .only-light {
+	display: none;
 }

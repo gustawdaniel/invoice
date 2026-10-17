@@ -131,10 +131,10 @@ describe('search', () => {
 	const ids = (query: string) => filterInvoices(list, query, true).map((inv) => inv.id);
 
 	it('parses filters, negation and amounts', () => {
-		expect(parseQuery('-is:test client:patro >1000 hello')).toEqual({
+		expect(parseQuery('-is:test client:acme >1000 hello')).toEqual({
 			filters: [
 				{ key: 'is', value: 'test', negated: true },
-				{ key: 'client', value: 'patro', negated: false },
+				{ key: 'client', value: 'acme', negated: false },
 				{ key: '>', value: '1000', negated: false }
 			],
 			text: ['hello']

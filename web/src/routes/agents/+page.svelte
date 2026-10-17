@@ -108,9 +108,9 @@
 					<div class="mt-2 flex items-center gap-2"><code class="min-w-0 flex-1 rounded bg-panel px-2 py-1 font-mono text-xs break-all">{newKey}</code><button class="btn" onclick={() => copy(newKey!)}>Copy</button></div>
 				</div>
 			{/if}
-			<div class="mt-3 flex items-center gap-2 overflow-x-auto rounded-md bg-ink px-3 py-2.5 font-mono text-xs text-bg">
+			<div class="mt-3 flex items-center gap-2 overflow-x-auto rounded-md border border-line bg-[#1c1917] px-3 py-2.5 font-mono text-xs text-[#f5f5f4]">
 				<span class="flex-1 whitespace-nowrap">{command}</span>
-				<button class="shrink-0 rounded border border-bg/30 px-2.5 py-1 text-[11px] hover:bg-bg/10" onclick={() => copy(command)}>Copy</button>
+				<button class="shrink-0 rounded border border-white/30 px-2.5 py-1 text-[11px] hover:bg-white/10" onclick={() => copy(command)}>Copy</button>
 			</div>
 		</section>
 

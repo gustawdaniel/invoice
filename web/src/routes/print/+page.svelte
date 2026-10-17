@@ -10,7 +10,7 @@
 
 	const invoices = $derived(ids.map((id) => data.invoice(id)).filter((inv) => inv !== undefined));
 
-	// "invoice_0003_10_2026_precise_lab_patronad" is what "Save as PDF" suggests
+	// "invoice_0003_10_2026_nordlys_studio_acme" is what "Save as PDF" suggests
 	const slug = (text: string) => text.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/ł/g, 'l').replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
 	const title = $derived(
 		invoices.length === 1
