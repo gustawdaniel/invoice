@@ -224,6 +224,8 @@ model invoices {
   vatBankAccountNumber String  @default("")
   paid                 Float
   paymentDate          String?
+  // withheld by a foreign client and paid to its own tax office: the invoice is settled when paid + withholdingTax covers it
+  withholdingTax       Float    @default(0)
 
   // false: test mode invoice, listed only in test mode and sent only to KSeF DEMO (no legal effect)
   livemode             Boolean  @default(true)

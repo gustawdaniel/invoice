@@ -38,6 +38,7 @@ const NewInvoiceSchema = z.object({
     publicNote: z.string(),
     privateNote: z.string(),
     paid: z.number().default(0),
+    withholdingTax: z.number().min(0).default(0),
     paymentDate: z.string().optional(),
 });
 

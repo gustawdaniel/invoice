@@ -25,6 +25,7 @@ import { listInvoices } from "../controllers/invoice/listInvoices";
 import { addInvoice, AddInvoiceRoute } from "../controllers/invoice/addInvoice";
 import { updateInvoice, UpdateInvoiceRoute } from "../controllers/invoice/updateInvoice";
 import { deleteInvoice, DeleteInvoiceRoute } from "../controllers/invoice/deleteInvoice";
+import { recordPayment, type RecordPaymentRoute } from "../controllers/invoice/recordPayment";
 
 import { dismissKsefRequest, sendToKsef, type SendToKsefRoute } from "../controllers/ksef/sendToKsef";
 import {
@@ -96,6 +97,7 @@ export default function indexRoute(
     server.post<AddInvoiceRoute>('/invoices', SECRET, addInvoice);
     server.put<UpdateInvoiceRoute>('/invoices/:id', SECRET, updateInvoice);
     server.delete<DeleteInvoiceRoute>('/invoices/:id', SECRET, deleteInvoice);
+    server.put<RecordPaymentRoute>('/invoices/:id/payment', SECRET, recordPayment);
     server.post<SendToKsefRoute>('/invoices/:id/ksef', SECRET, sendToKsef);
     server.get<GetKsefXmlRoute>('/invoices/:id/ksef/xml', SECRET, getKsefXml);
     server.delete<SendToKsefRoute>('/invoices/:id/ksef-request', SECRET, dismissKsefRequest);
