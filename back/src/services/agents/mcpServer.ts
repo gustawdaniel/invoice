@@ -110,8 +110,8 @@ export function createMcpServer(ctx: AgentContext): McpServer {
     );
 
     server.registerTool('list_companies', {
-        description: 'Companies the user can issue invoices for; ksefConnected: production KSeF, '
-            + 'ksefDemoConnected: KSeF DEMO for test mode',
+        description: 'Companies the user can issue invoices for; isDefault: the one the user works in by default, '
+            + 'ksefConnected: production KSeF, ksefDemoConnected: KSeF DEMO for test mode',
         annotations: {readOnlyHint: true},
     }, async () => {
         const companies = await prisma.companies.findMany({
@@ -120,7 +120,7 @@ export function createMcpServer(ctx: AgentContext): McpServer {
         });
         return json(companies.map(company => {
             const {logo, signature, ...rest} = publicCompany(company);
-            return rest;
+            return {...rest, isDefault: company.id === ctx.user.companyId};
         }));
     });
 

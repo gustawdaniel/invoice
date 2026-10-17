@@ -16,5 +16,5 @@ export const listCompanies = async (
         orderBy: {createdAt: 'asc'},
     });
 
-    return reply.send(companies.map(publicCompany));
+    return reply.send(companies.map(company => ({...publicCompany(company), isDefault: company.id === user.companyId})));
 }
