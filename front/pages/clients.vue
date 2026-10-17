@@ -101,6 +101,9 @@ function sync() {
   clientStore.getClients()
 }
 
+// clients can be added outside this tab (e.g. by an agent via MCP), so the persisted list may be stale
+onMounted(sync)
+
 function openUpdateClientModal(client: Client) {
   console.log("client", client);
   modal.open(NewClientInput, {
