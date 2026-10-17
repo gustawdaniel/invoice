@@ -1,0 +1,140 @@
+@import 'tailwindcss';
+
+/* one accent, orange only for test mode; dark mode follows the system */
+@theme {
+	--font-sans: 'IBM Plex Sans', system-ui, sans-serif;
+	--font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+
+	--color-bg: var(--bg);
+	--color-panel: var(--panel);
+	--color-sunken: var(--sunken);
+	--color-line: var(--line);
+	--color-line-soft: var(--line-soft);
+	--color-ink: var(--ink);
+	--color-muted: var(--muted);
+	--color-faint: var(--faint);
+	--color-accent: var(--accent);
+	--color-accent-ink: var(--accent-ink);
+	--color-accent-soft: var(--accent-soft);
+	--color-accent-line: var(--accent-line);
+	--color-on-accent: var(--on-accent);
+	--color-test: var(--test);
+	--color-test-soft: var(--test-soft);
+	--color-on-test: var(--on-test);
+	--color-ok: var(--ok);
+	--color-ok-soft: var(--ok-soft);
+	--color-warn: var(--warn);
+	--color-warn-soft: var(--warn-soft);
+	--color-bad: var(--bad);
+	--color-bad-soft: var(--bad-soft);
+}
+
+:root {
+	--bg: #fafaf9;
+	--panel: #ffffff;
+	--sunken: #f5f5f4;
+	--line: #e7e5e4;
+	--line-soft: #f5f5f4;
+	--ink: #1c1917;
+	--muted: #57534e;
+	--faint: #78716c;
+	--accent: #2f4fd8;
+	--accent-ink: #1e3a8a;
+	--accent-soft: #ebeefb;
+	--accent-line: #c7cff5;
+	--on-accent: #ffffff;
+	--test: #c2410c;
+	--test-soft: #fff7ed;
+	--on-test: #ffffff;
+	--ok: #166534;
+	--ok-soft: #dcfce7;
+	--warn: #92400e;
+	--warn-soft: #fef3c7;
+	--bad: #991b1b;
+	--bad-soft: #fee2e2;
+	color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+	:root {
+		--bg: #121110;
+		--panel: #1a1918;
+		--sunken: #232120;
+		--line: #2e2c2a;
+		--line-soft: #232120;
+		--ink: #f5f5f4;
+		--muted: #b5b0ab;
+		--faint: #9a948e;
+		--accent: #7b93f5;
+		--accent-ink: #c3cdfb;
+		--accent-soft: #1f2645;
+		--accent-line: #34407a;
+		--on-accent: #0b1020;
+		--test: #fb923c;
+		--test-soft: #2a1a0e;
+		--on-test: #1c0d02;
+		--ok: #86efac;
+		--ok-soft: #12291b;
+		--warn: #fcd34d;
+		--warn-soft: #2b2310;
+		--bad: #fca5a5;
+		--bad-soft: #2f1414;
+		color-scheme: dark;
+	}
+}
+
+html,
+body {
+	background: var(--bg);
+	color: var(--ink);
+	font-family: var(--font-sans);
+	font-size: 14px;
+	-webkit-font-smoothing: antialiased;
+}
+
+kbd {
+	font-family: var(--font-mono);
+	font-size: 11px;
+}
+
+/* the print view is the only thing on paper */
+@media print {
+	.no-print {
+		display: none !important;
+	}
+	html,
+	body {
+		background: #fff;
+		color: #000;
+	}
+}
+
+/* the few controls every screen shares */
+@layer components {
+	.field {
+		@apply h-8 w-full min-w-0 rounded-md border border-line bg-panel px-2.5 text-[13px] text-ink outline-none placeholder:text-faint focus:border-accent focus:ring-2 focus:ring-accent/20;
+	}
+	textarea.field {
+		@apply h-auto py-1.5;
+	}
+	/* native selects drew their own font and arrow, this keeps them like the inputs */
+	select.field {
+		@apply cursor-pointer appearance-none bg-no-repeat pr-7;
+		background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%2378716c' stroke-width='1.5'/%3E%3C/svg%3E");
+		background-position: right 0.6rem center;
+		font: inherit;
+		font-size: 13px;
+	}
+	.btn {
+		@apply inline-flex h-8 cursor-pointer items-center justify-center gap-1.5 rounded-md border border-line bg-panel px-3 text-[13px] text-ink hover:bg-sunken disabled:cursor-default disabled:opacity-50;
+	}
+	.btn-primary {
+		@apply inline-flex h-8 cursor-pointer items-center justify-center gap-1.5 rounded-md bg-accent px-3 text-[13px] font-medium text-on-accent hover:brightness-110 disabled:cursor-default disabled:opacity-50;
+	}
+	.btn-danger {
+		@apply inline-flex h-8 cursor-pointer items-center justify-center gap-1.5 rounded-md border border-bad/40 bg-panel px-3 text-[13px] text-bad hover:bg-bad-soft disabled:opacity-50;
+	}
+	.label-caps {
+		@apply text-[11px] font-semibold tracking-[0.06em] text-faint uppercase;
+	}
+}
