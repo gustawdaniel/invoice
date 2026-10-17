@@ -5,6 +5,7 @@ import {tokenizeUser} from "../../helpers/tokenize";
 import {defaultUserInput} from "../../helpers/defaultUserInput";
 import {config} from "../../config";
 import {cacheAvatar} from "../../helpers/cacheAvatar";
+import {effectiveRoles} from "../../helpers/roles";
 
 export const googleVerify = async (
     req: FastifyRequest<{ Body: { credential: string } }>,
@@ -71,7 +72,7 @@ export const googleVerify = async (
                 email: user.email,
                 avatar: user.avatar,
                 full_name: user.full_name,
-                roles: user.roles
+                roles: effectiveRoles(user)
             },
             token: tokenizeUser(user)
         });

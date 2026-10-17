@@ -77,4 +77,8 @@ export interface Invoice {
     ksefNumber?: string | null,
     ksefQrUrl?: string | null,
     ksefError?: string | null,
+    createdByAgent?: string | null,
+    ksefSendRequestedAt?: string | null,
+    ksefSendRequestedBy?: string | null,
+    ksefSendRequestNote?: string | null,
 }

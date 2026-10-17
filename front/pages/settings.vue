@@ -1,5 +1,6 @@
 <template>
   <div class="max-w-3xl mx-auto bg-white p-6 ">
+    <AgentAccess class="mb-10 border-b pb-8" />
     <div class="sm:flex sm:items-center">
       <div class="sm:flex-auto">
         <h1 class="text-base font-semibold leading-6 text-gray-900">Exchange Rates</h1>
@@ -51,6 +52,7 @@
 
 <script setup lang="ts">
 import {useExchangeStore} from "~/store/exchange";
+import AgentAccess from "~/components/agents/AgentAccess.vue";
 const exchangeStore = useExchangeStore();
 
 onMounted(() => {

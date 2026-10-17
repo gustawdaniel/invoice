@@ -22,6 +22,10 @@ export const serverVariables = z.object({
 
     // 32 bytes, base64; encrypts KSeF tokens stored in companies.ksefTokenEnc
     KSEF_SECRET_KEY: z.string().optional(),
+
+    // comma separated emails that get the admin role (list of all companies at /admin)
+    ADMIN_EMAILS: z.string().default('')
+        .transform(value => value.split(',').map(email => email.trim().toLowerCase()).filter(Boolean)),
 });
 
 export const config = serverVariables.parse(process.env);

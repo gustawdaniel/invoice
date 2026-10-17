@@ -18,6 +18,7 @@ services:
       - SPACE_REGION
       - EXCHANGE_RATES_API_TOKEN
       - KSEF_SECRET_KEY
+      - ADMIN_EMAILS
     restart: always
 
   frontend:

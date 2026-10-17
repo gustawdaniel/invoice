@@ -13,6 +13,7 @@ import { TokenPayload } from './types/auth';
 import {verifyToken} from "./helpers/tokenize";
 import {getErrorMessage} from "./helpers/getErrorMessage";
 import {resolveCompanyId} from "./helpers/resolveCompanyId";
+import {effectiveRoles} from "./helpers/roles";
 
 declare module 'fastify' {
     interface FastifyRequest {
@@ -78,7 +79,7 @@ export function getFastify(): FastifyInstance {
                 return reply.unauthorized(getErrorMessage(error));
             }
 
-            if (isAdmin(request.routeOptions.config) && !request.user.roles.includes('admin')) {
+            if (isAdmin(request.routeOptions.config) && !effectiveRoles(request.user).includes('admin')) {
                 return reply.unauthorized('You are not an admin');
             }
 

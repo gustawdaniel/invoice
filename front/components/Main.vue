@@ -75,6 +75,13 @@
                   <span v-else-if="invoice.ksefError" class="text-xs text-red-600 whitespace-normal" :title="invoice.ksefError">
                     KSeF: {{ invoice.ksefError.slice(0, 80) }}
                   </span>
+                  <template v-if="invoice.createdByAgent"><br><span class="text-xs text-gray-400">drafted by agent {{ invoice.createdByAgent }}</span></template>
+                  <template v-if="invoice.ksefSendRequestedAt && !invoice.ksefNumber">
+                    <br>
+                    <span class="text-xs font-medium text-amber-700 whitespace-normal">
+                      Agent {{ invoice.ksefSendRequestedBy }} asks to send to KSeF{{ invoice.ksefSendRequestNote ? `: ${invoice.ksefSendRequestNote}` : '' }}
+                    </span>
+                  </template>
                 </td>
                 <td v-if="columnTable.includes('date')" class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{{
                     invoice.issueDate
@@ -96,7 +103,12 @@
                   <button v-if="companyStore.usesKsef && companyStore.company.ksefConnected && !invoice.ksefNumber"
                           class="border px-2 py-1 hover:bg-gray-100 disabled:opacity-50"
                           :disabled="sendingKsef === invoice.id"
-                          @click="sendKsef(invoice)">{{ sendingKsef === invoice.id ? 'SENDING...' : 'SEND KSEF' }}</button>
+                          :class="{'border-amber-500 bg-amber-50': invoice.ksefSendRequestedAt}"
+                          @click="sendKsef(invoice)">{{ sendingKsef === invoice.id ? 'SENDING...' : invoice.ksefSendRequestedAt ? 'APPROVE & SEND KSEF' : 'SEND KSEF' }}</button>
+                  <button v-if="invoice.ksefSendRequestedAt && !invoice.ksefNumber"
+                          class="border px-2 py-1 hover:bg-gray-100"
+                          title="Reject the agent's request, the invoice stays a draft"
+                          @click="dismissRequest(invoice)">DISMISS</button>
                   <button v-if="invoice.ksefNumber" class="border px-2 py-1 hover:bg-gray-100"
                           title="Download the FA(3) XML accepted by KSeF"
                           @click="invoiceStore.downloadKsefXml(invoice)">XML</button>
@@ -174,6 +186,14 @@ const sendKsef = async (inv: Invoice) => {
         toast.add({title: "KSeF error", description: apiErrorMessage(e), color: 'error'});
     } finally {
         sendingKsef.value = null;
+    }
+}
+
+const dismissRequest = async (inv: Invoice) => {
+    try {
+        await invoiceStore.dismissKsefRequest(inv.id);
+    } catch (e) {
+        toast.add({title: "Error", description: apiErrorMessage(e), color: 'error'});
     }
 }
 

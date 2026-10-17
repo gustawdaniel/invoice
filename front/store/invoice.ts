@@ -12,6 +12,7 @@ export const useInvoiceStore = defineStore('invoiceStore', (): {
     updateInvoice: (client: Partial<Invoice> & { id: string }) => Promise<void>
     deleteInvoice: (id: string) => Promise<void>
     sendKsef: (id: string) => Promise<void>
+    dismissKsefRequest: (id: string) => Promise<void>
     downloadKsefXml: (invoice: Invoice) => Promise<void>
 } => {
     const invoices = ref<Invoice[]>([]);
@@ -95,6 +96,15 @@ export const useInvoiceStore = defineStore('invoiceStore', (): {
         }
     }
 
+    // an agent asked to send the invoice to production KSeF, the human says no
+    const dismissKsefRequest = async (id: string) => {
+        await $fetch(`${import.meta.env.VITE_API_URL}/invoices/${id}/ksef-request`, {
+            method: 'DELETE',
+            headers: authHeaders(),
+        });
+        await getInvoices();
+    }
+
     const downloadKsefXml = async (invoice: Invoice) => {
         const xml = await $fetch<string>(`${import.meta.env.VITE_API_URL}/invoices/${invoice.id}/ksef/xml`, {
             headers: authHeaders(),
@@ -115,7 +125,8 @@ export const useInvoiceStore = defineStore('invoiceStore', (): {
         addInvoice,
         updateInvoice,
         deleteInvoice,
-        sendKsef
+        sendKsef,
+        dismissKsefRequest,
     }
 }, {
     persist: true,
