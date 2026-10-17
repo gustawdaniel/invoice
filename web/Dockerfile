@@ -10,8 +10,7 @@ ARG VITE_GOOGLE_CLIENT_ID=244384199602-sqhor9mc08tkl3gkd71k9c46rq38msdd.apps.goo
 ENV VITE_API_URL=$VITE_API_URL VITE_GOOGLE_CLIENT_ID=$VITE_GOOGLE_CLIENT_ID
 RUN pnpm run build
 
-FROM nginx:alpine
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-COPY --from=builder /app/build /usr/share/nginx/html
+FROM caddy:2-alpine
+COPY Caddyfile /etc/caddy/Caddyfile
+COPY --from=builder /app/build /srv
 EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]

@@ -1,0 +1,15 @@
+# the static build of the SvelteKit app; a single page app, so unknown paths get the shell
+:80 {
+	root * /srv
+	encode zstd gzip
+
+	# hashed assets never change
+	@immutable path /_app/immutable/*
+	header @immutable Cache-Control "public, max-age=31536000, immutable"
+	# the app shell and the rest are checked on every load, so a deploy shows up at once
+	@other not path /_app/immutable/*
+	header @other Cache-Control "no-cache"
+
+	try_files {path} /200.html
+	file_server
+}
