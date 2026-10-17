@@ -2,6 +2,7 @@
 import { useCompanyStore, type Company } from "~/store/company";
 import { lookupNip } from "~/helpers/lookupNip";
 import { useCompanySwitch } from "~/composables/useCompanySwitch";
+import KsefConnection from "~/components/company/KsefConnection.vue";
 const companyStore = useCompanyStore();
 const { createCompany } = useCompanySwitch();
 const toast = useToast();
@@ -10,10 +11,7 @@ const newPolishName = ref('');
 
 const form = ref<Company>({ ...companyStore.company });
 const loading = ref(false);
-const ksefBusy = ref(false);
 const errors = ref<Record<string, string>>({});
-const signedFile = ref<File | null>(null);
-const pastedToken = ref('');
 
 const isPolish = computed(() => form.value.country === 'PL');
 
@@ -69,7 +67,7 @@ const saveCompany = async () => {
   if (!validate()) return;
   loading.value = true;
   try {
-    const { id, ksefConnected, ...data } = form.value;
+    const { id, ksefConnected, ksefDemoConnected, ...data } = form.value;
     await companyStore.setCompany(data);
     syncForm();
     toast.add({ title: "Success", description: "Company details updated successfully!" });
@@ -79,19 +77,6 @@ const saveCompany = async () => {
     loading.value = false;
   }
 };
-
-async function ksefAction(action: () => Promise<void>, success: string) {
-  ksefBusy.value = true;
-  try {
-    await action();
-    syncForm();
-    toast.add({ title: "KSeF", description: success });
-  } catch (e) {
-    toast.add({ title: "KSeF error", description: (e as Error).message, color: 'error' });
-  } finally {
-    ksefBusy.value = false;
-  }
-}
 
 // Fill name and address from the MF White List; also suggests the VAT exemption basis
 async function fillFromMf() {
@@ -124,11 +109,11 @@ const steps = computed(() => {
   return [
     { done: isValidNip(c.tin), label: 'NIP' },
     { done: Boolean(c.address), label: 'Address' },
-    { done: Boolean(c.ksefEnv), label: 'KSeF mode (test or production)' },
-    { done: c.ksefConnected, label: 'KSeF connected' },
+    { done: c.ksefConnected, label: 'KSeF production connected' },
+    { done: c.ksefDemoConnected, label: 'KSeF DEMO connected (optional, for test mode)', optional: true },
   ];
 });
-const ready = computed(() => steps.value.every(step => step.done));
+const ready = computed(() => steps.value.every(step => step.done || step.optional));
 
 async function addPolishCompany() {
   if (!newPolishName.value.trim()) return;
@@ -141,32 +126,6 @@ async function addPolishCompany() {
   }
 }
 
-const connectTest = () => ksefAction(() => companyStore.connectKsefTest(), 'Connected to KSeF TEST.');
-
-const downloadAuthRequest = () => ksefAction(async () => {
-  const xml = await companyStore.getKsefAuthRequest();
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(new Blob([xml], { type: 'application/xml' }));
-  link.download = 'ksef-auth-request.xml';
-  link.click();
-  URL.revokeObjectURL(link.href);
-}, 'Sign the downloaded file within 10 minutes and upload it below.');
-
-const uploadSigned = () => ksefAction(async () => {
-  if (!signedFile.value) throw new Error('Choose the signed XML file first');
-  await companyStore.sendKsefSignedRequest(await signedFile.value.text());
-  signedFile.value = null;
-}, 'Connected to production KSeF.');
-
-const connectWithToken = () => ksefAction(async () => {
-  await companyStore.connectKsefWithToken(pastedToken.value);
-  pastedToken.value = '';
-}, 'KSeF token verified and stored.');
-
-const disconnect = () => {
-  if (!confirm('Remove the stored KSeF token from this company?')) return;
-  return ksefAction(() => companyStore.disconnectKsef(), 'KSeF token removed.');
-};
 </script>
 
 <template>
@@ -249,16 +208,6 @@ const disconnect = () => {
           <p class="text-gray-500 text-xs mt-1">Required on invoices with "zw." items. Leave empty for VAT payers.</p>
         </div>
 
-        <!-- KSeF environment -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700">KSeF mode</label>
-          <select v-model="form.ksefEnv" class="mt-1 rounded-md border-gray-300 text-sm">
-            <option :value="null">Off</option>
-            <option value="test">Test (fake NIP only, no legal effect)</option>
-            <option value="prod">Production</option>
-          </select>
-          <p class="text-gray-500 text-xs mt-1">Changing the mode or NIP disconnects KSeF.</p>
-        </div>
       </template>
 
       <!-- Logo Upload -->
@@ -288,66 +237,11 @@ const disconnect = () => {
       </div>
     </form>
 
-    <!-- KSeF connection, works on the saved state of the company -->
-    <section v-if="companyStore.usesKsef" class="mt-8 border-t pt-6 space-y-3">
-      <h3 class="text-lg font-semibold">
-        KSeF {{ companyStore.company.ksefEnv === 'prod' ? 'production' : 'test' }}:
-        <span :class="companyStore.company.ksefConnected ? 'text-green-700' : 'text-amber-700'">
-          {{ companyStore.company.ksefConnected ? 'connected' : 'not connected' }}
-        </span>
-      </h3>
-
-      <template v-if="companyStore.company.ksefConnected">
-        <button class="border rounded px-3 py-1 hover:bg-gray-100" :disabled="ksefBusy" @click="disconnect">
-          Disconnect
-        </button>
-      </template>
-
-      <template v-else-if="companyStore.company.ksefEnv === 'test'">
-        <p class="text-sm text-gray-600">The test environment accepts a generated certificate, no signature needed.</p>
-        <button class="rounded bg-indigo-600 px-3 py-1 text-white disabled:opacity-50" :disabled="ksefBusy" @click="connectTest">
-          {{ ksefBusy ? 'Connecting...' : 'Connect to KSeF TEST' }}
-        </button>
-      </template>
-
-      <template v-else>
-        <ol class="list-decimal pl-5 text-sm text-gray-700 space-y-1">
-          <li>Download the authorization request (valid for 10 minutes).</li>
-          <li>Sign it with Profil Zaufany on
-            <a class="text-indigo-600 underline" href="https://www.gov.pl/web/gov/podpisz-dokument-elektronicznie-wykorzystaj-podpis-zaufany" target="_blank">gov.pl</a>
-            or with a qualified signature, as a person authorized for this NIP in KSeF.</li>
-          <li>Upload the signed XML. The app stores a KSeF token, signing is needed only once.</li>
-        </ol>
-        <div class="flex flex-wrap items-center gap-3">
-          <button class="rounded bg-indigo-600 px-3 py-1 text-white disabled:opacity-50" :disabled="ksefBusy" @click="downloadAuthRequest">
-            1. Download request
-          </button>
-          <!-- podpis.gov.pl may return the signed file as .xml or .xades -->
-          <input type="file" accept=".xml,.xades,application/xml,text/xml"
-                 @change="(e) => signedFile = (e.target as HTMLInputElement).files?.[0] ?? null" />
-          <button class="rounded bg-indigo-600 px-3 py-1 text-white disabled:opacity-50" :disabled="ksefBusy || !signedFile" @click="uploadSigned">
-            {{ ksefBusy ? 'Connecting...' : '3. Upload signed XML' }}
-          </button>
-        </div>
-      </template>
-
-      <!-- alternative for both modes: token generated by the user in Aplikacja Podatnika KSeF -->
-      <form v-if="!companyStore.company.ksefConnected" class="space-y-2 border-t pt-3" @submit.prevent="connectWithToken">
-        <p class="text-sm text-gray-600">
-          Or paste a token generated in
-          <a v-if="companyStore.company.ksefEnv === 'prod'" class="text-indigo-600 underline"
-             href="https://ap.ksef.mf.gov.pl/web/tokens/generate-token" target="_blank">Aplikacja Podatnika KSeF</a>
-          <a v-else class="text-indigo-600 underline" href="https://ap-test.ksef.mf.gov.pl" target="_blank">Aplikacja Podatnika KSeF (test)</a>
-          with invoice read and write permissions.
-        </p>
-        <div class="flex flex-wrap items-center gap-3">
-          <input v-model="pastedToken" type="password" autocomplete="off" placeholder="reference|nip-...|..."
-                 class="min-w-0 flex-1 rounded-md border-gray-300 text-sm" />
-          <button type="submit" class="rounded bg-indigo-600 px-3 py-1 text-white disabled:opacity-50" :disabled="ksefBusy || !pastedToken.trim()">
-            {{ ksefBusy ? 'Checking...' : 'Use token' }}
-          </button>
-        </div>
-      </form>
-    </section>
+    <!-- KSeF connections, work on the saved state of the company; like Stripe live and test keys -->
+    <div v-if="companyStore.usesKsef" class="mt-8 border-t pt-6 space-y-4">
+      <KsefConnection env="prod" />
+      <KsefConnection env="demo" />
+      <p class="text-xs text-gray-500">Changing the NIP disconnects both.</p>
+    </div>
   </div>
 </template>

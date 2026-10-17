@@ -38,13 +38,13 @@ import { mcp } from "../controllers/agents/mcp";
 import { lookupNip, type LookupNipRoute } from "../controllers/lookup/lookupNip";
 import { getKsefXml, type GetKsefXmlRoute } from "../controllers/ksef/getKsefXml";
 import {
-    connectKsefTest,
-    disconnectKsef,
-    ksefProdAuthRequest,
-    ksefProdAuthSigned,
     connectKsefWithToken,
+    disconnectKsef,
+    ksefAuthRequest,
+    ksefAuthSigned,
+    type KsefAuthSignedRoute,
+    type KsefEnvRoute,
     type KsefTokenRoute,
-    type KsefProdAuthSignedRoute,
 } from "../controllers/ksef/connectKsef";
 
 const PUBLIC: RouteShorthandOptions = { config: { isPrivate: false } };
@@ -77,12 +77,11 @@ export default function indexRoute(
     server.get('/company', SECRET, getCompany);
     server.put<PutCompanyBody>('/company', SECRET, putCompany);
 
-    // ksef connection of the selected company
-    server.post('/company/ksef/test-connect', SECRET, connectKsefTest);
-    server.get('/company/ksef/auth-request', SECRET, ksefProdAuthRequest);
-    server.post<KsefProdAuthSignedRoute>('/company/ksef/auth-signed', SECRET, ksefProdAuthSigned);
-    server.post<KsefTokenRoute>('/company/ksef/token', SECRET, connectKsefWithToken);
-    server.delete('/company/ksef', SECRET, disconnectKsef);
+    // ksef connections of the selected company, :env is prod (live mode) or demo (test mode)
+    server.get<KsefEnvRoute>('/company/ksef/:env/auth-request', SECRET, ksefAuthRequest);
+    server.post<KsefAuthSignedRoute>('/company/ksef/:env/auth-signed', SECRET, ksefAuthSigned);
+    server.post<KsefTokenRoute>('/company/ksef/:env/token', SECRET, connectKsefWithToken);
+    server.delete<KsefEnvRoute>('/company/ksef/:env', SECRET, disconnectKsef);
 
     // client
     server.get('/clients', SECRET, listClients);

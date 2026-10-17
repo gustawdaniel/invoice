@@ -10,7 +10,8 @@ export const listInvoices = async (
 
     const invoices = await prisma.invoices.findMany({
         where: {
-            companyId: companyId
+            companyId: companyId,
+            livemode: req.livemode,
         },
         include: {
             client: true

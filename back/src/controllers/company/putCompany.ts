@@ -11,7 +11,6 @@ const PutCompanySchema = z.object({
     logo: z.string(),
     signature: z.string(),
     country: z.enum(['GE', 'PL']),
-    ksefEnv: z.enum(['test', 'prod']).nullable(),
     vatExemptionBasis: z.string(),
 }).partial();
 
@@ -26,19 +25,17 @@ export const putCompany = async (
 
     const body = PutCompanySchema.parse(req.body);
     const country = body.country ?? current.country;
-    const ksefEnv = country === 'PL' ? (body.ksefEnv === undefined ? current.ksefEnv : body.ksefEnv) : null;
     const tin = body.tin ?? current.tin;
 
-    // a token belongs to one environment and one NIP, any change invalidates it
-    const tokenStillValid = ksefEnv === current.ksefEnv && tin === current.tin;
+    // KSeF tokens belong to one NIP of a Polish company, a change invalidates both
+    const tokensStillValid = country === 'PL' && tin === current.tin;
 
     const company = await prisma.companies.update({
         where: {id: req.companyId},
         data: {
             ...body,
             country,
-            ksefEnv,
-            ...(tokenStillValid ? {} : {ksefTokenEnc: null}),
+            ...(tokensStillValid ? {} : {ksefTokenEnc: null, ksefDemoTokenEnc: null}),
         },
     });
 

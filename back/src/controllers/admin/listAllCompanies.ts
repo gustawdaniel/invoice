@@ -17,8 +17,8 @@ export const listAllCompanies = async (_req: FastifyRequest, reply: FastifyReply
         name: company.name,
         country: company.country,
         tin: company.tin,
-        ksefEnv: company.ksefEnv,
         ksefConnected: Boolean(company.ksefTokenEnc),
+        ksefDemoConnected: Boolean(company.ksefDemoTokenEnc),
         createdAt: company.createdAt,
         users: users
             .filter(user => user.companyId === company.id || user.companyIds.includes(company.id))

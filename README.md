@@ -14,17 +14,23 @@ One account can own many companies (switcher in the header). Each company has a 
 
 - **GE** – plain invoices, no KSeF.
 - **PL** – invoices are sent to [KSeF 2.0](https://github.com/CIRFMF/ksef-docs) as FA(3) XML, using
-  [`ksef-client-ts`](https://github.com/Flopsstuff/ksef-client-ts). KSeF mode is chosen per company, like Stripe test/live:
-  - `test` – `api-test.ksef.mf.gov.pl`, connect with one click (self-signed certificate). Use a fake NIP only.
-  - `prod` – download the auth request XML, sign it once with Profil Zaufany or a qualified signature, upload it.
-    The app then generates a KSeF token and stores it encrypted (`KSEF_SECRET_KEY`).
-    Or paste a token generated in [Aplikacja Podatnika KSeF](https://ap.ksef.mf.gov.pl/web/tokens/generate-token).
+  [`ksef-client-ts`](https://github.com/Flopsstuff/ksef-client-ts).
+
+Like Stripe, there is a **Test mode** switch in the header. Live and test mode have separate invoices (clients are shared),
+and every Polish company has two KSeF connections with their own tokens:
+
+- live mode → production KSeF (`api.ksef.mf.gov.pl`), legally binding;
+- test mode → KSeF DEMO (`api-demo.ksef.mf.gov.pl`), the pre-production environment: real NIP and data, no legal effect.
+
+Connect each by pasting a token from Aplikacja Podatnika KSeF ([production](https://ap.ksef.mf.gov.pl/web/tokens/generate-token),
+[DEMO](https://ap-demo.ksef.mf.gov.pl)) or by signing an auth request once with Profil Zaufany. Tokens are stored encrypted
+(`KSEF_SECRET_KEY`). An invoice is sent to the environment of its own mode, never the other one.
 
 Invoices accepted by KSeF store their KSeF number, XML and verification QR link, and can no longer be edited or deleted.
 
-Checks: `pnpm test` in `back` (FA(3) XSD validation needs `xmllint`) and
-`tsx scripts/ksef_e2e_test.ts` against a local backend and database (full flow on KSeF TEST).
-After deploying the schema change run `tsx scripts/migrate_multi_company.ts --apply` once.
+Checks: `pnpm test` in `back` (FA(3) XSD validation needs `xmllint`) and `tsx scripts/ksef_signed_flow_test.ts`
+(signature based connection and sending on KSeF TEST with a fake NIP). Data from the single KSeF mode per company is
+moved to live/test mode on start (`src/migrations/ksefModes.ts`, idempotent).
 
 ## AI agents (MCP)
 
@@ -37,12 +43,12 @@ claude mcp add --transport http openinvoice https://api.openinvoice.in/mcp --hea
 
 A key acts as the user who created it, only on `/mcp`. Tools: `list_companies`, `create_company`, `update_company`,
 `lookup_nip`, `list_clients`, `create_client`, `list_invoices`, `get_invoice`, `create_invoice_draft`,
-`update_invoice_draft`, `validate_ksef_invoice`, `request_ksef_send`, `send_to_ksef_test`.
+`update_invoice_draft`, `validate_ksef_invoice`, `request_ksef_send`, `send_to_ksef_demo`.
 
 Production KSeF stays human: `request_ksef_send` only marks the draft, the user approves it with
 **APPROVE & SEND KSEF** (or dismisses it) on the invoice list. Changing the draft cancels the request. Agents cannot
-connect KSeF, change the KSeF mode or NIP of a connected company, delete anything or manage keys.
-Companies in KSeF TEST mode can be sent directly with `send_to_ksef_test`.
+connect KSeF, change the NIP of a connected company, delete anything or manage keys.
+Test mode invoices (`test_mode: true`) can be sent to KSeF DEMO directly with `send_to_ksef_demo`.
 
 Admins (`ADMIN_EMAILS`) see every company and its users at `/admin`.
 

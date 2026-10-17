@@ -34,6 +34,9 @@
       </div>
     </div>
 
+    <div v-if="companyStore.testMode" class="bg-orange-500 px-4 py-1 text-center text-sm font-medium text-white">
+      TEST MODE — test invoices only, sent to KSeF DEMO without legal effect
+    </div>
     <slot/>
   </div>
 </template>
@@ -48,7 +51,9 @@ import CompanySwitcher from "~/components/nav/CompanySwitcher.vue";
 import {useClientStore} from "~/store/client";
 import {defaultInvoice} from "~/helpers/defaultInvoice";
 import {useInvoiceStore} from "~/store/invoice";
+import {useCompanyStore} from "~/store/company";
 const invoiceStore = useInvoiceStore();
+const companyStore = useCompanyStore();
 
 const clientStore = useClientStore();
 

@@ -2,7 +2,7 @@ import {KSeFInvoiceRejectedError} from "ksef-client-ts";
 import {prisma} from "../../db";
 import {getErrorMessage} from "../../helpers/getErrorMessage";
 import {buildFa3} from "./buildFa3";
-import {sendInvoiceToKsef} from "./ksef";
+import {envForLivemode, sendInvoiceToKsef} from "./ksef";
 
 export type SendFailure = 'notFound' | 'conflict' | 'invalid' | 'rejected' | 'unavailable';
 
@@ -12,7 +12,8 @@ export class SendInvoiceError extends Error {
     }
 }
 
-// Sends an invoice of the company to KSeF (the environment selected on the company) and stores the result
+// Sends an invoice to KSeF and stores the result. The environment follows the invoice, never the request:
+// live invoices go only to production, test mode invoices only to DEMO.
 export async function sendStoredInvoice(invoiceId: string, companyId: string) {
     const invoice = await prisma.invoices.findFirst({
         where: {id: invoiceId, companyId},
@@ -30,11 +31,12 @@ export async function sendStoredInvoice(invoiceId: string, companyId: string) {
     }
 
     try {
-        const {status, qrUrl} = await sendInvoiceToKsef(invoice.company, xml, invoice.issueDate);
+        const env = envForLivemode(invoice.livemode);
+        const {status, qrUrl} = await sendInvoiceToKsef(invoice.company, env, xml, invoice.issueDate);
         return await prisma.invoices.update({
             where: {id: invoice.id},
             data: {
-                ksefEnv: invoice.company.ksefEnv,
+                ksefEnv: env,
                 ksefStatus: 'Accepted',
                 ksefNumber: status.ksefNumber,
                 ksefReferenceNumber: status.referenceNumber,
