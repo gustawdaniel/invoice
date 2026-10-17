@@ -33,6 +33,8 @@ import {
     disconnectKsef,
     ksefProdAuthRequest,
     ksefProdAuthSigned,
+    connectKsefWithToken,
+    type KsefTokenRoute,
     type KsefProdAuthSignedRoute,
 } from "../controllers/ksef/connectKsef";
 
@@ -69,6 +71,7 @@ export default function indexRoute(
     server.post('/company/ksef/test-connect', SECRET, connectKsefTest);
     server.get('/company/ksef/auth-request', SECRET, ksefProdAuthRequest);
     server.post<KsefProdAuthSignedRoute>('/company/ksef/auth-signed', SECRET, ksefProdAuthSigned);
+    server.post<KsefTokenRoute>('/company/ksef/token', SECRET, connectKsefWithToken);
     server.delete('/company/ksef', SECRET, disconnectKsef);
 
     // client
