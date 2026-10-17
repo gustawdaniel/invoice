@@ -72,6 +72,11 @@ model companies {
   ksefDemoTokenEnc  String?
   // e.g. "Art. 113 ust. 1 ustawy o VAT", printed and sent when items are VAT exempt
   vatExemptionBasis String   @default("")
+  // prefilled on new invoices, e.g. bank account or a note about VAT
+  defaultIssuePlace        String @default("")
+  defaultIssuerName        String @default("")
+  defaultBankAccountNumber String @default("")
+  defaultPublicNote        String @default("")
 
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt

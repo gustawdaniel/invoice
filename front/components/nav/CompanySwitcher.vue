@@ -35,9 +35,11 @@ async function add() {
 </script>
 
 <template>
-  <div class="flex items-center gap-2 text-sm">
+  <div class="flex min-w-0 flex-wrap items-center gap-2 text-sm">
+    <!-- full legal names are long, the select stays narrow and shows the full name on hover -->
     <select
-        class="rounded-md border-gray-300 py-1 text-sm"
+        class="w-56 max-w-full truncate rounded-md border-gray-300 py-1 text-sm"
+        :title="companyStore.company.name"
         :value="companyStore.company.id"
         @change="onSelect">
       <option v-for="c in companyStore.companies" :key="c.id" :value="c.id">
@@ -63,7 +65,7 @@ async function add() {
             class="rounded-md border border-gray-300 px-2 py-1 text-gray-700 hover:bg-gray-100 cursor-pointer"
             title="Add another company (e.g. a Polish one with KSeF)"
             @click="adding = true">+ New company</button>
-    <form v-else class="flex items-center gap-1" @submit.prevent="add">
+    <form v-else class="flex flex-wrap items-center gap-1" @submit.prevent="add">
       <input v-model="newName" placeholder="Company name" class="rounded-md border-gray-300 py-1 text-sm" autofocus>
       <select v-model="newCountry" class="rounded-md border-gray-300 py-1 text-sm">
         <option value="PL">PL</option>

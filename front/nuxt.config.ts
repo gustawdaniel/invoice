@@ -33,5 +33,10 @@ export default defineNuxtConfig({
         preference: 'light'
     },
 
+    experimental: {
+        // after a deploy an open tab still points at old chunks, reload it right away instead of failing silently
+        emitRouteChunkError: 'automatic-immediate',
+    },
+
     compatibilityDate: '2025-02-06'
 })

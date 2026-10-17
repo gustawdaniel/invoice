@@ -45,14 +45,14 @@ const invoiceFields = {
     issue_date: DATE,
     sale_date: DATE.optional().describe('Defaults to issue_date'),
     deadline_date: DATE.optional().describe('Payment deadline, defaults to issue_date + 14 days'),
-    issue_place: z.string().default(''),
+    issue_place: z.string().default('').describe('Defaults to the company default'),
     currency: z.enum(['PLN', 'EUR', 'USD', 'GBP']).default('PLN'),
     lang: z.enum(['pl', 'en']).default('pl'),
     payment_form: z.enum(PAYMENT_FORMS).default('14d'),
     items: z.array(itemShape).min(1),
-    issuer_name: z.string().optional().describe('Defaults to the name of the user'),
-    bank_account_number: z.string().default(''),
-    public_note: z.string().default('').describe('Printed on the invoice'),
+    issuer_name: z.string().optional().describe('Defaults to the company default, then the name of the user'),
+    bank_account_number: z.string().default('').describe('Defaults to the company default'),
+    public_note: z.string().default('').describe('Printed on the invoice, defaults to the company default'),
     private_note: z.string().default('').describe('Visible only in the app'),
 };
 
@@ -153,15 +153,27 @@ export function createMcpServer(ctx: AgentContext): McpServer {
             address: z.string().optional(),
             info: z.string().optional().describe('Extra lines printed under the company, e.g. bank details'),
             vat_exemption_basis: z.string().optional(),
+            default_issue_place: z.string().optional().describe('Prefilled on new invoices'),
+            default_issuer_name: z.string().optional().describe('Prefilled on new invoices'),
+            default_bank_account_number: z.string().optional().describe('Prefilled on new invoices'),
+            default_public_note: z.string().optional().describe('Prefilled on new invoices, e.g. a note about VAT'),
         },
-    }, async ({company_id, vat_exemption_basis, ...fields}) => {
+    }, async ({company_id, vat_exemption_basis, default_issue_place, default_issuer_name,
+                  default_bank_account_number, default_public_note, ...fields}) => {
         const company = await requireCompany(ctx, company_id);
         if (fields.tin !== undefined && fields.tin !== company.tin && (company.ksefTokenEnc || company.ksefDemoTokenEnc)) {
             throw new Error('This company is connected to KSeF, ask the user to change the NIP in the app');
         }
         const updated = await prisma.companies.update({
             where: {id: company.id},
-            data: {...fields, ...(vat_exemption_basis === undefined ? {} : {vatExemptionBasis: vat_exemption_basis})},
+            data: {
+                ...fields,
+                vatExemptionBasis: vat_exemption_basis,
+                defaultIssuePlace: default_issue_place,
+                defaultIssuerName: default_issuer_name,
+                defaultBankAccountNumber: default_bank_account_number,
+                defaultPublicNote: default_public_note,
+            },
         });
         return json(publicCompany(updated));
     });
@@ -241,7 +253,7 @@ export function createMcpServer(ctx: AgentContext): McpServer {
             ...invoiceFields,
         },
     }, async ({company_id, test_mode, ...input}) => {
-        await requireCompany(ctx, company_id);
+        const company = await requireCompany(ctx, company_id);
         const client = await prisma.clients.findFirst({where: {id: input.client_id, companyId: company_id}});
         if (!client) throw new Error('Client not found in this company');
         const invoice = await prisma.invoices.create({
@@ -252,14 +264,14 @@ export function createMcpServer(ctx: AgentContext): McpServer {
                 issueDate: input.issue_date,
                 saleDate: input.sale_date ?? input.issue_date,
                 deadlineDate: input.deadline_date ?? dayjs(input.issue_date).add(14, 'day').format('YYYY-MM-DD'),
-                issuePlace: input.issue_place,
+                issuePlace: input.issue_place || company.defaultIssuePlace,
                 currency: getCurrency(input.currency),
                 lang: getLanguage(input.lang),
                 paymentForm: getPaymentForm(input.payment_form),
                 items: items(input.items),
-                issuerName: input.issuer_name ?? ctx.user.full_name,
-                bankAccountNumber: input.bank_account_number,
-                publicNote: input.public_note,
+                issuerName: input.issuer_name || company.defaultIssuerName || ctx.user.full_name,
+                bankAccountNumber: input.bank_account_number || company.defaultBankAccountNumber,
+                publicNote: input.public_note || company.defaultPublicNote,
                 privateNote: input.private_note,
                 paid: 0,
                 createdByAgent: ctx.keyName,

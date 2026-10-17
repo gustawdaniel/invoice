@@ -12,6 +12,10 @@ const PutCompanySchema = z.object({
     signature: z.string(),
     country: z.enum(['GE', 'PL']),
     vatExemptionBasis: z.string(),
+    defaultIssuePlace: z.string(),
+    defaultIssuerName: z.string(),
+    defaultBankAccountNumber: z.string(),
+    defaultPublicNote: z.string(),
 }).partial();
 
 export type PutCompanyBody = { Body: z.infer<typeof PutCompanySchema> };

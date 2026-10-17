@@ -31,8 +31,8 @@ function logout() {
 </script>
 
 <template>
-  <div class="hidden sm:ml-6 sm:flex sm:items-center">
-    <Menu as="div" class="relative ml-3">
+  <div class="flex items-center">
+    <Menu as="div" class="relative">
       <div>
         <MenuButton
             class="relative flex rounded-full bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 cursor-pointer"

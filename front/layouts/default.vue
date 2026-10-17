@@ -1,11 +1,11 @@
 <template>
   <div>
 
-    <div class="mt-2" v-if="userStore.user">
-      <div class="flex flex-wrap items-center gap-6 px-4 sm:flex-nowrap sm:px-6 lg:px-8">
+    <!-- wraps instead of overflowing on narrow screens: links, then company and actions -->
+    <header v-if="userStore.user" class="border-b border-gray-200 px-4 py-2 sm:px-6 lg:px-8">
+      <div class="flex flex-wrap items-center gap-x-6 gap-y-2">
         <h1 class="text-base font-semibold leading-7 text-gray-900">#INV</h1>
-        <div
-            class="order-last flex w-full gap-x-8 text-sm font-semibold leading-6 sm:order-none sm:w-auto sm:border-l sm:border-gray-200 sm:pl-6 sm:leading-7">
+        <nav class="flex flex-wrap gap-x-6 gap-y-1 text-sm font-semibold leading-6">
           <nuxt-link to="/clients" :class="$route.name === 'clients' ? 'text-indigo-600' : 'text-gray-700'">
             Clients ({{ clientStore.clients.length }})
           </nuxt-link>
@@ -21,18 +21,20 @@
           <nuxt-link to="/settings" :class="$route.name === 'settings' ? 'text-indigo-600' : 'text-gray-700'">
             Settings
           </nuxt-link>
+        </nav>
+        <div class="ml-auto flex min-w-0 flex-wrap items-center justify-end gap-2">
+          <CompanySwitcher/>
+
+          <button type="button" @click="newInvoice"
+                  class="cursor-pointer flex shrink-0 items-center gap-x-1 rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+            <PlusIcon class="-ml-1.5 h-5 w-5" aria-hidden="true"/>
+            New invoice
+          </button>
+
+          <UserAvatarMenu/>
         </div>
-        <CompanySwitcher class="ml-auto"/>
-
-        <a @click="newInvoice"
-           class="cursor-pointer flex items-center gap-x-1 rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
-          <PlusIcon class="-ml-1.5 h-5 w-5" aria-hidden="true"/>
-          New invoice
-        </a>
-
-        <UserAvatarMenu/>
       </div>
-    </div>
+    </header>
 
     <div v-if="companyStore.testMode" class="bg-orange-500 px-4 py-1 text-center text-sm font-medium text-white">
       TEST MODE — test invoices only, sent to KSeF DEMO without legal effect

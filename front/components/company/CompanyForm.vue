@@ -210,6 +210,30 @@ async function addPolishCompany() {
 
       </template>
 
+      <!-- Prefilled on new invoices, the latest invoice is used for empty ones -->
+      <fieldset class="space-y-4 rounded-md border border-gray-200 p-4">
+        <legend class="px-1 text-sm font-semibold text-gray-700">New invoice defaults</legend>
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Place of issue</label>
+          <UInput v-model="form.defaultIssuePlace" type="text" class="mt-1 block w-full" placeholder="Warszawa" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Issuer name</label>
+          <UInput v-model="form.defaultIssuerName" type="text" class="mt-1 block w-full" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Bank account number</label>
+          <UInput v-model="form.defaultBankAccountNumber" type="text" class="mt-1 block w-full"
+                  placeholder="PL00 0000 0000 0000 0000 0000 0000" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Public note</label>
+          <UTextarea v-model="form.defaultPublicNote" class="mt-1 block w-full"
+                     placeholder="Zwolnienie z VAT na podstawie art. 113 ust. 1 ustawy o VAT" />
+          <p class="text-gray-500 text-xs mt-1">Printed on the invoice.</p>
+        </div>
+      </fieldset>
+
       <!-- Logo Upload -->
       <div>
         <label class="block text-sm font-medium text-gray-700">Logo</label>

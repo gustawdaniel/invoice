@@ -20,12 +20,18 @@ export interface Company {
     ksefConnected: boolean,
     ksefDemoConnected: boolean,
     vatExemptionBasis: string,
+    // prefilled on new invoices
+    defaultIssuePlace: string,
+    defaultIssuerName: string,
+    defaultBankAccountNumber: string,
+    defaultPublicNote: string,
 }
 
 function emptyCompany(): Company {
     return {
         id: '', name: '', tin: '', address: '', info: '', logo: '', signature: '',
         country: 'GE', ksefConnected: false, ksefDemoConnected: false, vatExemptionBasis: '',
+        defaultIssuePlace: '', defaultIssuerName: '', defaultBankAccountNumber: '', defaultPublicNote: '',
     };
 }
 
