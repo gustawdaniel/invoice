@@ -1,0 +1,3 @@
+# git ignores /private/ (see .gitignore), but search tools that read .ignore (ripgrep, so also coding agents)
+# should still see it: it is the local workspace agents are meant to work in, see AGENTS.md
+!/private/

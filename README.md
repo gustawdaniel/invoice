@@ -107,3 +107,9 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 ## License
 
 [ISC](LICENSE)
+
+## For AI agents
+
+Read [AGENTS.md](AGENTS.md). A local, git-ignored `private/` folder may hold the owner's private workspace
+(bookkeeping notes and scripts); agents working on the owner's machine start from `private/README.md` and never copy
+its contents into the public repository.

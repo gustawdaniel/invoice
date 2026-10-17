@@ -7,6 +7,13 @@ on:
     branches: [ "main" ]
 
 jobs:
+  private-stays-private:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # private/ is the owner's local workspace (see AGENTS.md); nothing in it may ever be tracked
+      - run: test -z "$(git ls-files private)" || (echo "files under private/ are tracked" && git ls-files private && exit 1)
+
   frontend-test:
     runs-on: ubuntu-latest
     defaults:

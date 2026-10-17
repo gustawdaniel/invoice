@@ -2,3 +2,7 @@
 id
 .env
 *.env
+
+# the owner's private workspace (bookkeeping notes, scripts, data): never in the public repo, see AGENTS.md
+/private/
+.DS_Store
