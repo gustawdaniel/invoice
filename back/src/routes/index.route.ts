@@ -14,6 +14,7 @@ import { getCompany } from "../controllers/company/getCompany";
 import { putCompany, type PutCompanyBody } from "../controllers/company/putCompany";
 import { listCompanies } from "../controllers/company/listCompanies";
 import { addCompany, type AddCompanyRoute } from "../controllers/company/addCompany";
+import { setDefaultCompany, type SetDefaultCompanyRoute } from "../controllers/company/setDefaultCompany";
 
 import { listClients } from "../controllers/client/listClients";
 import { addClient, AddClientBody } from "../controllers/client/addClient";
@@ -74,6 +75,7 @@ export default function indexRoute(
     // companies of the user; /company is the one selected by the x-company-id header
     server.get('/companies', SECRET, listCompanies);
     server.post<AddCompanyRoute>('/companies', SECRET, addCompany);
+    server.put<SetDefaultCompanyRoute>('/companies/:id/default', SECRET, setDefaultCompany);
     server.get('/company', SECRET, getCompany);
     server.put<PutCompanyBody>('/company', SECRET, putCompany);
 
