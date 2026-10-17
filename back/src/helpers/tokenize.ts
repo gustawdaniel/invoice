@@ -3,6 +3,7 @@ import { config } from '../config';
 import type {UserRole, users} from "@prisma/client";
 import dayjs from "dayjs";
 import {TokenPayload} from "../types/auth";
+import {effectiveRoles} from "./roles";
 
 const issuer = `mailing.preciselab.io`;
 const jwtKey = config.JWT_SECRET;
@@ -23,7 +24,7 @@ function tokenPayload(user: UserProjection): JWTPayload {
     sub: user.id,
     email: user.email,
     iss: issuer,
-    roles: user.roles,
+    roles: effectiveRoles(user),
     exp: dayjs().add(1, 'month').unix(),
     companyId: user.companyId
   };

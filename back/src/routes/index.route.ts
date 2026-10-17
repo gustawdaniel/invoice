@@ -25,7 +25,16 @@ import { addInvoice, AddInvoiceRoute } from "../controllers/invoice/addInvoice";
 import { updateInvoice, UpdateInvoiceRoute } from "../controllers/invoice/updateInvoice";
 import { deleteInvoice, DeleteInvoiceRoute } from "../controllers/invoice/deleteInvoice";
 
-import { sendToKsef, type SendToKsefRoute } from "../controllers/ksef/sendToKsef";
+import { dismissKsefRequest, sendToKsef, type SendToKsefRoute } from "../controllers/ksef/sendToKsef";
+import {
+    addAgentKey,
+    deleteAgentKey,
+    listAgentKeys,
+    type AddAgentKeyRoute,
+    type DeleteAgentKeyRoute,
+} from "../controllers/agents/agentKeys";
+import { listAllCompanies } from "../controllers/admin/listAllCompanies";
+import { mcp } from "../controllers/agents/mcp";
 import { lookupNip, type LookupNipRoute } from "../controllers/lookup/lookupNip";
 import { getKsefXml, type GetKsefXmlRoute } from "../controllers/ksef/getKsefXml";
 import {
@@ -33,11 +42,14 @@ import {
     disconnectKsef,
     ksefProdAuthRequest,
     ksefProdAuthSigned,
+    connectKsefWithToken,
+    type KsefTokenRoute,
     type KsefProdAuthSignedRoute,
 } from "../controllers/ksef/connectKsef";
 
 const PUBLIC: RouteShorthandOptions = { config: { isPrivate: false } };
 const SECRET: RouteShorthandOptions = { config: { isPrivate: true } };
+const ADMIN: RouteShorthandOptions = { config: { isPrivate: true, isAdmin: true } };
 
 export default function indexRoute(
     server: FastifyInstance,
@@ -69,6 +81,7 @@ export default function indexRoute(
     server.post('/company/ksef/test-connect', SECRET, connectKsefTest);
     server.get('/company/ksef/auth-request', SECRET, ksefProdAuthRequest);
     server.post<KsefProdAuthSignedRoute>('/company/ksef/auth-signed', SECRET, ksefProdAuthSigned);
+    server.post<KsefTokenRoute>('/company/ksef/token', SECRET, connectKsefWithToken);
     server.delete('/company/ksef', SECRET, disconnectKsef);
 
     // client
@@ -84,6 +97,16 @@ export default function indexRoute(
     server.delete<DeleteInvoiceRoute>('/invoices/:id', SECRET, deleteInvoice);
     server.post<SendToKsefRoute>('/invoices/:id/ksef', SECRET, sendToKsef);
     server.get<GetKsefXmlRoute>('/invoices/:id/ksef/xml', SECRET, getKsefXml);
+    server.delete<SendToKsefRoute>('/invoices/:id/ksef-request', SECRET, dismissKsefRequest);
+
+    // AI agents: keys are managed by the logged in human, agents use them only on /mcp (own auth, see mcp.ts)
+    server.get('/agent-keys', SECRET, listAgentKeys);
+    server.post<AddAgentKeyRoute>('/agent-keys', SECRET, addAgentKey);
+    server.delete<DeleteAgentKeyRoute>('/agent-keys/:id', SECRET, deleteAgentKey);
+    server.all('/mcp', PUBLIC, mcp);
+
+    // admin
+    server.get('/admin/companies', ADMIN, listAllCompanies);
 
     next();
 }

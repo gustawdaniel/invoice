@@ -90,6 +90,10 @@ export const useCompanyStore = defineStore('companyStore', () => {
         replace(await call<Company>('/company/ksef/auth-signed', {method: 'POST', body: {signedXml}}));
     }
 
+    const connectKsefWithToken = async (token: string) => {
+        replace(await call<Company>('/company/ksef/token', {method: 'POST', body: {token}}));
+    }
+
     const disconnectKsef = async () => {
         replace(await call<Company>('/company/ksef', {method: 'DELETE'}));
     }
@@ -107,6 +111,7 @@ export const useCompanyStore = defineStore('companyStore', () => {
         connectKsefTest,
         getKsefAuthRequest,
         sendKsefSignedRequest,
+        connectKsefWithToken,
         disconnectKsef,
     }
 }, {

@@ -8,9 +8,11 @@ function key(): Buffer {
     if (!config.KSEF_SECRET_KEY) {
         throw new Error('KSEF_SECRET_KEY is not set, cannot store or read KSeF tokens');
     }
-    const buf = Buffer.from(config.KSEF_SECRET_KEY, 'base64');
+    // accepts both `openssl rand -base64 32` and `openssl rand -hex 32`
+    const raw = config.KSEF_SECRET_KEY.trim();
+    const buf = /^[0-9a-f]{64}$/i.test(raw) ? Buffer.from(raw, 'hex') : Buffer.from(raw, 'base64');
     if (buf.length !== 32) {
-        throw new Error(`KSEF_SECRET_KEY must be 32 bytes in base64, got ${buf.length} bytes`);
+        throw new Error(`KSEF_SECRET_KEY must be 32 bytes (base64 or 64 hex chars), got ${buf.length} bytes`);
     }
     return buf;
 }

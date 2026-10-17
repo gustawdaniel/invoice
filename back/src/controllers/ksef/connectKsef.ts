@@ -2,7 +2,7 @@ import {FastifyReply, FastifyRequest} from "fastify";
 import {z} from "zod";
 import {prisma} from "../../db";
 import {publicCompany} from "../../helpers/publicCompany";
-import {connectTestEnvironment, connectWithSignedRequest, createAuthRequest} from "../../services/ksef/ksef";
+import {connectTestEnvironment, connectWithSignedRequest, createAuthRequest, verifyUserToken} from "../../services/ksef/ksef";
 import {encryptKsefToken} from "../../services/ksef/tokenCrypto";
 import {getErrorMessage} from "../../helpers/getErrorMessage";
 
@@ -61,6 +61,26 @@ export const ksefProdAuthSigned = async (
         const {signedXml} = SignedSchema.parse(req.body);
         const token = await connectWithSignedRequest('prod', signedXml);
         return reply.send(await saveToken(company.id, token));
+    } catch (error) {
+        req.log.error(error);
+        return reply.badGateway(getErrorMessage(error));
+    }
+}
+
+const TokenSchema = z.object({token: z.string().min(1)});
+export type KsefTokenRoute = { Body: z.infer<typeof TokenSchema> };
+
+// token pasted by the user, generated in Aplikacja Podatnika KSeF, for the environment selected on the company
+export const connectKsefWithToken = async (
+    req: FastifyRequest<KsefTokenRoute>,
+    reply: FastifyReply,
+): Promise<FastifyReply> => {
+    try {
+        const company = await polishCompany(req.companyId);
+        if (!company.ksefEnv) return reply.badRequest('KSeF environment is not selected for this company');
+        const {token} = TokenSchema.parse(req.body);
+        const verified = await verifyUserToken(company, company.ksefEnv, token);
+        return reply.send(await saveToken(company.id, verified));
     } catch (error) {
         req.log.error(error);
         return reply.badGateway(getErrorMessage(error));
