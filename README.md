@@ -57,7 +57,7 @@ Admins (`ADMIN_EMAILS`) see every company and its users at `/admin`.
 - **KSeF Integration**: Seamlessly obtain tokens and manage invoices in compliance with Polish regulations.
 - **Open Source**: Built for the community, transparent and extensible.
 - **Modern Stack**:
-  - **Frontend**: Nuxt 3 (Vue 3), TailwindCSS, Pinia.
+  - **Frontend**: SvelteKit (Svelte 5), TailwindCSS; keyboard first, MCP for agents.
   - **Backend**: Node.js, Fastify, Prisma, MongoDB.
   - **Testing**: Vitest.
 
@@ -75,8 +75,8 @@ Admins (`ADMIN_EMAILS`) see every company and its users at `/admin`.
 2.  Install dependencies:
 
     ```bash
-    # Frontend
-    cd front
+    # Frontend (SvelteKit)
+    cd web
     pnpm install
 
     # Backend
@@ -88,9 +88,9 @@ Admins (`ADMIN_EMAILS`) see every company and its users at `/admin`.
 
 ### Running Locally
 
-**Frontend:**
+**Frontend:** (http://localhost:3000, see `web/README.md` for logging in locally)
 ```bash
-cd front
+cd web
 pnpm dev
 ```
 

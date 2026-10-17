@@ -1,5 +1,5 @@
 import { clientFromApi, fromApi, toApi } from '../invoice';
-import type { AgentKey, Client, Company, ExchangeRate, Invoice, KsefEnv, NipLookup, User } from '../types';
+import type { AgentKey, BankTransaction, Client, Company, Cost, ExchangeRate, Invoice, KsefEnv, NipLookup, User } from '../types';
 import { api } from './api';
 import { session } from './session.svelte';
 
@@ -30,6 +30,9 @@ class Data {
 	clients = $state<Client[]>([]);
 	invoices = $state<Invoice[]>([]);
 	keys = $state<AgentKey[]>([]);
+	// the books: loaded when a bookkeeping screen opens
+	transactions = $state<BankTransaction[]>([]);
+	costs = $state<Cost[]>([]);
 	rate = $state<ExchangeRate | null>(null);
 	loading = $state(false);
 	loaded = $state(false);
@@ -46,6 +49,15 @@ class Data {
 	// agent requests a human has to approve or dismiss
 	get waiting() {
 		return this.invoices.filter((inv) => inv.ksefSendRequestedAt && !inv.ksefNumber);
+	}
+
+	// bank operations the agent could not classify
+	get bankToReview() {
+		return this.transactions.filter((t) => t.status === 'review').length;
+	}
+
+	get costsToReview() {
+		return this.costs.filter((c) => c.status === 'review').length;
 	}
 
 	invoice(id: string) {
@@ -76,6 +88,27 @@ class Data {
 		this.invoices = (await api<unknown[]>('/invoices')).map(fromApi);
 	}
 
+	async loadBooks() {
+		const [transactions, costs] = await Promise.all([api<BankTransaction[]>('/bank-transactions'), api<Cost[]>('/costs')]);
+		this.transactions = transactions;
+		this.costs = costs;
+	}
+
+	// a human decision on a bank operation
+	async classify(id: string, change: Partial<Pick<BankTransaction, 'kind' | 'status' | 'invoiceId' | 'costId' | 'note'>>) {
+		const saved = await api<BankTransaction>(`/bank-transactions/${id}`, { method: 'PUT', body: change });
+		const index = this.transactions.findIndex((t) => t.id === id);
+		if (index >= 0) this.transactions[index] = saved;
+		return saved;
+	}
+
+	async updateCost(id: string, change: Partial<Pick<Cost, 'category' | 'reverseCharge' | 'status' | 'note'>>) {
+		const saved = await api<Cost>(`/costs/${id}`, { method: 'PUT', body: change });
+		const index = this.costs.findIndex((c) => c.id === id);
+		if (index >= 0) this.costs[index] = saved;
+		return saved;
+	}
+
 	async loadKeys() {
 		this.keys = await api<AgentKey[]>('/agent-keys');
 	}
@@ -98,6 +131,8 @@ class Data {
 		session.persist();
 		this.clients = [];
 		this.invoices = [];
+		this.transactions = [];
+		this.costs = [];
 		await this.loadAll();
 	}
 

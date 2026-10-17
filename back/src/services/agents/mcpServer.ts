@@ -1,4 +1,6 @@
 import {McpServer} from "@modelcontextprotocol/sdk/server/mcp.js";
+import {agentUpdate} from "../books/merge";
+import {COST_CATEGORIES, TRANSACTION_KINDS} from "../books/kinds";
 import type {companies, users} from "@prisma/client";
 import dayjs from "dayjs";
 import {z} from "zod/v4";
@@ -266,6 +268,200 @@ export function createMcpServer(ctx: AgentContext): McpServer {
         return json(agentInvoice(updated));
     });
 
+    // ---- bookkeeping: the agent keeps the books with the human, who confirms in the app ----
+
+    const AGENT_STATUS = z.enum(['auto', 'review']).describe('auto: sure; review: the human should decide in the app');
+
+    server.registerTool('upsert_bank_transactions', {
+        description: 'Add bank operations of a company (idempotent by external_id). A classification the human '
+            + 'confirmed is never changed. kinds: ' + TRANSACTION_KINDS.join(', '),
+        inputSchema: {
+            company_id: z.string(),
+            transactions: z.array(z.object({
+                external_id: z.string().min(1).describe('Stable id, e.g. a hash of account, date, amount, text and position'),
+                bank: z.string(),
+                account: z.string(),
+                date: DATE,
+                amount: z.number().describe('Positive in, negative out'),
+                currency: z.string().default('PLN'),
+                description: z.string(),
+                bank_category: z.string().default(''),
+                kind: z.enum(TRANSACTION_KINDS).optional(),
+                status: AGENT_STATUS.optional(),
+                invoice_id: z.string().optional(),
+                cost_id: z.string().optional(),
+                note: z.string().optional(),
+            })).min(1).max(500),
+        },
+    }, async ({company_id, transactions}) => {
+        await requireCompany(ctx, company_id);
+        let created = 0, updated = 0, kept = 0;
+        for (const t of transactions) {
+            const key = {companyId_externalId: {companyId: company_id, externalId: t.external_id}};
+            const current = await prisma.bankTransactions.findUnique({where: key, select: {status: true}});
+            const facts = {bank: t.bank, account: t.account, date: t.date, amount: t.amount, currency: t.currency,
+                description: t.description, bankCategory: t.bank_category};
+            const data = agentUpdate(current, facts,
+                {kind: t.kind, status: t.status, invoiceId: t.invoice_id, costId: t.cost_id, note: t.note});
+            if (current) {
+                await prisma.bankTransactions.update({where: key, data});
+                if (current.status === 'confirmed') kept++; else updated++;
+            } else {
+                await prisma.bankTransactions.create({data: {...data, companyId: company_id, externalId: t.external_id}});
+                created++;
+            }
+        }
+        return json({created, updated, keptHumanDecisions: kept});
+    });
+
+    server.registerTool('list_bank_transactions', {
+        description: 'Bank operations of a company, newest first, with their classification',
+        inputSchema: {
+            company_id: z.string(),
+            status: z.enum(['auto', 'confirmed', 'review']).optional(),
+            kind: z.enum(TRANSACTION_KINDS).optional(),
+            from: DATE.optional(),
+            to: DATE.optional(),
+            limit: z.number().int().min(1).max(2000).default(500),
+        },
+        annotations: {readOnlyHint: true},
+    }, async ({company_id, status, kind, from, to, limit}) => {
+        await requireCompany(ctx, company_id);
+        return json(await prisma.bankTransactions.findMany({
+            where: {companyId: company_id, status, kind, date: {gte: from, lte: to}},
+            orderBy: [{date: 'desc'}, {externalId: 'asc'}],
+            take: limit,
+        }));
+    });
+
+    server.registerTool('classify_bank_transactions', {
+        description: 'Set what bank operations were. Operations the human confirmed are skipped. kinds: '
+            + TRANSACTION_KINDS.join(', '),
+        inputSchema: {
+            company_id: z.string(),
+            items: z.array(z.object({
+                id: z.string(),
+                kind: z.enum(TRANSACTION_KINDS),
+                status: AGENT_STATUS,
+                invoice_id: z.string().nullable().optional(),
+                cost_id: z.string().nullable().optional(),
+                note: z.string().optional(),
+            })).min(1).max(500),
+        },
+    }, async ({company_id, items}) => {
+        await requireCompany(ctx, company_id);
+        let changed = 0, kept = 0;
+        for (const item of items) {
+            const current = await prisma.bankTransactions.findFirst({where: {id: item.id, companyId: company_id}});
+            if (!current) throw new Error(`Transaction ${item.id} not found in this company`);
+            if (current.status === 'confirmed') { kept++; continue; }
+            await prisma.bankTransactions.update({
+                where: {id: current.id},
+                data: {kind: item.kind, status: item.status, invoiceId: item.invoice_id, costId: item.cost_id, note: item.note},
+            });
+            changed++;
+        }
+        return json({changed, keptHumanDecisions: kept});
+    });
+
+    server.registerTool('upsert_costs', {
+        description: 'Add purchase documents (invoices, bills, receipts) of a company, idempotent by external_id. '
+            + 'A cost the human confirmed keeps its classification. categories: ' + COST_CATEGORIES.join(', '),
+        inputSchema: {
+            company_id: z.string(),
+            costs: z.array(z.object({
+                external_id: z.string().min(1).describe('Stable id, e.g. a hash of the source file'),
+                supplier_name: z.string().min(1),
+                supplier_tin: z.string().default(''),
+                supplier_country: z.string().default('PL'),
+                number: z.string().default(''),
+                issue_date: DATE,
+                sale_date: DATE.optional(),
+                currency: z.string().default('PLN'),
+                net: z.number(),
+                vat: z.number().default(0),
+                gross: z.number(),
+                category: z.enum(COST_CATEGORIES).optional(),
+                reverse_charge: z.boolean().optional().describe('A service bought from abroad (import of services)'),
+                file: z.string().default(''),
+                status: AGENT_STATUS.optional(),
+                note: z.string().optional(),
+            })).min(1).max(200),
+        },
+    }, async ({company_id, costs}) => {
+        await requireCompany(ctx, company_id);
+        const ids: Record<string, string> = {};
+        for (const c of costs) {
+            const key = {companyId_externalId: {companyId: company_id, externalId: c.external_id}};
+            const current = await prisma.costs.findUnique({where: key, select: {status: true}});
+            const facts = {supplierName: c.supplier_name, supplierTin: c.supplier_tin, supplierCountry: c.supplier_country,
+                number: c.number, issueDate: c.issue_date, saleDate: c.sale_date, currency: c.currency, net: c.net,
+                vat: c.vat, gross: c.gross, file: c.file};
+            const data = agentUpdate(current, facts,
+                {category: c.category, reverseCharge: c.reverse_charge, status: c.status, note: c.note});
+            const saved = current
+                ? await prisma.costs.update({where: key, data})
+                : await prisma.costs.create({data: {...data, companyId: company_id, externalId: c.external_id}});
+            ids[c.external_id] = saved.id;
+        }
+        return json({saved: Object.keys(ids).length, ids});
+    });
+
+    server.registerTool('list_costs', {
+        description: 'Purchase documents of a company, newest first',
+        inputSchema: {company_id: z.string(), from: DATE.optional(), to: DATE.optional(), limit: z.number().int().min(1).max(2000).default(500)},
+        annotations: {readOnlyHint: true},
+    }, async ({company_id, from, to, limit}) => {
+        await requireCompany(ctx, company_id);
+        return json(await prisma.costs.findMany({
+            where: {companyId: company_id, issueDate: {gte: from, lte: to}},
+            orderBy: [{issueDate: 'desc'}, {externalId: 'asc'}],
+            take: limit,
+        }));
+    });
+
+    server.registerTool('record_issued_invoice', {
+        description: 'Record a sales invoice issued in the past outside KSeF (another program, before KSeF applied), '
+            + 'as it was issued. It is final and never sent to KSeF. Idempotent by number within the company.',
+        inputSchema: {
+            company_id: z.string(),
+            ...invoiceFields,
+            paid: z.number().min(0).default(0),
+            payment_date: DATE.optional(),
+        },
+    }, async ({company_id, paid, payment_date, ...input}) => {
+        const company = await requireCompany(ctx, company_id);
+        const client = await prisma.clients.findFirst({where: {id: input.client_id, companyId: company_id}});
+        if (!client) throw new Error('Client not found in this company');
+        const data = {
+            companyId: company_id,
+            clientId: client.id,
+            number: input.number,
+            issueDate: input.issue_date,
+            saleDate: input.sale_date ?? input.issue_date,
+            deadlineDate: input.deadline_date ?? dayjs(input.issue_date).add(14, 'day').format('YYYY-MM-DD'),
+            issuePlace: input.issue_place || company.defaultIssuePlace,
+            currency: getCurrency(input.currency),
+            lang: getLanguage(input.lang),
+            paymentForm: getPaymentForm(input.payment_form),
+            items: items(input.items),
+            issuerName: input.issuer_name || company.defaultIssuerName || ctx.user.full_name,
+            bankAccountNumber: input.bank_account_number,
+            publicNote: input.public_note,
+            privateNote: input.private_note,
+            paid,
+            paymentDate: payment_date,
+            livemode: true,
+            outsideKsef: true,
+        };
+        const existing = await prisma.invoices.findFirst({where: {companyId: company_id, number: input.number, livemode: true}});
+        if (existing && !existing.outsideKsef) throw new Error(`Invoice ${input.number} already exists and was not recorded as historical`);
+        const invoice = existing
+            ? await prisma.invoices.update({where: {id: existing.id}, data, include: {client: true}})
+            : await prisma.invoices.create({data, include: {client: true}});
+        return json(agentInvoice(invoice));
+    });
+
     server.registerTool('create_invoice_draft', {
         description: 'Create an invoice draft. It is not sent anywhere; the user sees it in the app marked as made by '
             + 'this agent. With test_mode it is a test invoice, visible in the test mode of the app.',
@@ -369,6 +565,7 @@ export function createMcpServer(ctx: AgentContext): McpServer {
         const company = await requireCompany(ctx, company_id);
         const invoice = await requireDraft(company_id, invoice_id);
         if (!invoice.livemode) throw new Error('This is a test mode invoice, send it to KSeF DEMO with send_to_ksef_demo');
+        if (invoice.outsideKsef) throw new Error('This invoice was issued outside KSeF, it is never sent');
         if (!company.ksefTokenEnc) {
             throw new Error('Production KSeF is not connected for this company, ask the user to connect it');
         }

@@ -94,6 +94,8 @@ export interface Invoice {
 	paid: number;
 	// withheld by a foreign client for its tax office; paid + withholdingTax covering the gross settles the invoice
 	withholdingTax: number;
+	// issued before KSeF in another program: final, never sent to KSeF
+	outsideKsef: boolean;
 	// false: test mode invoice (KSeF DEMO, no legal effect)
 	livemode: boolean;
 	ksefEnv: 'test' | 'demo' | 'prod' | null;
@@ -163,4 +165,75 @@ export interface NipLookup {
 	city: string;
 	address: string;
 	statusVat: string;
+}
+
+export type TransactionKind =
+	| 'unclassified'
+	| 'sale_payment'
+	| 'refund'
+	| 'shareholder_loan'
+	| 'capital'
+	| 'interest'
+	| 'cost_payment'
+	| 'shareholder_repayment'
+	| 'salary'
+	| 'tax'
+	| 'zus'
+	| 'bank_fee'
+	| 'private'
+	| 'own_transfer'
+	| 'other';
+
+// auto: classified by a rule or an agent; confirmed: by the human; review: waiting for the human
+export type BookStatus = 'auto' | 'confirmed' | 'review';
+
+export interface BankTransaction {
+	id: string;
+	externalId: string;
+	bank: string;
+	account: string;
+	date: string;
+	amount: number;
+	currency: string;
+	description: string;
+	bankCategory: string;
+	kind: TransactionKind;
+	status: BookStatus;
+	invoiceId: string | null;
+	costId: string | null;
+	note: string;
+}
+
+export type CostCategory =
+	| 'hosting'
+	| 'software'
+	| 'equipment'
+	| 'office'
+	| 'travel'
+	| 'accounting'
+	| 'legal'
+	| 'marketing'
+	| 'education'
+	| 'subcontractor'
+	| 'telecom'
+	| 'other';
+
+export interface Cost {
+	id: string;
+	externalId: string;
+	supplierName: string;
+	supplierTin: string;
+	supplierCountry: string;
+	number: string;
+	issueDate: string;
+	saleDate: string | null;
+	currency: string;
+	net: number;
+	vat: number;
+	gross: number;
+	category: CostCategory;
+	reverseCharge: boolean;
+	file: string;
+	status: BookStatus;
+	note: string;
 }

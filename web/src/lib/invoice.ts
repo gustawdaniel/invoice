@@ -115,6 +115,7 @@ export function fromApi(raw: any): Invoice {
 		receiverName: raw.receiverName ?? '',
 		paid: Number(raw.paid) || 0,
 		withholdingTax: Number(raw.withholdingTax) || 0,
+		outsideKsef: raw.outsideKsef === true,
 		livemode: raw.livemode !== false,
 		items: (raw.items ?? []).map(
 			(item: any): Item => ({
@@ -236,7 +237,7 @@ export const STATUS_LABEL: Record<Status, string> = {
 export function status(invoice: Invoice, usesKsef: boolean, today = dayjs().format('YYYY-MM-DD')): Status {
 	const total = gross(invoice);
 	if (total > 0 && settled(invoice) >= total - 0.005) return 'paid';
-	if (usesKsef && !invoice.ksefNumber) {
+	if (usesKsef && !invoice.ksefNumber && !invoice.outsideKsef) {
 		if (invoice.ksefSendRequestedAt) return 'approval';
 		if (invoice.ksefError) return 'error';
 		return 'draft';
@@ -311,6 +312,7 @@ export function draftInvoice(company: Company, invoices: Invoice[], userName: st
 		privateNote: '',
 		paid: 0,
 		withholdingTax: 0,
+		outsideKsef: false,
 		livemode: !testMode,
 		ksefEnv: null,
 		ksefStatus: null,
@@ -339,6 +341,7 @@ export function duplicateInvoice(source: Invoice, invoices: Invoice[], testMode:
 		paymentDate: null,
 		paid: 0,
 		withholdingTax: 0,
+		outsideKsef: false,
 		livemode: !testMode,
 		ksefEnv: null,
 		ksefStatus: null,

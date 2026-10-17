@@ -75,6 +75,8 @@
 		{ id: 'invoices', group: 'Go to', label: 'Invoices', keys: 'gv', run: () => go('/') },
 		{ id: 'clients', group: 'Go to', label: 'Clients', keys: 'gc', run: () => go('/clients') },
 		{ id: 'books', group: 'Go to', label: 'Books', keys: 'gb', run: () => go('/books') },
+		{ id: 'bank', group: 'Go to', label: 'Bank operations', hint: data.bankToReview ? `${data.bankToReview} to review` : undefined, keys: 'gt', run: () => go('/bank') },
+		{ id: 'costs', group: 'Go to', label: 'Costs', keys: 'gk', run: () => go('/costs') },
 		{ id: 'agents', group: 'Go to', label: 'Agents (MCP)', keys: 'ga', run: () => go('/agents') },
 		{ id: 'company', group: 'Go to', label: 'Company settings', keys: 'gs', run: () => go('/company') },
 		...(session.isAdmin ? [{ id: 'admin', group: 'Go to', label: 'Admin', run: () => go('/admin') }] : []),

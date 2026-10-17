@@ -22,6 +22,7 @@ export async function sendStoredInvoice(invoiceId: string, companyId: string) {
 
     if (!invoice) throw new SendInvoiceError('Invoice not found', 'notFound');
     if (invoice.ksefNumber) throw new SendInvoiceError(`Invoice is already in KSeF as ${invoice.ksefNumber}`, 'conflict');
+    if (invoice.outsideKsef) throw new SendInvoiceError('Invoice was issued outside KSeF (before it applied), it is never sent', 'conflict');
 
     let xml: string;
     try {

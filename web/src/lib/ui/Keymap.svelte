@@ -5,7 +5,7 @@
 	const close = () => (ui.keymapOpen = false);
 	const groups: [string, [string, string][]][] = [
 		['Move', [['j / k', 'down / up'], ['gg / G', 'first / last'], ['ctrl-d / ctrl-u', 'half a page'], ['enter', 'open'], ['ctrl-o', 'back']]],
-		['Go to', [['gi', 'inbox'], ['gv', 'invoices'], ['gc', 'clients'], ['gb', 'books'], ['ga', 'agents'], ['gs', 'company'], ['gC', 'switch company']]],
+		['Go to', [['gi', 'inbox'], ['gv', 'invoices'], ['gc', 'clients'], ['gb', 'books'], ['gt', 'bank'], ['gk', 'costs'], ['ga', 'agents'], ['gs', 'company'], ['gC', 'switch company']]],
 		['On the row', [['n', 'new invoice'], ['c', 'new client'], ['e', 'edit'], ['D', 'duplicate'], ['p', 'print / PDF'], ['a / x', 'approve / dismiss'], ['m', 'mark paid'], ['yy', 'copy number'], ['dd', 'delete draft']]],
 		['Modes', [['/', 'search'], [': or ⌘K', 'command'], ['esc', 'leave a field'], ['t', 'test mode'], ['T', 'theme: light / dark / hacker'], ['⌘S', 'save'], ['⌘↵', 'send to KSeF'], ['?', 'this help']]]
 	];

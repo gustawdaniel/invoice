@@ -83,6 +83,8 @@ model companies {
   users     users[]
   clients   clients[]
   invoices  invoices[]
+  bankTransactions bankTransactions[]
+  costs     costs[]
 }
 
 model accessLogs {
@@ -226,6 +228,8 @@ model invoices {
   paymentDate          String?
   // withheld by a foreign client and paid to its own tax office: the invoice is settled when paid + withholdingTax covers it
   withholdingTax       Float    @default(0)
+  // issued before KSeF (historical, from another program): a final invoice that is never sent to KSeF
+  outsideKsef          Boolean  @default(false)
 
   // false: test mode invoice, listed only in test mode and sent only to KSeF DEMO (no legal effect)
   livemode             Boolean  @default(true)
@@ -245,4 +249,62 @@ model invoices {
   ksefSendRequestedAt  DateTime?
   ksefSendRequestedBy  String?
   ksefSendRequestNote  String?
+}
+
+// Bookkeeping. Every operation on the company's bank accounts, and how it is booked.
+// kind: what the money was (see services/books/kinds.ts); status: auto (classified by a rule or an agent),
+// confirmed (by the human), review (waiting for the human)
+model bankTransactions {
+  id           String    @id @default(auto()) @map("_id") @db.ObjectId
+  company      companies @relation(fields: [companyId], references: [id])
+  companyId    String    @db.ObjectId
+  // stable id from the source (hash of account, date, amount, text and position): loading twice adds nothing
+  externalId   String
+  bank         String
+  account      String
+  date         String
+  amount       Float
+  currency     String    @default("PLN")
+  description  String
+  bankCategory String    @default("")
+  kind         String    @default("unclassified")
+  status       String    @default("review")
+  invoiceId    String?   @db.ObjectId
+  costId       String?   @db.ObjectId
+  note         String    @default("")
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@unique([companyId, externalId])
+}
+
+// Purchase documents: invoices, bills and receipts the company paid
+model costs {
+  id             String    @id @default(auto()) @map("_id") @db.ObjectId
+  company        companies @relation(fields: [companyId], references: [id])
+  companyId      String    @db.ObjectId
+  // stable id, e.g. a hash of the source file: loading twice adds nothing
+  externalId     String
+  supplierName   String
+  supplierTin    String    @default("")
+  supplierCountry String   @default("PL")
+  number         String    @default("")
+  issueDate      String
+  saleDate       String?
+  currency       String    @default("PLN")
+  net            Float
+  vat            Float     @default(0)
+  gross          Float
+  // e.g. hosting, software, equipment, travel, accounting, office, marketing, education, other
+  category       String    @default("other")
+  // a service bought from abroad: VAT settled by the company as import of services
+  reverseCharge  Boolean   @default(false)
+  // where the original is, e.g. "2021.03 Marzec/faktury otrzymane/ovh.pdf"
+  file           String    @default("")
+  status         String    @default("review")
+  note           String    @default("")
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@unique([companyId, externalId])
 }

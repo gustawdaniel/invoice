@@ -32,6 +32,7 @@
 		if (session.loggedIn && !data.loaded && !data.loading && !loadError) {
 			data.loadAll().catch((error: unknown) => (loadError = errorMessage(error)));
 			data.loadKeys().catch(() => {});
+			data.loadBooks().catch(() => {});
 		}
 	});
 

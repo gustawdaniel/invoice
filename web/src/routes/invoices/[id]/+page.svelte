@@ -63,7 +63,8 @@
 	});
 
 	const dirty = $derived(invoice !== null && JSON.stringify(invoice) !== saved);
-	const locked = $derived(Boolean(invoice?.ksefNumber));
+	// in KSeF, or issued outside it in the past: the content is final, only the payment changes
+	const locked = $derived(Boolean(invoice?.ksefNumber || invoice?.outsideKsef));
 	const lang = $derived(data.company.country === 'PL' ? 'pl' : 'en');
 	const sum = $derived(invoice ? totals(invoice) : { net: 0, vat: 0, gross: 0 });
 	// withholding tax happens with foreign clients of a non-Polish company, or when it was recorded already
@@ -228,7 +229,11 @@
 		</div>
 	</div>
 
-	{#if locked}
+	{#if invoice.outsideKsef}
+		<p class="border-b border-line bg-sunken px-5 py-2 text-[13px] text-muted">
+			Issued outside KSeF, before it applied. It is final and never sent; only the payment and the private note can change.
+		</p>
+	{:else if locked}
 		<p class="border-b border-ok/30 bg-ok-soft px-5 py-2 text-[13px] text-ok">
 			In KSeF as <span class="font-mono">{invoice.ksefNumber}</span>. It cannot be changed any more; only the payment and the private note can.
 		</p>

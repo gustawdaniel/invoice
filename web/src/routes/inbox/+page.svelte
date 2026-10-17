@@ -102,6 +102,21 @@
 		<h1 class="text-lg font-semibold">Inbox</h1>
 		<p class="mt-0.5 mb-4 text-[13px] text-muted">What waits for you. Agents draft through MCP, you decide what gets sent.</p>
 
+		{#if data.bankToReview || data.costsToReview}
+			<div class="mb-4 flex flex-wrap gap-2">
+				{#if data.bankToReview}
+					<a href="/bank" class="flex flex-1 items-center justify-between gap-3 rounded-lg border border-warn/40 bg-warn-soft px-4 py-3 text-[13px]">
+						<span><strong class="font-semibold">{data.bankToReview}</strong> bank operations the agent could not classify</span><Kbd keys="gt" />
+					</a>
+				{/if}
+				{#if data.costsToReview}
+					<a href="/costs" class="flex flex-1 items-center justify-between gap-3 rounded-lg border border-warn/40 bg-warn-soft px-4 py-3 text-[13px]">
+						<span><strong class="font-semibold">{data.costsToReview}</strong> cost documents to check</span><Kbd keys="gk" />
+					</a>
+				{/if}
+			</div>
+		{/if}
+
 		{#if !entries.length}
 			<div class="rounded-lg border border-line bg-panel px-6 py-12 text-center">
 				<p class="font-medium">Nothing waits for you</p>

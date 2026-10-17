@@ -24,10 +24,10 @@ services:
   frontend:
     image: registry.digitalocean.com/main/open-invoice-front
     build:
-      context: ./front
+      context: ./web
       args:
         - VITE_API_URL
-        - GOOGLE_CLIENT_ID=244384199602-sqhor9mc08tkl3gkd71k9c46rq38msdd.apps.googleusercontent.com
+        - VITE_GOOGLE_CLIENT_ID=244384199602-sqhor9mc08tkl3gkd71k9c46rq38msdd.apps.googleusercontent.com
     ports:
       - "7482:80"
     depends_on:

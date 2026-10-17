@@ -21,6 +21,8 @@
 		{ href: '/', label: 'Invoices', keys: 'gv' },
 		{ href: '/clients', label: 'Clients', keys: 'gc' },
 		{ href: '/books', label: 'Books', keys: 'gb' },
+		{ href: '/bank', label: 'Bank', keys: 'gt' },
+		{ href: '/costs', label: 'Costs', keys: 'gk' },
 		{ href: '/agents', label: 'Agents', keys: 'ga' },
 		{ href: '/company', label: 'Company', keys: 'gs' }
 	];
@@ -59,6 +61,8 @@
 			gb: () => goto('/books'),
 			ga: () => goto('/agents'),
 			gs: () => goto('/company'),
+			gt: () => goto('/bank'),
+			gk: () => goto('/costs'),
 			gC: () => ui.openPalette('switch '),
 			n: () => goto('/invoices/new'),
 			c: () => newClient(),
@@ -122,16 +126,17 @@
 	<div class="flex flex-1 flex-wrap items-stretch">
 		<nav aria-label="Main" class="no-print flex flex-[1_1_180px] flex-col gap-0.5 border-r border-line px-2.5 py-3.5 text-[13px] max-md:flex-[1_1_100%] max-md:flex-row max-md:flex-wrap max-md:border-r-0 max-md:border-b max-md:py-2 md:max-w-[210px]">
 			{#each nav as item (item.href)}
+				{@const count = item.href === '/inbox' ? data.waiting.length : item.href === '/bank' ? data.bankToReview : 0}
 				<a
 					href={item.href}
 					class={['flex items-center gap-2 rounded-md px-2 py-1.5', active(item.href) ? 'bg-accent-soft font-medium text-accent-ink' : 'text-ink hover:bg-sunken']}
 					aria-current={active(item.href) ? 'page' : undefined}
 				>
 					{item.label}
-					{#if item.href === '/inbox' && data.waiting.length}
-						<span class="ml-auto rounded-full bg-accent px-1.5 text-[11px] font-semibold text-on-accent">{data.waiting.length}</span>
+					{#if count}
+						<span class="ml-auto rounded-full bg-accent px-1.5 text-[11px] font-semibold text-on-accent">{count}</span>
 					{/if}
-					<span class={['font-mono text-[11px] text-faint max-md:hidden', item.href === '/inbox' && data.waiting.length ? '' : 'ml-auto']}>{item.keys}</span>
+					<span class={['font-mono text-[11px] text-faint max-md:hidden', count ? '' : 'ml-auto']}>{item.keys}</span>
 				</a>
 			{/each}
 			<p class="label-caps mx-2 mt-5 mb-1.5 max-md:hidden">Saved searches</p>

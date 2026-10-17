@@ -62,7 +62,7 @@
 	}
 
 	function send(inv: Invoice | null) {
-		if (!inv || inv.ksefNumber || !data.usesKsef) return;
+		if (!inv || inv.ksefNumber || inv.outsideKsef || !data.usesKsef) return;
 		if (!data.ksefConnected) {
 			toasts.show('KSeF is not connected', 'Connect it on the Company page (gs).', 'warn');
 			return;
@@ -83,6 +83,7 @@
 	function askDelete(inv: Invoice | null) {
 		if (!inv) return;
 		if (inv.ksefNumber) toasts.show('Invoices in KSeF cannot be deleted', 'Issue a correction instead.', 'warn');
+		else if (inv.outsideKsef) toasts.show('Issued invoices stay', 'This one was issued in the past; correct it with a correction invoice.', 'warn');
 		else deleting = inv;
 	}
 

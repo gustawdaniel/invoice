@@ -36,6 +36,14 @@ import {
     type DeleteAgentKeyRoute,
 } from "../controllers/agents/agentKeys";
 import { listAllCompanies } from "../controllers/admin/listAllCompanies";
+import {
+    classifyTransaction,
+    listBankTransactions,
+    listCosts,
+    updateCost,
+    type ClassifyTransactionRoute,
+    type UpdateCostRoute,
+} from "../controllers/books/books";
 import { mcp } from "../controllers/agents/mcp";
 import { lookupNip, type LookupNipRoute } from "../controllers/lookup/lookupNip";
 import { getKsefXml, type GetKsefXmlRoute } from "../controllers/ksef/getKsefXml";
@@ -101,6 +109,12 @@ export default function indexRoute(
     server.post<SendToKsefRoute>('/invoices/:id/ksef', SECRET, sendToKsef);
     server.get<GetKsefXmlRoute>('/invoices/:id/ksef/xml', SECRET, getKsefXml);
     server.delete<SendToKsefRoute>('/invoices/:id/ksef-request', SECRET, dismissKsefRequest);
+
+    // bookkeeping of the selected company; agents load and classify through MCP, humans review here
+    server.get('/bank-transactions', SECRET, listBankTransactions);
+    server.put<ClassifyTransactionRoute>('/bank-transactions/:id', SECRET, classifyTransaction);
+    server.get('/costs', SECRET, listCosts);
+    server.put<UpdateCostRoute>('/costs/:id', SECRET, updateCost);
 
     // AI agents: keys are managed by the logged in human, agents use them only on /mcp (own auth, see mcp.ts)
     server.get('/agent-keys', SECRET, listAgentKeys);

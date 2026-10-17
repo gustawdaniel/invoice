@@ -12,7 +12,7 @@
 	const lang = $derived(data.company.country === 'PL' ? 'pl' : 'en');
 	const sum = $derived(totals(invoice));
 	const current = $derived(status(invoice, data.usesKsef));
-	const canSend = $derived(data.usesKsef && !invoice.ksefNumber);
+	const canSend = $derived(data.usesKsef && !invoice.ksefNumber && !invoice.outsideKsef);
 
 	// what happened to the invoice, from what the API stores
 	const history = $derived(
@@ -34,7 +34,7 @@
 
 <div class="flex flex-col gap-4">
 	<div>
-		<p class="font-mono text-xs text-muted">{invoice.number} · {invoice.livemode ? 'live' : 'test'}</p>
+		<p class="font-mono text-xs text-muted">{invoice.number} · {invoice.outsideKsef ? 'issued outside KSeF' : invoice.livemode ? 'live' : 'test'}</p>
 		<h2 class="mt-1 text-[17px] leading-snug font-semibold">{invoice.client.name}</h2>
 		<p class="text-xs text-muted">
 			{[invoice.client.tin && `${invoice.client.tinName || 'NIP'} ${invoice.client.tin}`, [invoice.client.street, invoice.client.city].filter(Boolean).join(', ')].filter(Boolean).join(' · ')}
@@ -88,7 +88,7 @@
 			</button>
 			{#if invoice.ksefSendRequestedAt}<button class="btn col-span-2" onclick={ondismiss}>Dismiss the request <Kbd keys="x" /></button>{/if}
 		{/if}
-		<button class="btn" onclick={() => goto(`/invoices/${invoice.id}`)}>{invoice.ksefNumber ? 'Open' : 'Edit'} <Kbd keys="e" /></button>
+		<button class="btn" onclick={() => goto(`/invoices/${invoice.id}`)}>{invoice.ksefNumber || invoice.outsideKsef ? 'Open' : 'Edit'} <Kbd keys="e" /></button>
 		<button class="btn" onclick={() => printInvoices([invoice.id])}>PDF <Kbd keys="p" /></button>
 		<button class="btn" onclick={() => duplicate(invoice)}>Duplicate <Kbd keys="D" /></button>
 		<button class="btn" onclick={onpaid}>{current === 'paid' ? 'Unpaid' : 'Paid'} <Kbd keys="m" /></button>
