@@ -35,6 +35,7 @@ import type {Unit} from "~/interfaces/Item";
 
 const units: { name: Unit }[] = [
   'piece',
+  'service',
   'hour',
   'pack.',
   'box',

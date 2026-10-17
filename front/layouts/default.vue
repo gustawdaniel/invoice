@@ -15,12 +15,17 @@
           <nuxt-link to="/months" :class="$route.name === 'months' ? 'text-indigo-600' : 'text-gray-700'">
             Bookkeeping
           </nuxt-link>
+          <nuxt-link to="/company" :class="$route.name === 'company' ? 'text-indigo-600' : 'text-gray-700'">
+            Company
+          </nuxt-link>
           <nuxt-link to="/settings" :class="$route.name === 'settings' ? 'text-indigo-600' : 'text-gray-700'">
             Settings
           </nuxt-link>
         </div>
+        <CompanySwitcher class="ml-auto"/>
+
         <a @click="newInvoice"
-           class="cursor-pointer ml-auto flex items-center gap-x-1 rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+           class="cursor-pointer flex items-center gap-x-1 rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
           <PlusIcon class="-ml-1.5 h-5 w-5" aria-hidden="true"/>
           New invoice
         </a>
@@ -39,6 +44,7 @@ const router = useRouter()
 import {setTheme} from "~/composables/theme";
 import {useUserStore} from "~/store/user";
 import UserAvatarMenu from "~/components/nav/UserAvatarMenu.vue";
+import CompanySwitcher from "~/components/nav/CompanySwitcher.vue";
 import {useClientStore} from "~/store/client";
 import {defaultInvoice} from "~/helpers/defaultInvoice";
 import {useInvoiceStore} from "~/store/invoice";

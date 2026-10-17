@@ -45,7 +45,7 @@ export const addInvoice = async (
     req: FastifyRequest<AddInvoiceRoute>,
     reply: FastifyReply,
 ): Promise<FastifyReply> => {
-    const companyId = req.user?.companyId;
+    const companyId = req.companyId;
     if(!companyId) return reply.unauthorized('No company');
 
     const newInvoicePayload = NewInvoiceSchema.parse(req.body);
@@ -67,6 +67,9 @@ export const addInvoice = async (
             paymentForm: getPaymentForm(newInvoicePayload.paymentForm),
             items,
             companyId: companyId,
+        },
+        include: {
+            client: true
         }
     });
 

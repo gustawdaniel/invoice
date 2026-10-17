@@ -22,7 +22,7 @@ export const updateClient = async (
     req: FastifyRequest<UpdateClientRoute>,
     reply: FastifyReply,
 ): Promise<FastifyReply> => {
-    const companyId = req.user?.companyId;
+    const companyId = req.companyId;
     if(!companyId) return reply.unauthorized('No company');
 
     const body = UpdateClientSchema.parse(req.body);

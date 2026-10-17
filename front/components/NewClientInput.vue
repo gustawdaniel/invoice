@@ -3,6 +3,15 @@
 
     <template #body>
       <div class="w-full mb-2 md:mb-0">
+        <div class="flex gap-1 mb-1">
+          <input
+              class="bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-blue-500"
+              type="text" placeholder="Tax ID Number (NIP)" v-model="client.tin">
+          <button type="button" :disabled="lookingUp"
+                  class="whitespace-nowrap rounded border border-gray-300 px-3 text-sm hover:bg-gray-100 disabled:opacity-50 cursor-pointer"
+                  title="Fill name and address of a Polish company from the MF White List"
+                  @click="fillFromMf">{{ lookingUp ? 'Loading...' : 'Fill from MF' }}</button>
+        </div>
         <input
             class="mb-1 bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-blue-500"
             type="text" placeholder="Company name" v-model="client.name">
@@ -19,7 +28,7 @@
         </div>
         <input
             class="mb-1 bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-blue-500"
-            type="text" placeholder="Tax ID Number" v-model="client.tin">
+            type="text" placeholder="Country (e.g. Poland, Georgia)" v-model="client.country">
       </div>
     </template>
 
@@ -41,7 +50,9 @@
 <script setup lang="ts">
 import type {Client} from "~/interfaces/Client";
 import {useClientStore} from "~/store/client";
+import {lookupNip} from "~/helpers/lookupNip";
 const toast = useToast();
+const lookingUp = ref(false);
 
 const props = defineProps<{
   title: string,
@@ -52,11 +63,30 @@ const modal = useModal();
 const client = ref<Client>(props.initialValue)
 
 watch(() => props.initialValue, (value) => {
-  console.log('watch', value);
   client.value = value;
 })
 
 const clientStore = useClientStore();
+
+async function fillFromMf() {
+  lookingUp.value = true;
+  try {
+    const data = await lookupNip(client.value.tin ?? '');
+    client.value = {
+      ...client.value,
+      tin: data.nip,
+      name: data.name,
+      street: data.street,
+      post: data.post,
+      city: data.city,
+      country: 'Poland',
+    };
+  } catch (e) {
+    toast.add({title: "MF lookup failed", description: (e as Error).message, color: 'error'});
+  } finally {
+    lookingUp.value = false;
+  }
+}
 
 async function onConfirm() {
   const isNew = !props.initialValue.id;
