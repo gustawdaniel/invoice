@@ -1,6 +1,6 @@
 <script lang="ts">
 	import dayjs from 'dayjs';
-	import { exchange, gross, money, status, totals } from '#lib/invoice.js';
+	import { exchange, gross, money, settled, status, totals } from '#lib/invoice.js';
 	import { sortInvoices } from '#lib/search.js';
 	import { data } from '#lib/state/data.svelte.js';
 	import { keys } from '#lib/state/keys.svelte.js';
@@ -33,7 +33,8 @@
 		for (const inv of data.invoices) {
 			const key = inv.issueDate.slice(0, 7);
 			const total = toBase(gross(inv), inv);
-			const received = Math.min(total, toBase(inv.paid, inv));
+			// withholding tax settles the invoice like money does
+			const received = Math.min(total, toBase(settled(inv), inv));
 			const entry = totals.get(key) ?? { paid: 0, waiting: 0 };
 			entry.paid += received;
 			entry.waiting += total - received;
@@ -55,9 +56,9 @@
 		rows.reduce(
 			(acc, inv) => {
 				const t = totals(inv);
-				return { net: acc.net + toBase(t.net, inv), vat: acc.vat + toBase(t.vat, inv), gross: acc.gross + toBase(t.gross, inv), paid: acc.paid + toBase(inv.paid, inv) };
+				return { net: acc.net + toBase(t.net, inv), vat: acc.vat + toBase(t.vat, inv), gross: acc.gross + toBase(t.gross, inv), paid: acc.paid + toBase(inv.paid, inv), wht: acc.wht + toBase(inv.withholdingTax, inv) };
 			},
-			{ net: 0, vat: 0, gross: 0, paid: 0 }
+			{ net: 0, vat: 0, gross: 0, paid: 0, wht: 0 }
 		)
 	);
 
@@ -143,7 +144,7 @@
 				{#if rows.length}
 					<tfoot>
 						<tr class="border-t border-line font-medium">
-							<td colspan="4" class="px-3 py-2">{rows.length} {rows.length === 1 ? 'invoice' : 'invoices'} · in {base}{view === 'paid' ? ` · received ${money(sums.paid, lang)}` : ''}</td>
+							<td colspan="4" class="px-3 py-2">{rows.length} {rows.length === 1 ? 'invoice' : 'invoices'} · in {base}{view === 'paid' ? ` · received ${money(sums.paid, lang)}` : ''}{sums.wht > 0 ? ` · withholding tax ${money(sums.wht, lang)}` : ''}</td>
 							<td class="px-3 py-2 text-right font-mono text-xs">{money(sums.net, lang)}</td>
 							<td class="px-3 py-2 text-right font-mono text-xs">{money(sums.vat, lang)}</td>
 							<td class="px-3 py-2 text-right font-mono text-xs">{money(sums.gross, lang)}</td>

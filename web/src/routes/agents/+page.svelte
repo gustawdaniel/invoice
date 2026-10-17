@@ -80,6 +80,7 @@
 		['Look up a NIP in the MF White List', 'allowed', 'ok'],
 		['Create companies, clients and invoice drafts', 'allowed', 'ok'],
 		['Validate and send test invoices to KSeF DEMO', 'allowed', 'ok'],
+		['Record payments and withholding tax', 'allowed', 'ok'],
 		['Send to production KSeF', 'asks you', 'ask'],
 		['Change the NIP of a KSeF company, connect KSeF', 'humans only', 'no']
 	];

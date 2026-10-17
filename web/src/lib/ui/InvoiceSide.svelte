@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { money, status, totals } from '../invoice';
+	import { money, outstanding, status, totals } from '../invoice';
 	import { data } from '../state/data.svelte';
 	import type { Invoice } from '../types';
 	import { copyNumber, duplicate, printInvoices } from './actions';
@@ -24,7 +24,8 @@
 			},
 			invoice.ksefError && !invoice.ksefNumber && { when: null, what: `KSeF rejected it: ${invoice.ksefError}` },
 			invoice.ksefNumber && { when: invoice.ksefSentAt, what: `Accepted by KSeF${invoice.ksefEnv === 'prod' ? '' : ` ${invoice.ksefEnv?.toUpperCase()}`} · ${invoice.ksefNumber}` },
-			invoice.paid > 0 && { when: invoice.paymentDate, what: `Paid ${money(invoice.paid, lang)} ${invoice.currency}` }
+			invoice.paid > 0 && { when: invoice.paymentDate, what: `Paid ${money(invoice.paid, lang)} ${invoice.currency}` },
+			invoice.withholdingTax > 0 && { when: null, what: `Withholding tax ${money(invoice.withholdingTax, lang)} ${invoice.currency}, kept by the client for its tax office` }
 		].filter(Boolean) as { when: string | null; what: string }[]
 	);
 
@@ -47,6 +48,11 @@
 		<dt class="font-semibold">Gross</dt><dd class="text-right font-mono font-medium">{money(sum.gross, lang)} {invoice.currency}</dd>
 		<dt class="text-muted">Issued</dt><dd class="text-right">{invoice.issueDate}</dd>
 		<dt class="text-muted">Due</dt><dd class="text-right">{invoice.deadlineDate}</dd>
+		{#if invoice.paid > 0 || invoice.withholdingTax > 0}
+			<dt class="text-muted">Paid</dt><dd class="text-right font-mono text-xs leading-5">{money(invoice.paid, lang)}</dd>
+			{#if invoice.withholdingTax > 0}<dt class="text-muted">Withholding tax</dt><dd class="text-right font-mono text-xs leading-5">{money(invoice.withholdingTax, lang)}</dd>{/if}
+			{#if outstanding(invoice) > 0}<dt class="text-muted">Outstanding</dt><dd class="text-right font-mono text-xs leading-5 text-bad">{money(outstanding(invoice), lang)}</dd>{/if}
+		{/if}
 	</dl>
 
 	{#if invoice.items.length}

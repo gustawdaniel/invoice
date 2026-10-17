@@ -92,6 +92,8 @@ export interface Invoice {
 	publicNote: string;
 	privateNote: string;
 	paid: number;
+	// withheld by a foreign client for its tax office; paid + withholdingTax covering the gross settles the invoice
+	withholdingTax: number;
 	// false: test mode invoice (KSeF DEMO, no legal effect)
 	livemode: boolean;
 	ksefEnv: 'test' | 'demo' | 'prod' | null;

@@ -1,5 +1,5 @@
 import { goto } from '$app/navigation';
-import { duplicateInvoice } from '../invoice';
+import { duplicateInvoice, settled } from '../invoice';
 import { data } from '../state/data.svelte';
 import { session } from '../state/session.svelte';
 import { toasts } from '../state/toast.svelte';
@@ -23,11 +23,17 @@ export function duplicate(invoice: Invoice) {
 	void goto('/invoices/new');
 }
 
+// paid in full today, or back to unpaid; withholding tax goes with it
 export async function markPaid(invoice: Invoice, total: number) {
 	const today = new Date().toISOString().slice(0, 10);
-	const paid = invoice.paid >= total - 0.005;
+	const paid = settled(invoice) >= total - 0.005;
 	try {
-		await data.saveInvoice({ ...invoice, paid: paid ? 0 : total, paymentDate: paid ? null : today });
+		await data.recordPayment(invoice.id, {
+			paid: paid ? 0 : total - invoice.withholdingTax,
+			paymentDate: paid ? null : today,
+			withholdingTax: paid ? 0 : invoice.withholdingTax,
+			privateNote: invoice.privateNote
+		});
 		toasts.ok(paid ? 'Marked unpaid' : 'Marked paid', invoice.number);
 	} catch (error) {
 		toasts.error('Could not change the payment', error);

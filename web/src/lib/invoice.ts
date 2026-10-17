@@ -114,6 +114,7 @@ export function fromApi(raw: any): Invoice {
 		paymentForm: PAYMENT_BY_ENUM[raw.paymentForm] ?? raw.paymentForm,
 		receiverName: raw.receiverName ?? '',
 		paid: Number(raw.paid) || 0,
+		withholdingTax: Number(raw.withholdingTax) || 0,
 		livemode: raw.livemode !== false,
 		items: (raw.items ?? []).map(
 			(item: any): Item => ({
@@ -165,6 +166,7 @@ export function toApi(invoice: Invoice) {
 		publicNote: invoice.publicNote,
 		privateNote: invoice.privateNote,
 		paid: Number(invoice.paid) || 0,
+		withholdingTax: Number(invoice.withholdingTax) || 0,
 		...(invoice.paymentDate ? { paymentDate: invoice.paymentDate } : {})
 	};
 }
@@ -208,6 +210,16 @@ export function exchange(value: number, from: Currency, to: Currency, rate: Exch
 	return (value * rate[to]) / rate[from];
 }
 
+// what the client covered: money received plus tax it withheld for its own tax office
+export function settled(invoice: Pick<Invoice, 'paid' | 'withholdingTax'>): number {
+	return (Number(invoice.paid) || 0) + (Number(invoice.withholdingTax) || 0);
+}
+
+// what is still owed
+export function outstanding(invoice: Invoice): number {
+	return Math.max(0, Math.round((gross(invoice) - settled(invoice)) * 100) / 100);
+}
+
 export type Status = 'approval' | 'error' | 'draft' | 'paid' | 'partial' | 'overdue' | 'unpaid';
 
 export const STATUS_LABEL: Record<Status, string> = {
@@ -223,7 +235,7 @@ export const STATUS_LABEL: Record<Status, string> = {
 // a Polish invoice exists legally once it is in KSeF; a Georgian one once it is issued
 export function status(invoice: Invoice, usesKsef: boolean, today = dayjs().format('YYYY-MM-DD')): Status {
 	const total = gross(invoice);
-	if (total > 0 && invoice.paid >= total - 0.005) return 'paid';
+	if (total > 0 && settled(invoice) >= total - 0.005) return 'paid';
 	if (usesKsef && !invoice.ksefNumber) {
 		if (invoice.ksefSendRequestedAt) return 'approval';
 		if (invoice.ksefError) return 'error';
@@ -298,6 +310,7 @@ export function draftInvoice(company: Company, invoices: Invoice[], userName: st
 		publicNote: company.defaultPublicNote || latest?.publicNote || '',
 		privateNote: '',
 		paid: 0,
+		withholdingTax: 0,
 		livemode: !testMode,
 		ksefEnv: null,
 		ksefStatus: null,
@@ -325,6 +338,7 @@ export function duplicateInvoice(source: Invoice, invoices: Invoice[], testMode:
 		deadlineDate: deadlineFor(issueDate, source.paymentForm),
 		paymentDate: null,
 		paid: 0,
+		withholdingTax: 0,
 		livemode: !testMode,
 		ksefEnv: null,
 		ksefStatus: null,

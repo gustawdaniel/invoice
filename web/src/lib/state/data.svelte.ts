@@ -166,6 +166,14 @@ class Data {
 		return saved;
 	}
 
+	// payment facts, allowed also on invoices already in KSeF
+	async recordPayment(id: string, payment: Pick<Invoice, 'paid' | 'paymentDate' | 'withholdingTax' | 'privateNote'>): Promise<Invoice> {
+		const saved = fromApi(await api(`/invoices/${id}/payment`, { method: 'PUT', body: payment }));
+		const index = this.invoices.findIndex((inv) => inv.id === saved.id);
+		if (index >= 0) this.invoices[index] = saved;
+		return saved;
+	}
+
 	async deleteInvoice(id: string) {
 		await api(`/invoices/${id}`, { method: 'DELETE' });
 		this.invoices = this.invoices.filter((inv) => inv.id !== id);

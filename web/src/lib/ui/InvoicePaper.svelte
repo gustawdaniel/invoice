@@ -111,10 +111,11 @@
 			{#if invoice.bankAccountNumber}<dt class="text-neutral-600">{t.account}</dt><dd class="text-right font-mono whitespace-nowrap">{invoice.bankAccountNumber}</dd>{/if}
 			<dt class="text-neutral-600">{t.due}</dt><dd class="text-right font-mono">{invoice.deadlineDate}</dd>
 			{#if invoice.paid}<dt class="text-neutral-600">{pl ? 'Zapłacono' : 'Paid'}</dt><dd class="text-right font-mono">{fmt(invoice.paid)}{invoice.paymentDate ? `, ${invoice.paymentDate}` : ''}</dd>{/if}
+			{#if invoice.withholdingTax}<dt class="text-neutral-600">{pl ? 'Podatek u źródła' : 'Withholding tax'}</dt><dd class="text-right font-mono">{fmt(invoice.withholdingTax)}</dd>{/if}
 		</dl>
 		<div class="flex flex-col items-end justify-center gap-1">
 			<p class="text-[11px] tracking-[0.04em] text-neutral-600 uppercase">{t.toPay}</p>
-			<p class="font-mono text-[20px] font-semibold">{fmt(sum.gross - (invoice.paid || 0))}</p>
+			<p class="font-mono text-[20px] font-semibold">{fmt(Math.max(0, sum.gross - (invoice.paid || 0) - (invoice.withholdingTax || 0)))}</p>
 			{#if !pl}<p class="text-right text-[11px] text-neutral-600">In words: {inWords(sum.gross)} and {Math.round((sum.gross % 1) * 100)}/100 {invoice.currency}</p>{/if}
 		</div>
 	</section>

@@ -66,6 +66,9 @@
 	const locked = $derived(Boolean(invoice?.ksefNumber));
 	const lang = $derived(data.company.country === 'PL' ? 'pl' : 'en');
 	const sum = $derived(invoice ? totals(invoice) : { net: 0, vat: 0, gross: 0 });
+	// withholding tax happens with foreign clients of a non-Polish company, or when it was recorded already
+	const showWht = $derived(Boolean(invoice && (data.company.country !== 'PL' || invoice.withholdingTax > 0)));
+	const rest = $derived(invoice ? Math.round((sum.gross - (Number(invoice.paid) || 0)) * 100) / 100 : 0);
 	// the paper is 210 mm wide (≈794 px), scaled down to the column
 	const zoom = $derived(previewWidth ? Math.min(1, previewWidth / 794) : 0.6);
 
@@ -141,7 +144,8 @@
 
 	async function save(): Promise<Invoice | null> {
 		if (!invoice || saving) return null;
-		const issues = problems(invoice);
+		// in KSeF only the payment changes, through its own endpoint
+		const issues = locked ? [] : problems(invoice);
 		if (issues.length) {
 			toasts.show('Not saved yet', `To save: ${issues.join(', ')}.`, 'warn');
 			return null;
@@ -149,7 +153,14 @@
 		saving = true;
 		try {
 			const wasNew = !invoice.id;
-			const result = await data.saveInvoice(invoice);
+			const result = locked
+				? await data.recordPayment(invoice.id, {
+						paid: Number(invoice.paid) || 0,
+						paymentDate: invoice.paymentDate,
+						withholdingTax: Number(invoice.withholdingTax) || 0,
+						privateNote: invoice.privateNote
+					})
+				: await data.saveInvoice(invoice);
 			invoice = clone(result);
 			saved = JSON.stringify(invoice);
 			toasts.ok(wasNew ? 'Invoice created' : 'Saved', result.number);
@@ -354,8 +365,23 @@
 					<input id="f-paid-on" type="date" value={invoice.paymentDate ?? ''} onchange={(event) => invoice && (invoice.paymentDate = event.currentTarget.value || null)} class="field font-mono text-xs" />
 				</div>
 				<div class="flex items-end">
-					<button type="button" class="btn w-full" onclick={() => { if (invoice) { invoice.paid = sum.gross; invoice.paymentDate = dayjs().format('YYYY-MM-DD'); } }}>Paid in full today</button>
+					<button type="button" class="btn w-full" onclick={() => { if (invoice) { invoice.paid = Math.round((sum.gross - invoice.withholdingTax) * 100) / 100; invoice.paymentDate = dayjs().format('YYYY-MM-DD'); } }}>Paid in full today</button>
 				</div>
+				{#if showWht}
+					<div>
+						<label for="f-wht" class="mb-1 block text-xs text-muted">Withholding tax ({invoice.currency})</label>
+						<input id="f-wht" type="number" step="0.01" min="0" bind:value={invoice.withholdingTax} class="field text-right font-mono text-xs" />
+					</div>
+					<div class="col-span-2 flex items-end max-sm:col-span-1">
+						{#if invoice.paid > 0 && rest > 0.004 && Math.abs(rest - invoice.withholdingTax) > 0.004}
+							<button type="button" class="btn w-full" onclick={() => invoice && (invoice.withholdingTax = rest)}>
+								The rest, {money(rest, lang)} {invoice.currency}, is withholding tax
+							</button>
+						{:else}
+							<p class="pb-1.5 text-xs text-muted">The client paid less and sent the difference to its tax office? That part is withholding tax: the invoice is settled.</p>
+						{/if}
+					</div>
+				{/if}
 				<div class="col-span-3 max-sm:col-span-1">
 					<label for="f-private" class="mb-1 block text-xs text-muted">Private note <span class="text-faint">(only in the app)</span></label>
 					<textarea id="f-private" rows="2" bind:value={invoice.privateNote} class="field"></textarea>

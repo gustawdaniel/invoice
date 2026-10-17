@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
-	import { draftInvoice, exchange, gross, money, status } from '#lib/invoice.js';
+	import { draftInvoice, exchange, gross, money, settled, status } from '#lib/invoice.js';
 	import { score, sortInvoices } from '#lib/search.js';
 	import { data } from '#lib/state/data.svelte.js';
 	import { keys } from '#lib/state/keys.svelte.js';
@@ -30,7 +30,7 @@
 			const value = exchange(gross(inv), inv.currency, base, data.rate);
 			entry.count++;
 			entry.total += value;
-			if (['unpaid', 'overdue', 'partial'].includes(status(inv, data.usesKsef))) entry.unpaid += value - exchange(inv.paid, inv.currency, base, data.rate);
+			if (['unpaid', 'overdue', 'partial'].includes(status(inv, data.usesKsef))) entry.unpaid += value - exchange(settled(inv), inv.currency, base, data.rate);
 			if (inv.issueDate > entry.last) entry.last = inv.issueDate;
 			result.set(inv.clientId, entry);
 		}

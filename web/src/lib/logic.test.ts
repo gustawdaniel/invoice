@@ -1,7 +1,7 @@
 import dayjs from 'dayjs';
 import { describe, expect, it } from 'vitest';
 import { isInvoiceCommand, itemNameFor, parseInvoiceCommand, saleDateFor } from './command';
-import { draftInvoice, fromApi, money, nextNumber, status, toApi, totals } from './invoice';
+import { draftInvoice, fromApi, money, nextNumber, outstanding, status, toApi, totals } from './invoice';
 import { filterInvoices, parseQuery, score, sortInvoices } from './search';
 import type { Client, Company, Invoice } from './types';
 
@@ -107,6 +107,12 @@ describe('status', () => {
 		expect(status(invoice({ ...issued, paid: 12000 }), true, today)).toBe('paid');
 		expect(status(invoice({ ...issued, paid: 100 }), true, today)).toBe('partial');
 		expect(status(invoice({ deadlineDate: '2026-10-10' }), false, today)).toBe('overdue');
+	});
+	it('counts withholding tax as settled', () => {
+		const foreign = { deadlineDate: '2026-10-10', currency: 'EUR' as const };
+		expect(status(invoice({ ...foreign, paid: 10800 }), false, today)).toBe('partial');
+		expect(status(invoice({ ...foreign, paid: 10800, withholdingTax: 1200 }), false, today)).toBe('paid');
+		expect(outstanding(invoice({ paid: 10800, withholdingTax: 600 }))).toBe(600);
 	});
 });
 
