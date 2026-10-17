@@ -11,23 +11,21 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./front
-    env:
-      GOOGLE_CLIENT_ID: "244384199602-sqhor9mc08tkl3gkd71k9c46rq38msdd.apps.googleusercontent.com"
-      VITE_API_URL: "https://api.openinvoice.in"
+        working-directory: ./web
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v2
+      # pnpm version from packageManager in web/package.json
+      - uses: pnpm/action-setup@v4
         with:
-          version: 9
+          package_json_file: web/package.json
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'pnpm'
-          cache-dependency-path: front/pnpm-lock.yaml
-      - run: pnpm install
-      - run: pnpm run postinstall
+          cache-dependency-path: web/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
       - run: pnpm test
+      - run: pnpm check
 
   backend-test:
     runs-on: ubuntu-latest

@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link
+			href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap"
+			rel="stylesheet"
+		/>
+		<script>
+			// the chosen theme before the first paint, so a dark page does not flash white
+			try {
+				const theme = JSON.parse(localStorage.getItem('oi.theme') ?? '"light"');
+				if (theme === 'dark' || theme === 'hacker') document.documentElement.dataset.theme = theme;
+			} catch {}
+		</script>
+		<script src="https://accounts.google.com/gsi/client" async defer></script>
+		<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+		<title>openinvoice</title>
+		%sveltekit.head%
+	</head>
+	<body data-sveltekit-preload-data="hover">
+		<div style="display: contents">%sveltekit.body%</div>
+	</body>
+</html>
