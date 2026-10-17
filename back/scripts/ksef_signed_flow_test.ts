@@ -1,13 +1,12 @@
 // Checks the signature based KSeF connection (the one used for PROD with Profil Zaufany)
 // on KSeF TEST, signing the request with a self-signed seal instead of a real signature,
 // then sends an invoice with the obtained token. Uses fake NIPs only.
-// Usage: KSEF_SECRET_KEY=... tsx scripts/ksef_signed_flow_test.ts
+// Usage: tsx scripts/ksef_signed_flow_test.ts
 import assert from 'node:assert/strict';
 import {CertificateService, SignatureService} from 'ksef-client-ts';
 import type {companies} from '@prisma/client';
-import {connectWithSignedRequest, createAuthRequest, sendInvoiceToKsef} from '../src/services/ksef/ksef';
+import {connectWithSignedRequest, createAuthRequest, sendInvoiceWithToken} from '../src/services/ksef/ksef';
 import {buildFa3} from '../src/services/ksef/buildFa3';
-import {encryptKsefToken} from '../src/services/ksef/tokenCrypto';
 
 function randomNip(): string {
     const w = [6, 5, 7, 2, 3, 4, 5, 6, 7];
@@ -22,7 +21,7 @@ async function main() {
     const nip = randomNip();
     const company = {
         id: 'test', name: 'Signed Flow Test Sp. z o.o.', tin: nip, address: 'ul. Testowa 1, 00-001 Warszawa',
-        info: '', logo: '', signature: '', country: 'PL', ksefEnv: 'test', ksefTokenEnc: null,
+        info: '', logo: '', signature: '', country: 'PL', ksefEnv: null, ksefTokenEnc: null, ksefDemoTokenEnc: null,
         vatExemptionBasis: 'Art. 113 ust. 1 ustawy o VAT', createdAt: new Date(), updatedAt: new Date(),
     } as companies;
 
@@ -39,7 +38,6 @@ async function main() {
     assert.ok(token.length > 20);
 
     console.log('sending invoice with the obtained token...');
-    company.ksefTokenEnc = encryptKsefToken(token);
     const today = new Date().toISOString().slice(0, 10);
     const xml = buildFa3({
         number: `0001/${today.slice(5, 7)}/${today.slice(0, 4)}`, issueDate: today, saleDate: today, deadlineDate: today,
@@ -48,7 +46,7 @@ async function main() {
         company,
         client: {name: 'Nabywca', tin: randomNip(), street: 'ul. Próbna 3', post: '00-002', city: 'Warszawa', country: 'Poland'},
     } as any);
-    const {status, qrUrl} = await sendInvoiceToKsef(company, xml, today);
+    const {status, qrUrl} = await sendInvoiceWithToken('test', nip, token, xml, today);
     assert.equal(status.status.code, 200);
     console.log('KSeF number:', status.ksefNumber, qrUrl);
     console.log('OK');

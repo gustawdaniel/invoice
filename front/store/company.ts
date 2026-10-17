@@ -5,7 +5,8 @@ import {apiFetch} from "~/helpers/apiFetch";
 import {apiErrorMessage} from "~/helpers/apiErrorMessage";
 
 export type Country = 'GE' | 'PL';
-export type KsefEnv = 'test' | 'prod';
+// prod: production KSeF (live mode), demo: KSeF DEMO (test mode, no legal effect)
+export type KsefEnv = 'prod' | 'demo';
 
 export interface Company {
     id: string,
@@ -16,15 +17,15 @@ export interface Company {
     logo: string,
     signature: string,
     country: Country,
-    ksefEnv: KsefEnv | null,
     ksefConnected: boolean,
+    ksefDemoConnected: boolean,
     vatExemptionBasis: string,
 }
 
 function emptyCompany(): Company {
     return {
         id: '', name: '', tin: '', address: '', info: '', logo: '', signature: '',
-        country: 'GE', ksefEnv: null, ksefConnected: false, vatExemptionBasis: '',
+        country: 'GE', ksefConnected: false, ksefDemoConnected: false, vatExemptionBasis: '',
     };
 }
 
@@ -44,8 +45,14 @@ export const useCompanyStore = defineStore('companyStore', () => {
     // null = default company of the user
     const activeCompanyId = ref<string | null>(null);
 
-    // KSeF is used only by Polish companies with a selected environment
-    const usesKsef = computed(() => company.value.country === 'PL' && Boolean(company.value.ksefEnv));
+    // like Stripe: test mode shows only test invoices and sends them to KSeF DEMO, live mode is the real thing
+    const testMode = ref(false);
+    const ksefEnv = computed<KsefEnv>(() => testMode.value ? 'demo' : 'prod');
+
+    // KSeF is used by Polish companies; connected = connected in the environment of the current mode
+    const usesKsef = computed(() => company.value.country === 'PL');
+    const ksefConnected = computed(() =>
+        testMode.value ? company.value.ksefDemoConnected : company.value.ksefConnected);
 
     const getCompany = async () => {
         company.value = await call<Company>('/company');
@@ -78,38 +85,36 @@ export const useCompanyStore = defineStore('companyStore', () => {
         replace(await call<Company>('/company', {method: 'PUT', body: companyData}));
     }
 
-    const connectKsefTest = async () => {
-        replace(await call<Company>('/company/ksef/test-connect', {method: 'POST'}));
-    }
-
     // XML with a 10 minute challenge, to be signed with Profil Zaufany
-    const getKsefAuthRequest = async (): Promise<string> => {
-        return await call<string>('/company/ksef/auth-request', {responseType: 'text'});
+    const getKsefAuthRequest = async (env: KsefEnv): Promise<string> => {
+        return await call<string>(`/company/ksef/${env}/auth-request`, {responseType: 'text'});
     }
 
-    const sendKsefSignedRequest = async (signedXml: string) => {
-        replace(await call<Company>('/company/ksef/auth-signed', {method: 'POST', body: {signedXml}}));
+    const sendKsefSignedRequest = async (env: KsefEnv, signedXml: string) => {
+        replace(await call<Company>(`/company/ksef/${env}/auth-signed`, {method: 'POST', body: {signedXml}}));
     }
 
-    const connectKsefWithToken = async (token: string) => {
-        replace(await call<Company>('/company/ksef/token', {method: 'POST', body: {token}}));
+    const connectKsefWithToken = async (env: KsefEnv, token: string) => {
+        replace(await call<Company>(`/company/ksef/${env}/token`, {method: 'POST', body: {token}}));
     }
 
-    const disconnectKsef = async () => {
-        replace(await call<Company>('/company/ksef', {method: 'DELETE'}));
+    const disconnectKsef = async (env: KsefEnv) => {
+        replace(await call<Company>(`/company/ksef/${env}`, {method: 'DELETE'}));
     }
 
     return {
         company,
         companies,
         activeCompanyId,
+        testMode,
+        ksefEnv,
         usesKsef,
+        ksefConnected,
         getCompany,
         getCompanies,
         selectCompany,
         addCompany,
         setCompany,
-        connectKsefTest,
         getKsefAuthRequest,
         sendKsefSignedRequest,
         connectKsefWithToken,

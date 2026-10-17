@@ -72,7 +72,9 @@ export interface Invoice {
     wasPrinted?: boolean,
     wasSend?: boolean,
     wasCancelled?: boolean,
-    ksefEnv?: 'test' | 'prod' | null,
+    ksefEnv?: 'test' | 'demo' | 'prod' | null,
+    // false: test mode invoice (KSeF DEMO, no legal effect)
+    livemode?: boolean,
     ksefStatus?: 'Accepted' | 'Rejected' | null,
     ksefNumber?: string | null,
     ksefQrUrl?: string | null,

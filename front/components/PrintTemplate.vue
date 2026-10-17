@@ -148,7 +148,9 @@
   <div v-if="invoice.ksefNumber && invoice.ksefQrUrl" class="mt-8 flex flex-col items-start">
     <div v-html="qrSvg(invoice.ksefQrUrl)"></div>
     <p class="text-xs mt-1">{{ invoice.ksefNumber }}</p>
-    <p v-if="invoice.ksefEnv === 'test'" class="text-xs text-red-600">KSeF TEST — invoice without legal effect</p>
+    <p v-if="invoice.livemode === false || invoice.ksefEnv === 'test' || invoice.ksefEnv === 'demo'" class="text-xs text-red-600">
+      {{ invoice.ksefEnv === 'test' ? 'KSeF TEST' : 'TEST MODE / KSeF DEMO' }} — invoice without legal effect
+    </p>
   </div>
 
   <div v-if="!pl" class="flex text-center mt-8">

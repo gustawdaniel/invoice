@@ -101,14 +101,17 @@ export function createMcpServer(ctx: AgentContext): McpServer {
         {name: 'openinvoice', version: '1.0.0'},
         {
             instructions: 'Drafts invoices in openinvoice.in for the companies of the user who created the agent key. '
-                + 'Invoices for Polish companies in production KSeF mode are only sent after a human approves them: '
-                + 'call request_ksef_send and tell the user to approve it in the app. Never claim an invoice was sent '
-                + 'to KSeF unless it has a ksefNumber.',
+                + 'Like Stripe, every invoice is either live or in test mode (test_mode: true). Test mode invoices can '
+                + 'be sent to KSeF DEMO (no legal effect) with send_to_ksef_demo, use them to check an invoice. Live '
+                + 'invoices are only sent to production KSeF after a human approves them: call request_ksef_send and '
+                + 'tell the user to approve it in the app. Never claim an invoice was sent to KSeF unless it has a '
+                + 'ksefNumber.',
         },
     );
 
     server.registerTool('list_companies', {
-        description: 'Companies the user can issue invoices for, with KSeF mode and whether KSeF is connected',
+        description: 'Companies the user can issue invoices for; ksefConnected: production KSeF, '
+            + 'ksefDemoConnected: KSeF DEMO for test mode',
         annotations: {readOnlyHint: true},
     }, async () => {
         const companies = await prisma.companies.findMany({
@@ -153,7 +156,7 @@ export function createMcpServer(ctx: AgentContext): McpServer {
         },
     }, async ({company_id, vat_exemption_basis, ...fields}) => {
         const company = await requireCompany(ctx, company_id);
-        if (fields.tin !== undefined && fields.tin !== company.tin && company.ksefTokenEnc) {
+        if (fields.tin !== undefined && fields.tin !== company.tin && (company.ksefTokenEnc || company.ksefDemoTokenEnc)) {
             throw new Error('This company is connected to KSeF, ask the user to change the NIP in the app');
         }
         const updated = await prisma.companies.update({
@@ -196,13 +199,18 @@ export function createMcpServer(ctx: AgentContext): McpServer {
     });
 
     server.registerTool('list_invoices', {
-        description: 'Invoices of a company, newest first. Invoices without ksefNumber are drafts that can be edited.',
-        inputSchema: {company_id: z.string(), limit: z.number().int().min(1).max(200).default(20)},
+        description: 'Live or test mode invoices of a company, newest first. Invoices without ksefNumber are drafts '
+            + 'that can be edited. Live and test mode have separate numbering.',
+        inputSchema: {
+            company_id: z.string(),
+            test_mode: z.boolean().default(false),
+            limit: z.number().int().min(1).max(200).default(20),
+        },
         annotations: {readOnlyHint: true},
-    }, async ({company_id, limit}) => {
+    }, async ({company_id, test_mode, limit}) => {
         await requireCompany(ctx, company_id);
         const invoices = await prisma.invoices.findMany({
-            where: {companyId: company_id},
+            where: {companyId: company_id, livemode: !test_mode},
             include: {client: true},
             orderBy: {id: 'desc'},
             take: limit,
@@ -226,9 +234,13 @@ export function createMcpServer(ctx: AgentContext): McpServer {
 
     server.registerTool('create_invoice_draft', {
         description: 'Create an invoice draft. It is not sent anywhere; the user sees it in the app marked as made by '
-            + 'this agent.',
-        inputSchema: {company_id: z.string(), ...invoiceFields},
-    }, async ({company_id, ...input}) => {
+            + 'this agent. With test_mode it is a test invoice, visible in the test mode of the app.',
+        inputSchema: {
+            company_id: z.string(),
+            test_mode: z.boolean().default(false).describe('Test invoice: no legal effect, can go only to KSeF DEMO'),
+            ...invoiceFields,
+        },
+    }, async ({company_id, test_mode, ...input}) => {
         await requireCompany(ctx, company_id);
         const client = await prisma.clients.findFirst({where: {id: input.client_id, companyId: company_id}});
         if (!client) throw new Error('Client not found in this company');
@@ -251,6 +263,7 @@ export function createMcpServer(ctx: AgentContext): McpServer {
                 privateNote: input.private_note,
                 paid: 0,
                 createdByAgent: ctx.keyName,
+                livemode: !test_mode,
             },
             include: {client: true},
         });
@@ -320,13 +333,11 @@ export function createMcpServer(ctx: AgentContext): McpServer {
         },
     }, async ({company_id, invoice_id, note}) => {
         const company = await requireCompany(ctx, company_id);
-        if (company.ksefEnv !== 'prod') {
-            throw new Error(company.ksefEnv === 'test'
-                ? 'The company is in KSeF TEST mode, use send_to_ksef_test'
-                : 'KSeF is not enabled for this company');
-        }
-        if (!company.ksefTokenEnc) throw new Error('KSeF is not connected for this company, ask the user to connect it');
         const invoice = await requireDraft(company_id, invoice_id);
+        if (!invoice.livemode) throw new Error('This is a test mode invoice, send it to KSeF DEMO with send_to_ksef_demo');
+        if (!company.ksefTokenEnc) {
+            throw new Error('Production KSeF is not connected for this company, ask the user to connect it');
+        }
         buildFa3(invoice); // invalid invoices are rejected here, not after the human clicks
         const updated = await prisma.invoices.update({
             where: {id: invoice.id},
@@ -340,14 +351,15 @@ export function createMcpServer(ctx: AgentContext): McpServer {
         });
     });
 
-    server.registerTool('send_to_ksef_test', {
-        description: 'Send a draft to KSeF TEST (no legal effect) for a company in test mode, to check it is accepted',
+    server.registerTool('send_to_ksef_demo', {
+        description: 'Send a test mode invoice to KSeF DEMO (pre-production, no legal effect) to check it is accepted',
         inputSchema: {company_id: z.string(), invoice_id: z.string()},
         annotations: {openWorldHint: true},
     }, async ({company_id, invoice_id}) => {
-        const company = await requireCompany(ctx, company_id);
-        if (company.ksefEnv !== 'test') {
-            throw new Error('Only companies in KSeF TEST mode; production sending needs request_ksef_send');
+        await requireCompany(ctx, company_id);
+        const invoice = await requireDraft(company_id, invoice_id);
+        if (invoice.livemode) {
+            throw new Error('This is a live invoice, it can only go to production KSeF through request_ksef_send');
         }
         return json(agentInvoice(await sendStoredInvoice(invoice_id, company_id)));
     });

@@ -47,8 +47,11 @@ enum Country {
   PL
 }
 
+// prod: legally binding; demo: pre-production with real NIP, no legal effect (test mode of the app);
+// test: MF test environment with fake NIPs, only on invoices sent before test mode moved to demo
 enum KsefEnv {
   test
+  demo
   prod
 }
 
@@ -62,10 +65,11 @@ model companies {
   signature String     @default("")
 
   country           Country  @default(GE)
-  // only for PL companies; null means KSeF is not connected
+  // deprecated: the single KSeF mode before test/live mode, only read by migrations/ksefModes.ts
   ksefEnv           KsefEnv?
-  // AES-256-GCM encrypted KSeF token, see services/ksef/tokenCrypto.ts
+  // AES-256-GCM encrypted KSeF tokens (services/ksef/tokenCrypto.ts), one per environment, like Stripe live/test keys
   ksefTokenEnc      String?
+  ksefDemoTokenEnc  String?
   // e.g. "Art. 113 ust. 1 ustawy o VAT", printed and sent when items are VAT exempt
   vatExemptionBasis String   @default("")
 
@@ -215,6 +219,9 @@ model invoices {
   vatBankAccountNumber String  @default("")
   paid                 Float
   paymentDate          String?
+
+  // false: test mode invoice, listed only in test mode and sent only to KSeF DEMO (no legal effect)
+  livemode             Boolean  @default(true)
 
   ksefEnv              KsefEnv?
   ksefStatus           String?   // 'Accepted' | 'Rejected'

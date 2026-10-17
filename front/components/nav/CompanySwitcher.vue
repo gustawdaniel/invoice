@@ -3,7 +3,7 @@ import {useCompanyStore, type Country} from "~/store/company";
 import {useCompanySwitch} from "~/composables/useCompanySwitch";
 
 const companyStore = useCompanyStore();
-const {switchCompany, createCompany} = useCompanySwitch();
+const {switchCompany, createCompany, setTestMode} = useCompanySwitch();
 const toast = useToast();
 const router = useRouter();
 
@@ -44,11 +44,19 @@ async function add() {
         {{ c.name }} ({{ c.country }})
       </option>
     </select>
+    <!-- like Stripe: test mode = separate test invoices sent to KSeF DEMO, without legal effect -->
+    <label class="flex cursor-pointer items-center gap-1.5 rounded-md border px-2 py-1 select-none"
+           :class="companyStore.testMode ? 'border-orange-400 bg-orange-50 text-orange-800' : 'border-gray-300 text-gray-700'"
+           title="Test mode: test invoices only, sent to KSeF DEMO without legal effect">
+      <input type="checkbox" class="rounded text-orange-500" :checked="companyStore.testMode"
+             @change="setTestMode(($event.target as HTMLInputElement).checked)">
+      Test mode
+    </label>
     <span v-if="companyStore.usesKsef"
-          :class="companyStore.company.ksefEnv === 'prod' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'"
+          :class="companyStore.ksefConnected ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'"
           class="rounded px-2 py-0.5 text-xs font-semibold"
-          :title="companyStore.company.ksefConnected ? 'KSeF connected' : 'KSeF not connected'">
-      {{ companyStore.company.ksefEnv === 'prod' ? 'KSeF' : 'KSeF TEST' }}{{ companyStore.company.ksefConnected ? '' : ' ⚠' }}
+          :title="companyStore.ksefConnected ? 'KSeF connected' : 'KSeF not connected, see Company'">
+      {{ companyStore.testMode ? 'KSeF DEMO' : 'KSeF' }}{{ companyStore.ksefConnected ? '' : ' ⚠' }}
     </span>
 
     <button v-if="!adding"

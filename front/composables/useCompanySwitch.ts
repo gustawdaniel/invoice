@@ -2,7 +2,7 @@ import {useCompanyStore, type Country} from "~/store/company";
 import {useClientStore} from "~/store/client";
 import {useInvoiceStore} from "~/store/invoice";
 
-// Switching the selected company must also swap its clients and invoices
+// Switching the selected company or the mode must also swap its clients and invoices
 export function useCompanySwitch() {
     const companyStore = useCompanyStore();
     const clientStore = useClientStore();
@@ -25,5 +25,13 @@ export function useCompanySwitch() {
         await reloadCompanyData();
     }
 
-    return {switchCompany, createCompany};
+    // live and test mode have separate invoices, like Stripe test data
+    async function setTestMode(enabled: boolean) {
+        companyStore.testMode = enabled;
+        invoiceStore.invoice = null;
+        invoiceStore.invoices = [];
+        await invoiceStore.getInvoices();
+    }
+
+    return {switchCompany, createCompany, setTestMode};
 }

@@ -8,8 +8,8 @@ interface AdminCompany {
   name: string;
   country: 'PL' | 'GE';
   tin: string;
-  ksefEnv: 'test' | 'prod' | null;
   ksefConnected: boolean;
+  ksefDemoConnected: boolean;
   createdAt: string;
   users: { email: string; lastVerifiedAt: string | null }[];
   invoices: number;
@@ -70,13 +70,11 @@ const date = (value: string | null) => value ? new Date(value).toLocaleDateStrin
           </td>
           <td class="px-3 py-2">{{ company.tin || '—' }}</td>
           <td class="px-3 py-2 whitespace-nowrap">
-            <template v-if="company.ksefEnv">
-              {{ company.ksefEnv === 'prod' ? 'production' : 'test' }}
-              <span :class="company.ksefConnected ? 'text-green-700' : 'text-amber-700'">
-                {{ company.ksefConnected ? 'connected' : 'not connected' }}
-              </span>
+            <template v-if="company.country === 'PL'">
+              <span :class="company.ksefConnected ? 'text-green-700' : 'text-gray-400'">prod {{ company.ksefConnected ? '✓' : '—' }}</span>
+              <span class="ml-2" :class="company.ksefDemoConnected ? 'text-green-700' : 'text-gray-400'">demo {{ company.ksefDemoConnected ? '✓' : '—' }}</span>
             </template>
-            <template v-else>off</template>
+            <template v-else>—</template>
             <span v-if="company.pendingKsefRequests" class="ml-1 text-xs font-medium text-amber-700">
               {{ company.pendingKsefRequests }} waiting for approval
             </span>

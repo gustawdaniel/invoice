@@ -1,20 +1,19 @@
 // Stores a KSeF token from env on the company with the token's NIP, after checking it logs in.
 //
-//   KSEF_TOKEN='<reference>|nip-<NIP>|<secret>' [KSEF_ENV=prod|test] [KSEF_COMPANY_ID=...] \
+//   KSEF_TOKEN='<reference>|nip-<NIP>|<secret>' [KSEF_ENV=prod|demo] [KSEF_COMPANY_ID=...] \
 //     infisical run --env=prod --path=/back -- tsx scripts/ksef_import_token.ts
 //
 // Needs the same env as the backend (MONGO_URI, KSEF_SECRET_KEY, ...). Production tokens come from
-// https://ap.ksef.mf.gov.pl/web/tokens/generate-token, test tokens from https://ap-test.ksef.mf.gov.pl.
-import type {KsefEnv} from '@prisma/client';
+// https://ap.ksef.mf.gov.pl/web/tokens/generate-token, demo (test mode) tokens from https://ap-demo.ksef.mf.gov.pl.
 import {prisma} from '../src/db';
-import {verifyUserToken} from '../src/services/ksef/ksef';
+import {type ConnectEnv, tokenField, verifyUserToken} from '../src/services/ksef/ksef';
 import {encryptKsefToken} from '../src/services/ksef/tokenCrypto';
 
 async function main() {
     const token = process.env.KSEF_TOKEN?.trim();
     if (!token) throw new Error('Set KSEF_TOKEN');
-    const env = (process.env.KSEF_ENV ?? 'prod') as KsefEnv;
-    if (env !== 'prod' && env !== 'test') throw new Error('KSEF_ENV must be "prod" or "test"');
+    const env = (process.env.KSEF_ENV ?? 'prod') as ConnectEnv;
+    if (env !== 'prod' && env !== 'demo') throw new Error('KSEF_ENV must be "prod" or "demo"');
 
     const tokenNip = token.match(/\|nip-(\d{10})\|/)?.[1];
     if (!tokenNip) throw new Error('KSEF_TOKEN does not look like a KSeF token');
@@ -33,7 +32,7 @@ async function main() {
     const verified = await verifyUserToken(company, env, token);
     await prisma.companies.update({
         where: {id: company.id},
-        data: {ksefEnv: env, ksefTokenEnc: encryptKsefToken(verified)},
+        data: {[tokenField(env)]: encryptKsefToken(verified)},
     });
     console.log(`Done: ${company.name} is connected to KSeF ${env}. You can now remove KSEF_TOKEN from env.`);
 }

@@ -70,7 +70,7 @@
                   }}
                   <br v-if="invoice.ksefNumber || invoice.ksefError">
                   <span v-if="invoice.ksefNumber" class="text-xs text-green-700" :title="`KSeF ${invoice.ksefEnv}`">
-                    {{ invoice.ksefEnv === 'test' ? 'KSeF TEST' : 'KSeF' }}: {{ invoice.ksefNumber }}
+                    {{ invoice.ksefEnv === 'prod' ? 'KSeF' : `KSeF ${invoice.ksefEnv?.toUpperCase()}` }}: {{ invoice.ksefNumber }}
                   </span>
                   <span v-else-if="invoice.ksefError" class="text-xs text-red-600 whitespace-normal" :title="invoice.ksefError">
                     KSeF: {{ invoice.ksefError.slice(0, 80) }}
@@ -100,11 +100,11 @@
                 </td>
                 <td v-if="columnTable.includes('actions')"
                     class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                  <button v-if="companyStore.usesKsef && companyStore.company.ksefConnected && !invoice.ksefNumber"
+                  <button v-if="companyStore.usesKsef && companyStore.ksefConnected && !invoice.ksefNumber"
                           class="border px-2 py-1 hover:bg-gray-100 disabled:opacity-50"
                           :disabled="sendingKsef === invoice.id"
                           :class="{'border-amber-500 bg-amber-50': invoice.ksefSendRequestedAt}"
-                          @click="sendKsef(invoice)">{{ sendingKsef === invoice.id ? 'SENDING...' : invoice.ksefSendRequestedAt ? 'APPROVE & SEND KSEF' : 'SEND KSEF' }}</button>
+                          @click="sendKsef(invoice)">{{ sendingKsef === invoice.id ? 'SENDING...' : invoice.ksefSendRequestedAt ? 'APPROVE & SEND KSEF' : invoice.livemode === false ? 'SEND KSEF DEMO' : 'SEND KSEF' }}</button>
                   <button v-if="invoice.ksefSendRequestedAt && !invoice.ksefNumber"
                           class="border px-2 py-1 hover:bg-gray-100"
                           title="Reject the agent's request, the invoice stays a draft"
@@ -176,7 +176,8 @@ const printInvoice = async (inv: Invoice) => {
 const sendingKsef = ref<string | null>(null);
 
 const sendKsef = async (inv: Invoice) => {
-    const target = companyStore.company.ksefEnv === 'prod' ? 'PRODUCTION KSeF (legally binding, cannot be undone)' : 'KSeF TEST';
+    // the backend picks the environment from the invoice itself, this only describes it
+    const target = inv.livemode === false ? 'KSeF DEMO (test mode, no legal effect)' : 'PRODUCTION KSeF (legally binding, cannot be undone)';
     if (!confirm(`Send invoice ${inv.number} to ${target}?`)) return;
     sendingKsef.value = inv.id;
     try {

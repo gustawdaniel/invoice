@@ -20,6 +20,8 @@ declare module 'fastify' {
         user: TokenPayload | null;
         // company selected by the x-company-id header, defaults to user.companyId
         companyId: string;
+        // false in test mode (x-mode: test header): test invoices only, KSeF DEMO instead of production
+        livemode: boolean;
     }
 }
 
@@ -92,6 +94,7 @@ export function getFastify(): FastifyInstance {
                 return reply.forbidden('No access to this company');
             }
             request.companyId = companyId;
+            request.livemode = request.headers['x-mode'] !== 'test';
         },
     );
 

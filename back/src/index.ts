@@ -1,14 +1,17 @@
 import {getFastify} from './fastify';
 import { config } from './config';
+import {migrateKsefModes} from "./migrations/ksefModes";
 
 const server = getFastify();
 
-server.listen(
-    { port: config.PORT, host: '0.0.0.0' },
-    (err: Error | null, host: string) => {
-        if (err) {
-            throw err;
-        }
-        console.info(`server listening on ${host}`);
-    },
-);
+migrateKsefModes()
+    .catch(error => console.error('ksef modes migration failed', error))
+    .finally(() => server.listen(
+        { port: config.PORT, host: '0.0.0.0' },
+        (err: Error | null, host: string) => {
+            if (err) {
+                throw err;
+            }
+            console.info(`server listening on ${host}`);
+        },
+    ));

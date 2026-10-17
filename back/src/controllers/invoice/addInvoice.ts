@@ -67,6 +67,7 @@ export const addInvoice = async (
             paymentForm: getPaymentForm(newInvoicePayload.paymentForm),
             items,
             companyId: companyId,
+            livemode: req.livemode,
         },
         include: {
             client: true

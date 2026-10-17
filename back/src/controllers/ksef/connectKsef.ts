@@ -2,9 +2,20 @@ import {FastifyReply, FastifyRequest} from "fastify";
 import {z} from "zod";
 import {prisma} from "../../db";
 import {publicCompany} from "../../helpers/publicCompany";
-import {connectTestEnvironment, connectWithSignedRequest, createAuthRequest, verifyUserToken} from "../../services/ksef/ksef";
+import {
+    CONNECT_ENVS,
+    type ConnectEnv,
+    connectWithSignedRequest,
+    createAuthRequest,
+    tokenField,
+    verifyUserToken,
+} from "../../services/ksef/ksef";
 import {encryptKsefToken} from "../../services/ksef/tokenCrypto";
 import {getErrorMessage} from "../../helpers/getErrorMessage";
+
+// every connection route is per environment: /company/ksef/prod/... (live mode) or /company/ksef/demo/... (test mode)
+const EnvParams = z.object({env: z.enum(CONNECT_ENVS)});
+export type KsefEnvRoute = { Params: { env: ConnectEnv } };
 
 async function polishCompany(companyId: string) {
     const company = await prisma.companies.findUnique({where: {id: companyId}});
@@ -13,34 +24,23 @@ async function polishCompany(companyId: string) {
     return company;
 }
 
-async function saveToken(companyId: string, token: string) {
+async function saveToken(companyId: string, env: ConnectEnv, token: string | null) {
     const company = await prisma.companies.update({
         where: {id: companyId},
-        data: {ksefTokenEnc: encryptKsefToken(token)},
+        data: {[tokenField(env)]: token === null ? null : encryptKsefToken(token)},
     });
     return publicCompany(company);
 }
 
-export const connectKsefTest = async (req: FastifyRequest, reply: FastifyReply): Promise<FastifyReply> => {
+// Step 1 of the signature based connection: XML to be signed by the user (e.g. Profil Zaufany)
+export const ksefAuthRequest = async (req: FastifyRequest<KsefEnvRoute>, reply: FastifyReply): Promise<FastifyReply> => {
     try {
+        const {env} = EnvParams.parse(req.params);
         const company = await polishCompany(req.companyId);
-        if (company.ksefEnv !== 'test') return reply.badRequest('Company is not in KSeF test mode');
-        const token = await connectTestEnvironment(company);
-        return reply.send(await saveToken(company.id, token));
-    } catch (error) {
-        req.log.error(error);
-        return reply.badGateway(getErrorMessage(error));
-    }
-}
-
-export const ksefProdAuthRequest = async (req: FastifyRequest, reply: FastifyReply): Promise<FastifyReply> => {
-    try {
-        const company = await polishCompany(req.companyId);
-        if (company.ksefEnv !== 'prod') return reply.badRequest('Company is not in KSeF production mode');
-        const xml = await createAuthRequest(company, 'prod');
+        const xml = await createAuthRequest(company, env);
         return reply
             .header('content-type', 'application/xml; charset=utf-8')
-            .header('content-disposition', 'attachment; filename="ksef-auth-request.xml"')
+            .header('content-disposition', `attachment; filename="ksef-${env}-auth-request.xml"`)
             .send(xml);
     } catch (error) {
         req.log.error(error);
@@ -49,18 +49,16 @@ export const ksefProdAuthRequest = async (req: FastifyRequest, reply: FastifyRep
 }
 
 const SignedSchema = z.object({signedXml: z.string().min(1)});
-export type KsefProdAuthSignedRoute = { Body: z.infer<typeof SignedSchema> };
+export type KsefAuthSignedRoute = KsefEnvRoute & { Body: z.infer<typeof SignedSchema> };
 
-export const ksefProdAuthSigned = async (
-    req: FastifyRequest<KsefProdAuthSignedRoute>,
-    reply: FastifyReply,
-): Promise<FastifyReply> => {
+// Step 2: authenticate with the signed XML and exchange it for a long-lived KSeF token
+export const ksefAuthSigned = async (req: FastifyRequest<KsefAuthSignedRoute>, reply: FastifyReply): Promise<FastifyReply> => {
     try {
+        const {env} = EnvParams.parse(req.params);
         const company = await polishCompany(req.companyId);
-        if (company.ksefEnv !== 'prod') return reply.badRequest('Company is not in KSeF production mode');
         const {signedXml} = SignedSchema.parse(req.body);
-        const token = await connectWithSignedRequest('prod', signedXml);
-        return reply.send(await saveToken(company.id, token));
+        const token = await connectWithSignedRequest(env, signedXml);
+        return reply.send(await saveToken(company.id, env, token));
     } catch (error) {
         req.log.error(error);
         return reply.badGateway(getErrorMessage(error));
@@ -68,29 +66,23 @@ export const ksefProdAuthSigned = async (
 }
 
 const TokenSchema = z.object({token: z.string().min(1)});
-export type KsefTokenRoute = { Body: z.infer<typeof TokenSchema> };
+export type KsefTokenRoute = KsefEnvRoute & { Body: z.infer<typeof TokenSchema> };
 
-// token pasted by the user, generated in Aplikacja Podatnika KSeF, for the environment selected on the company
-export const connectKsefWithToken = async (
-    req: FastifyRequest<KsefTokenRoute>,
-    reply: FastifyReply,
-): Promise<FastifyReply> => {
+// token pasted by the user, generated in Aplikacja Podatnika KSeF of that environment
+export const connectKsefWithToken = async (req: FastifyRequest<KsefTokenRoute>, reply: FastifyReply): Promise<FastifyReply> => {
     try {
+        const {env} = EnvParams.parse(req.params);
         const company = await polishCompany(req.companyId);
-        if (!company.ksefEnv) return reply.badRequest('KSeF environment is not selected for this company');
         const {token} = TokenSchema.parse(req.body);
-        const verified = await verifyUserToken(company, company.ksefEnv, token);
-        return reply.send(await saveToken(company.id, verified));
+        const verified = await verifyUserToken(company, env, token);
+        return reply.send(await saveToken(company.id, env, verified));
     } catch (error) {
         req.log.error(error);
         return reply.badGateway(getErrorMessage(error));
     }
 }
 
-export const disconnectKsef = async (req: FastifyRequest, reply: FastifyReply): Promise<FastifyReply> => {
-    const company = await prisma.companies.update({
-        where: {id: req.companyId},
-        data: {ksefTokenEnc: null},
-    });
-    return reply.send(publicCompany(company));
+export const disconnectKsef = async (req: FastifyRequest<KsefEnvRoute>, reply: FastifyReply): Promise<FastifyReply> => {
+    const {env} = EnvParams.parse(req.params);
+    return reply.send(await saveToken(req.companyId, env, null));
 }
