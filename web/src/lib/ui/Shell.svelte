@@ -23,6 +23,7 @@
 		{ href: '/books', label: 'Books', keys: 'gb' },
 		{ href: '/bank', label: 'Bank', keys: 'gt' },
 		{ href: '/costs', label: 'Costs', keys: 'gk' },
+		{ href: '/taxes', label: 'Taxes', keys: 'gx' },
 		{ href: '/agents', label: 'Agents', keys: 'ga' },
 		{ href: '/company', label: 'Company', keys: 'gs' }
 	];
@@ -63,6 +64,7 @@
 			gs: () => goto('/company'),
 			gt: () => goto('/bank'),
 			gk: () => goto('/costs'),
+			gx: () => goto('/taxes'),
 			gC: () => ui.openPalette('switch '),
 			n: () => goto('/invoices/new'),
 			c: () => newClient(),
@@ -126,7 +128,7 @@
 	<div class="flex flex-1 flex-wrap items-stretch">
 		<nav aria-label="Main" class="no-print flex flex-[1_1_180px] flex-col gap-0.5 border-r border-line px-2.5 py-3.5 text-[13px] max-md:flex-[1_1_100%] max-md:flex-row max-md:flex-wrap max-md:border-r-0 max-md:border-b max-md:py-2 md:max-w-[210px]">
 			{#each nav as item (item.href)}
-				{@const count = item.href === '/inbox' ? data.waiting.length : item.href === '/bank' ? data.bankToReview : 0}
+				{@const count = item.href === '/inbox' ? data.waiting.length : item.href === '/bank' ? data.bankToReview : item.href === '/taxes' ? data.filingsMissing : 0}
 				<a
 					href={item.href}
 					class={['flex items-center gap-2 rounded-md px-2 py-1.5', active(item.href) ? 'bg-accent-soft font-medium text-accent-ink' : 'text-ink hover:bg-sunken']}

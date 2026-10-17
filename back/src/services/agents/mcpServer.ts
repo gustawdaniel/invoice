@@ -1,6 +1,7 @@
 import {McpServer} from "@modelcontextprotocol/sdk/server/mcp.js";
 import {agentUpdate} from "../books/merge";
 import {COST_CATEGORIES, TRANSACTION_KINDS} from "../books/kinds";
+import {FILING_KINDS, FILING_STATUSES} from "../books/filings";
 import type {companies, users} from "@prisma/client";
 import dayjs from "dayjs";
 import {z} from "zod/v4";
@@ -155,6 +156,8 @@ export function createMcpServer(ctx: AgentContext): McpServer {
             address: z.string().optional(),
             info: z.string().optional().describe('Extra lines printed under the company, e.g. bank details'),
             vat_exemption_basis: z.string().optional(),
+            krs: z.string().optional(),
+            regon: z.string().optional(),
             default_issue_place: z.string().optional().describe('Prefilled on new invoices'),
             default_issuer_name: z.string().optional().describe('Prefilled on new invoices'),
             default_bank_account_number: z.string().optional().describe('Prefilled on new invoices'),
@@ -418,6 +421,48 @@ export function createMcpServer(ctx: AgentContext): McpServer {
             orderBy: [{issueDate: 'desc'}, {externalId: 'asc'}],
             take: limit,
         }));
+    });
+
+    server.registerTool('upsert_filings', {
+        description: 'Record what the company owes the authorities (tax returns, JPK, financial statements, registrations) '
+            + 'and their state, one per kind and period (idempotent). kinds: ' + FILING_KINDS.join(', ')
+            + '; statuses: ' + FILING_STATUSES.join(', '),
+        inputSchema: {
+            company_id: z.string(),
+            filings: z.array(z.object({
+                kind: z.enum(FILING_KINDS),
+                period: z.string().default('').describe('"2025" for a year, "2025-09" for a month, "" for none'),
+                authority: z.enum(['US', 'KRS', 'ZUS', 'other']).default('US'),
+                due_date: DATE.optional(),
+                status: z.enum(FILING_STATUSES),
+                filed_at: DATE.optional(),
+                reference: z.string().optional().describe('UPO number or another proof'),
+                amount: z.number().optional().describe('Tax to pay, PLN'),
+                note: z.string().optional(),
+            })).min(1).max(200),
+        },
+    }, async ({company_id, filings}) => {
+        await requireCompany(ctx, company_id);
+        for (const f of filings) {
+            const externalId = `${f.kind}:${f.period}`;
+            const data = {kind: f.kind, period: f.period, authority: f.authority, dueDate: f.due_date, status: f.status,
+                filedAt: f.filed_at, reference: f.reference, amount: f.amount, note: f.note};
+            await prisma.filings.upsert({
+                where: {companyId_externalId: {companyId: company_id, externalId}},
+                create: {...data, companyId: company_id, externalId},
+                update: data,
+            });
+        }
+        return json({saved: filings.length});
+    });
+
+    server.registerTool('list_filings', {
+        description: 'Tax returns, JPK files, financial statements and registrations of a company with their state',
+        inputSchema: {company_id: z.string()},
+        annotations: {readOnlyHint: true},
+    }, async ({company_id}) => {
+        await requireCompany(ctx, company_id);
+        return json(await prisma.filings.findMany({where: {companyId: company_id}, orderBy: [{dueDate: 'asc'}, {externalId: 'asc'}]}));
     });
 
     server.registerTool('record_issued_invoice', {

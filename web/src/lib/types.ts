@@ -122,6 +122,8 @@ export interface Company {
 	signature: string;
 	country: Country;
 	vatExemptionBasis: string;
+	krs: string;
+	regon: string;
 	defaultIssuePlace: string;
 	defaultIssuerName: string;
 	defaultBankAccountNumber: string;
@@ -235,5 +237,22 @@ export interface Cost {
 	reverseCharge: boolean;
 	file: string;
 	status: BookStatus;
+	note: string;
+}
+
+export type FilingStatus = 'missing' | 'todo' | 'check' | 'filed' | 'accepted' | 'not_required';
+
+// a tax return, JPK file, financial statement or registration the company owes
+export interface Filing {
+	id: string;
+	externalId: string;
+	kind: string;
+	period: string;
+	authority: string;
+	dueDate: string | null;
+	status: FilingStatus;
+	filedAt: string | null;
+	reference: string;
+	amount: number | null;
 	note: string;
 }

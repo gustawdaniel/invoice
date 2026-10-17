@@ -72,6 +72,9 @@ model companies {
   ksefDemoTokenEnc  String?
   // e.g. "Art. 113 ust. 1 ustawy o VAT", printed and sent when items are VAT exempt
   vatExemptionBasis String   @default("")
+  // court register and statistics numbers, printed on Polish invoices of companies
+  krs               String   @default("")
+  regon             String   @default("")
   // prefilled on new invoices, e.g. bank account or a note about VAT
   defaultIssuePlace        String @default("")
   defaultIssuerName        String @default("")
@@ -85,6 +88,7 @@ model companies {
   invoices  invoices[]
   bankTransactions bankTransactions[]
   costs     costs[]
+  filings   filings[]
 }
 
 model accessLogs {
@@ -305,6 +309,33 @@ model costs {
   note           String    @default("")
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
+
+  @@unique([companyId, externalId])
+}
+
+// What the company owes the authorities: tax returns, JPK files, financial statements, registrations.
+// One record per kind and period (e.g. CIT-8 for 2025, JPK_V7M for 2025-09); see services/books/filings.ts
+model filings {
+  id         String    @id @default(auto()) @map("_id") @db.ObjectId
+  company    companies @relation(fields: [companyId], references: [id])
+  companyId  String    @db.ObjectId
+  // "<kind>:<period>", stable: loading twice adds nothing
+  externalId String
+  kind       String
+  // "2025" for a year, "2025-09" for a month, "" when it has no period (a registration)
+  period     String    @default("")
+  // tax office (US), court register (KRS), social security (ZUS)
+  authority  String    @default("US")
+  dueDate    String?
+  status     String    @default("todo")
+  filedAt    String?
+  // UPO number, KRS document id, or similar proof
+  reference  String    @default("")
+  // tax to pay for the period, in PLN
+  amount     Float?
+  note       String    @default("")
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 
   @@unique([companyId, externalId])
 }

@@ -40,9 +40,12 @@ import {
     classifyTransaction,
     listBankTransactions,
     listCosts,
+    listFilings,
     updateCost,
+    updateFiling,
     type ClassifyTransactionRoute,
     type UpdateCostRoute,
+    type UpdateFilingRoute,
 } from "../controllers/books/books";
 import { mcp } from "../controllers/agents/mcp";
 import { lookupNip, type LookupNipRoute } from "../controllers/lookup/lookupNip";
@@ -115,6 +118,8 @@ export default function indexRoute(
     server.put<ClassifyTransactionRoute>('/bank-transactions/:id', SECRET, classifyTransaction);
     server.get('/costs', SECRET, listCosts);
     server.put<UpdateCostRoute>('/costs/:id', SECRET, updateCost);
+    server.get('/filings', SECRET, listFilings);
+    server.put<UpdateFilingRoute>('/filings/:id', SECRET, updateFiling);
 
     // AI agents: keys are managed by the logged in human, agents use them only on /mcp (own auth, see mcp.ts)
     server.get('/agent-keys', SECRET, listAgentKeys);

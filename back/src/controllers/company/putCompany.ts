@@ -12,6 +12,8 @@ const PutCompanySchema = z.object({
     signature: z.string(),
     country: z.enum(['GE', 'PL']),
     vatExemptionBasis: z.string(),
+    krs: z.string(),
+    regon: z.string(),
     defaultIssuePlace: z.string(),
     defaultIssuerName: z.string(),
     defaultBankAccountNumber: z.string(),

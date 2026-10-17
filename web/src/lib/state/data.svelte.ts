@@ -1,5 +1,5 @@
 import { clientFromApi, fromApi, toApi } from '../invoice';
-import type { AgentKey, BankTransaction, Client, Company, Cost, ExchangeRate, Invoice, KsefEnv, NipLookup, User } from '../types';
+import type { AgentKey, BankTransaction, Client, Company, Cost, ExchangeRate, Filing, Invoice, KsefEnv, NipLookup, User } from '../types';
 import { api } from './api';
 import { session } from './session.svelte';
 
@@ -14,6 +14,8 @@ function emptyCompany(): Company {
 		signature: '',
 		country: 'GE',
 		vatExemptionBasis: '',
+		krs: '',
+		regon: '',
 		defaultIssuePlace: '',
 		defaultIssuerName: '',
 		defaultBankAccountNumber: '',
@@ -33,6 +35,7 @@ class Data {
 	// the books: loaded when a bookkeeping screen opens
 	transactions = $state<BankTransaction[]>([]);
 	costs = $state<Cost[]>([]);
+	filings = $state<Filing[]>([]);
 	rate = $state<ExchangeRate | null>(null);
 	loading = $state(false);
 	loaded = $state(false);
@@ -89,9 +92,14 @@ class Data {
 	}
 
 	async loadBooks() {
-		const [transactions, costs] = await Promise.all([api<BankTransaction[]>('/bank-transactions'), api<Cost[]>('/costs')]);
+		const [transactions, costs, filings] = await Promise.all([
+			api<BankTransaction[]>('/bank-transactions'),
+			api<Cost[]>('/costs'),
+			api<Filing[]>('/filings').catch(() => [] as Filing[])
+		]);
 		this.transactions = transactions;
 		this.costs = costs;
+		this.filings = filings;
 	}
 
 	// a human decision on a bank operation
@@ -107,6 +115,18 @@ class Data {
 		const index = this.costs.findIndex((c) => c.id === id);
 		if (index >= 0) this.costs[index] = saved;
 		return saved;
+	}
+
+	async updateFiling(id: string, change: Partial<Pick<Filing, 'status' | 'filedAt' | 'reference' | 'amount' | 'note'>>) {
+		const saved = await api<Filing>(`/filings/${id}`, { method: 'PUT', body: change });
+		const index = this.filings.findIndex((f) => f.id === id);
+		if (index >= 0) this.filings[index] = saved;
+		return saved;
+	}
+
+	// overdue returns and filings, by what the authority says
+	get filingsMissing() {
+		return this.filings.filter((f) => f.status === 'missing').length;
 	}
 
 	async loadKeys() {
@@ -133,6 +153,7 @@ class Data {
 		this.invoices = [];
 		this.transactions = [];
 		this.costs = [];
+		this.filings = [];
 		await this.loadAll();
 	}
 

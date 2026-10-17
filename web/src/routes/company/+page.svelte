@@ -148,6 +148,18 @@
 				{#if pl}<button type="button" class="btn whitespace-nowrap" disabled={looking} onclick={fillFromMf}>{looking ? 'Looking up…' : 'Fill from MF'}</button>{/if}
 			</div>
 		</div>
+		{#if pl}
+			<div class="grid grid-cols-2 gap-3">
+				<div>
+					<label for="c-krs" class="mb-1 block text-xs text-muted">KRS</label>
+					<input id="c-krs" bind:value={form.krs} class="field font-mono" />
+				</div>
+				<div>
+					<label for="c-regon" class="mb-1 block text-xs text-muted">REGON</label>
+					<input id="c-regon" bind:value={form.regon} class="field font-mono" />
+				</div>
+			</div>
+		{/if}
 		<div>
 			<label for="c-address" class="mb-1 block text-xs text-muted">Address <span class="text-faint">— street, comma, postcode and city</span></label>
 			<input id="c-address" bind:value={form.address} placeholder="ul. Grzybowska 85A/32, 00-844 Warszawa" class="field" />

@@ -2,6 +2,7 @@ import {FastifyReply, FastifyRequest} from "fastify";
 import {z} from "zod";
 import {prisma} from "../../db";
 import {COST_CATEGORIES, STATUSES, TRANSACTION_KINDS} from "../../services/books/kinds";
+import {FILING_STATUSES} from "../../services/books/filings";
 
 // the bookkeeping of the selected company: bank operations and purchase documents
 
@@ -67,4 +68,32 @@ export const updateCost = async (req: FastifyRequest<UpdateCostRoute>, reply: Fa
         data: {...body, status: body.status ?? 'confirmed'},
     });
     return reply.send(updated);
+}
+
+export const listFilings = async (req: FastifyRequest, reply: FastifyReply): Promise<FastifyReply> => {
+    const filings = await prisma.filings.findMany({
+        where: {companyId: req.companyId},
+        orderBy: [{dueDate: 'asc'}, {externalId: 'asc'}],
+    });
+    return reply.send(filings);
+}
+
+const FilingUpdateSchema = z.object({
+    status: z.enum(FILING_STATUSES).optional(),
+    filedAt: z.string().nullable().optional(),
+    reference: z.string().optional(),
+    amount: z.number().nullable().optional(),
+    note: z.string().optional(),
+});
+
+export interface UpdateFilingRoute {
+    Params: { id: string };
+    Body: z.infer<typeof FilingUpdateSchema>;
+}
+
+export const updateFiling = async (req: FastifyRequest<UpdateFilingRoute>, reply: FastifyReply): Promise<FastifyReply> => {
+    const body = FilingUpdateSchema.parse(req.body);
+    const filing = await prisma.filings.findFirst({where: {id: req.params.id, companyId: req.companyId}});
+    if (!filing) return reply.notFound('Filing not found');
+    return reply.send(await prisma.filings.update({where: {id: filing.id}, data: body}));
 }
