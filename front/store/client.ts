@@ -1,6 +1,7 @@
 import {ref} from "vue";
 import {defineStore} from "pinia";
 import {authHeaders} from "~/helpers/authHeaders";
+import {apiFetch} from "~/helpers/apiFetch";
 
 interface Client {
     id: string,
@@ -23,7 +24,7 @@ export const useClientStore = defineStore('clientStore', (): {
     const clients = ref<Client[]>([]);
 
     const getClients = async () => {
-        const response = await $fetch<Client[]>(`${import.meta.env.VITE_API_URL}/clients`, {
+        const response = await apiFetch<Client[]>(`${import.meta.env.VITE_API_URL}/clients`, {
             headers: {
                 ...authHeaders()
             }
@@ -32,7 +33,7 @@ export const useClientStore = defineStore('clientStore', (): {
     }
 
     const addClient = async (clientData: Partial<Client>) => {
-        const response = await $fetch<Client>(`${import.meta.env.VITE_API_URL}/clients`, {
+        const response = await apiFetch<Client>(`${import.meta.env.VITE_API_URL}/clients`, {
             method: 'POST',
             body: JSON.stringify(clientData),
             headers: {
@@ -44,7 +45,7 @@ export const useClientStore = defineStore('clientStore', (): {
     }
 
     const updateClient = async (clientData: Partial<Client> & { id: string }) => {
-        const response = await $fetch<Client>(`${import.meta.env.VITE_API_URL}/clients/${clientData.id}`, {
+        const response = await apiFetch<Client>(`${import.meta.env.VITE_API_URL}/clients/${clientData.id}`, {
             method: 'PUT',
             body: JSON.stringify(clientData),
             headers: {
@@ -56,7 +57,7 @@ export const useClientStore = defineStore('clientStore', (): {
     }
 
     const deleteClient = async (id: string) => {
-        const response = await $fetch<Client>(`${import.meta.env.VITE_API_URL}/clients/${id}`, {
+        const response = await apiFetch<Client>(`${import.meta.env.VITE_API_URL}/clients/${id}`, {
             method: 'DELETE',
             headers: {
                 ...authHeaders()

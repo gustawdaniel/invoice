@@ -1,3 +1,4 @@
+import {apiFetch} from "~/helpers/apiFetch";
 import {defineStore} from "pinia";
 import type {Currency} from "~/interfaces/Invoice";
 import {useUserStore} from "~/store/user";
@@ -30,7 +31,7 @@ export const useExchangeStore = defineStore('exchangeStore', (): {
     const userStore = useUserStore();
 
     const fetchExchanges = async () => {
-        const response = await $fetch<ExchangeRateResponse[]>(
+        const response = await apiFetch<ExchangeRateResponse[]>(
             `${import.meta.env.VITE_API_URL}/exchange-rates`, {
                 headers: {
                     Authorization: `Bearer ${userStore.token}`,
@@ -53,7 +54,7 @@ export const useExchangeStore = defineStore('exchangeStore', (): {
         const today = new Date().toISOString().split('T')[0];
         if(latestExchangeRate.value?.date === today) return;
 
-        const response = await $fetch<ExchangeRateResponse>(
+        const response = await apiFetch<ExchangeRateResponse>(
             `${import.meta.env.VITE_API_URL}/sync-exchange-rates`, {
                 method: 'POST',
                 headers: {
