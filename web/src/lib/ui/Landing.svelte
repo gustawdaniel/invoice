@@ -62,26 +62,33 @@
 		}
 	];
 
+	const GITHUB = 'https://github.com/gustawdaniel/invoice';
+
 	const keys = [
-		['⌘K', 'everything'],
-		['j / k', 'move'],
-		['n', 'new invoice'],
-		['a', 'approve'],
-		['p', 'PDF'],
-		['/', 'search'],
-		['t', 'test mode'],
-		['?', 'all keys']
+		['j / k', 'down / up the list'],
+		['gg / G', 'first / last'],
+		['ctrl-d / ctrl-u', 'half a page'],
+		['gi gv gc gb', 'go to inbox, invoices, clients, books'],
+		['/', 'search with filters'],
+		[': or ⌘K', 'command line'],
+		['a / x', 'approve / dismiss'],
+		['dd', 'delete a draft'],
+		['yy', 'copy the number'],
+		['D', 'duplicate'],
+		['o', 'add an item'],
+		['esc', 'back to NORMAL']
 	];
 </script>
 
 <svelte:head>
 	<title>openinvoice — invoices your agents draft and you approve</title>
-	<meta name="description" content="Polish KSeF and international invoices. AI agents draft them through MCP, you approve with one key. Keyboard first, with a test mode on KSeF DEMO." />
+	<meta name="description" content="Free, open source invoicing for Polish KSeF and international clients. AI agents draft invoices through MCP, you approve with one key. Keyboard first, with a test mode on KSeF DEMO." />
 </svelte:head>
 
 {#snippet shot(name: string, alt: string, w = 2880, h = 1800, eager = false)}
-	<img src="/landing/{name}-light.webp" {alt} width={w} height={h} loading={eager ? 'eager' : 'lazy'} class="only-light block h-auto w-full" />
-	<img src="/landing/{name}-dark.webp" {alt} width={w} height={h} loading={eager ? 'eager' : 'lazy'} class="only-dark h-auto w-full" />
+	{#each ['light', 'dark', 'hacker'] as variant (variant)}
+		<img src="/landing/{name}-{variant}.webp" {alt} width={w} height={h} loading={eager ? 'eager' : 'lazy'} class="shot-{variant} h-auto w-full" />
+	{/each}
 {/snippet}
 
 <div class="min-h-dvh bg-bg text-ink">
@@ -90,10 +97,13 @@
 			<a href="/" class="font-mono text-[15px] font-medium tracking-tight">open<span class="text-accent">invoice</span></a>
 			<div class="hidden gap-5 text-[13px] text-muted sm:flex">
 				<a href="#how" class="hover:text-ink">How it works</a>
+				<a href="#keys" class="hover:text-ink">Vim keys</a>
 				<a href="#features" class="hover:text-ink">Features</a>
 				<a href="#ksef" class="hover:text-ink">KSeF</a>
+				<a href="#open-source" class="hover:text-ink">Open source</a>
 			</div>
 			<div class="ml-auto flex items-center gap-2">
+				<a href={GITHUB} class="btn h-8 max-sm:hidden" target="_blank" rel="noreferrer">GitHub</a>
 				<ThemeToggle />
 				<a href="/login" class="btn-primary">Log in</a>
 			</div>
@@ -102,15 +112,16 @@
 
 	<main>
 		<section class="mx-auto max-w-6xl px-4 pt-16 pb-10 sm:px-6 sm:pt-24">
-			<p class="font-mono text-xs text-accent">Polish KSeF · international · MCP</p>
+			<p class="font-mono text-xs text-accent">Free · open source · vim-inspired keys · Polish KSeF · MCP</p>
 			<h1 class="mt-4 max-w-3xl text-4xl leading-[1.1] font-semibold tracking-tight text-balance sm:text-6xl">Invoices your agents draft and you approve.</h1>
 			<p class="mt-5 max-w-2xl text-lg text-muted">
 				openinvoice issues invoices for Polish KSeF and for clients abroad. Connect Claude or any MCP agent: it reads your contracts, drafts the
-				invoices and asks before anything legally binding. You decide with one key.
+				invoices and asks before anything legally binding. You decide with one key: the whole app moves like vim. Free to use, and the code is on GitHub.
 			</p>
 			<div class="mt-8 flex flex-wrap items-center gap-3">
 				<a href="/login" class="btn-primary h-11 px-5 text-[15px]">Start with Google</a>
 				<a href="#how" class="btn h-11 px-5 text-[15px]">See how it works</a>
+				<a href={GITHUB} class="btn h-11 px-5 text-[15px]" target="_blank" rel="noreferrer">View on GitHub</a>
 			</div>
 		</section>
 
@@ -138,6 +149,40 @@
 			</div>
 		</section>
 
+		<section id="keys" class="mx-auto max-w-6xl scroll-mt-20 px-4 pt-24 sm:px-6" aria-labelledby="keyboard">
+			<div class="grid grid-cols-[3fr_2fr] gap-8 rounded-xl border border-line bg-panel p-6 sm:p-8 max-lg:grid-cols-1">
+				<div>
+					<p class="font-mono text-xs text-accent">:help keys</p>
+					<h2 id="keyboard" class="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">Vim-inspired, keyboard first</h2>
+					<p class="mt-3 max-w-2xl text-[15px] leading-relaxed text-muted">
+						Modes like in vim: NORMAL for moving and acting, INSERT while you type, esc to get back. Motions, g-prefixed jumps, doubled operators,
+						a command line and a status line that shows what you are doing. ? lists every key. The mouse still works, you just stop needing it.
+					</p>
+					<dl class="mt-6 grid grid-cols-2 gap-x-6 gap-y-2.5 max-sm:grid-cols-1">
+						{#each keys as [key, what] (key)}
+							<div class="flex items-baseline gap-3">
+								<dt class="w-32 shrink-0"><kbd class="rounded-md border border-line bg-sunken px-2 py-1 font-mono text-xs whitespace-nowrap text-ink">{key}</kbd></dt>
+								<dd class="text-[14px] text-muted">{what}</dd>
+							</div>
+						{/each}
+					</dl>
+				</div>
+				<!-- a few keystrokes and what they do, as the status line would show them -->
+				<div class="self-center overflow-hidden rounded-lg border border-line bg-[#0c0c0b] font-mono text-[13px] text-[#e7e5e4]" role="figure" aria-label="Example key session">
+					<div class="flex flex-col gap-1.5 px-4 py-4">
+						<p><span class="text-[#7b93f5]">gi</span> <span class="text-[#a8a29e]">→ inbox, 1 waiting</span></p>
+						<p><span class="text-[#7b93f5]">j j</span> <span class="text-[#a8a29e]">→ 0004/10/2026</span></p>
+						<p><span class="text-[#7b93f5]">a</span> <span class="text-[#a8a29e]">→ send to KSeF? </span><span class="text-[#7b93f5]">y</span></p>
+						<p class="text-[#86efac]">✓ accepted · 1234567908-20261017-…</p>
+						<p><span class="text-[#7b93f5]">/</span>is:overdue <span class="text-[#a8a29e]">→ 2 invoices</span></p>
+						<p><span class="text-[#7b93f5]">yy</span> <span class="text-[#a8a29e]">→ copied 0002/10/2026</span></p>
+						<p><span class="text-[#7b93f5]">:</span>fv acme 8000 net listopad<span class="animate-pulse">▍</span></p>
+					</div>
+					<div class="flex justify-between bg-[#1c1917] text-[11px]"><span class="bg-[#e7e5e4] px-2.5 py-1 font-medium text-[#0c0c0b]">NORMAL</span><span class="px-2.5 py-1 text-[#a8a29e]">invoices 2/22</span></div>
+				</div>
+			</div>
+		</section>
+
 		<section id="features" class="mx-auto flex max-w-6xl scroll-mt-20 flex-col gap-20 px-4 pt-24 sm:px-6">
 			{#each features as feature (feature.shot)}
 				<article class="flex flex-col gap-6">
@@ -150,21 +195,6 @@
 					</div>
 				</article>
 			{/each}
-		</section>
-
-		<section class="mx-auto max-w-6xl px-4 pt-24 sm:px-6" aria-labelledby="keyboard">
-			<div class="rounded-xl border border-line bg-panel p-6 sm:p-8">
-				<h2 id="keyboard" class="text-2xl font-semibold tracking-tight">Never reach for the mouse</h2>
-				<p class="mt-2 max-w-2xl text-[15px] text-muted">Vim-style keys everywhere, a status line that shows the mode, and ? when you forget. The mouse still works.</p>
-				<dl class="mt-6 grid grid-cols-4 gap-x-6 gap-y-3 max-md:grid-cols-2">
-					{#each keys as [key, what] (key)}
-						<div class="flex items-baseline gap-3">
-							<dt><kbd class="rounded-md border border-line bg-sunken px-2 py-1 font-mono text-xs text-ink">{key}</kbd></dt>
-							<dd class="text-[14px] text-muted">{what}</dd>
-						</div>
-					{/each}
-				</dl>
-			</div>
 		</section>
 
 		<section id="ksef" class="mx-auto grid max-w-6xl scroll-mt-20 grid-cols-3 gap-5 px-4 pt-24 sm:px-6 max-md:grid-cols-1">
@@ -186,11 +216,30 @@
 			</div>
 		</section>
 
+		<section id="open-source" class="mx-auto max-w-6xl scroll-mt-20 px-4 pt-24 sm:px-6">
+			<div class="grid grid-cols-[3fr_2fr] gap-8 rounded-xl border border-line bg-panel p-6 sm:p-8 max-md:grid-cols-1">
+				<div>
+					<h2 class="text-2xl font-semibold tracking-tight sm:text-3xl">Free, and open source</h2>
+					<p class="mt-3 text-[15px] leading-relaxed text-muted">
+						No plans, no limits, no card. The whole thing is on GitHub: read how your invoices are built and sent to KSeF, report a bug, send a
+						pull request, or run it on your own server.
+					</p>
+					<a href={GITHUB} class="btn-primary mt-5 h-10 px-4" target="_blank" rel="noreferrer">gustawdaniel/invoice on GitHub</a>
+				</div>
+				<ul class="flex flex-col gap-2.5 self-center font-mono text-[13px]">
+					<li><span class="text-faint">back/</span> Fastify, Prisma, MongoDB, the MCP server, KSeF</li>
+					<li><span class="text-faint">web/</span> SvelteKit, Tailwind</li>
+					<li><span class="text-faint">KSeF</span> FA(3) XML, encrypted tokens, DEMO for tests</li>
+					<li><span class="text-faint">MCP</span> one endpoint, per-user keys</li>
+				</ul>
+			</div>
+		</section>
+
 		<section class="mx-auto max-w-6xl px-4 pt-24 pb-24 sm:px-6">
 			<div class="flex flex-wrap items-center gap-6 rounded-xl bg-accent-soft p-8 sm:p-10">
 				<div class="min-w-0 flex-[1_1_320px]">
 					<h2 class="text-2xl font-semibold tracking-tight text-accent-ink">Let the agent do the typing.</h2>
-					<p class="mt-2 text-[15px] text-accent-ink/80">Sign in with Google, add your company, and connect KSeF when you are ready.</p>
+					<p class="mt-2 text-[15px] text-accent-ink/80">Free. Sign in with Google, add your company, and connect KSeF when you are ready.</p>
 				</div>
 				<a href="/login" class="btn-primary h-11 px-5 text-[15px]">Start with Google</a>
 			</div>
@@ -200,8 +249,9 @@
 	<footer class="border-t border-line">
 		<div class="mx-auto flex max-w-6xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-6 text-xs text-muted sm:px-6">
 			<span class="font-mono">open<span class="text-accent">invoice</span></span>
-			<span>Screenshots show sample data.</span>
-			<a href="/login" class="ml-auto hover:text-ink">Log in</a>
+			<span>Free and open source. Screenshots show sample data.</span>
+			<a href={GITHUB} class="ml-auto hover:text-ink" target="_blank" rel="noreferrer">GitHub</a>
+			<a href="/login" class="hover:text-ink">Log in</a>
 		</div>
 	</footer>
 </div>

@@ -1,21 +1,21 @@
 import { load, save } from './storage';
 
-export type Theme = 'system' | 'light' | 'dark';
-const ORDER: Theme[] = ['system', 'light', 'dark'];
+export type Theme = 'light' | 'dark' | 'hacker';
+export const THEMES: Theme[] = ['light', 'dark', 'hacker'];
 
-// light, dark, or whatever the system says; app.html applies it before the first paint
+// app.html applies the stored theme before the first paint; light needs no attribute
 class ThemeState {
-	value = $state<Theme>(load('oi.theme', 'system'));
+	value = $state<Theme>(THEMES.includes(load('oi.theme', 'light')) ? load('oi.theme', 'light') : 'light');
 
 	set(theme: Theme) {
 		this.value = theme;
 		save('oi.theme', theme);
-		if (theme === 'system') delete document.documentElement.dataset.theme;
+		if (theme === 'light') delete document.documentElement.dataset.theme;
 		else document.documentElement.dataset.theme = theme;
 	}
 
 	cycle() {
-		this.set(ORDER[(ORDER.indexOf(this.value) + 1) % ORDER.length]);
+		this.set(THEMES[(THEMES.indexOf(this.value) + 1) % THEMES.length]);
 	}
 }
 

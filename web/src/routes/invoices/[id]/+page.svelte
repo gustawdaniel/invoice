@@ -281,7 +281,7 @@
 							<tr class="text-left text-xs text-muted">
 								<th class="px-1 pb-1 font-medium">Name</th>
 								<th class="w-20 px-1 pb-1 text-right font-medium">Qty</th>
-								<th class="w-24 px-1 pb-1 font-medium">Unit</th>
+								<th class="w-28 px-1 pb-1 font-medium">Unit</th>
 								<th class="w-32 px-1 pb-1 text-right font-medium">Net price</th>
 								<th class="w-24 px-1 pb-1 font-medium">VAT</th>
 								<th class="w-28 px-1 pb-1 text-right font-medium">Gross</th>

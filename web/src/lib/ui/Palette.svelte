@@ -6,7 +6,7 @@
 	import { data } from '../state/data.svelte';
 	import { keys } from '../state/keys.svelte';
 	import { session } from '../state/session.svelte';
-	import { theme } from '../state/theme.svelte';
+	import { THEMES, theme } from '../state/theme.svelte';
 	import { toasts } from '../state/toast.svelte';
 	import { ui } from '../state/ui.svelte';
 	import { newClient } from './clients';
@@ -78,16 +78,33 @@
 		{ id: 'agents', group: 'Go to', label: 'Agents (MCP)', keys: 'ga', run: () => go('/agents') },
 		{ id: 'company', group: 'Go to', label: 'Company settings', keys: 'gs', run: () => go('/company') },
 		...(session.isAdmin ? [{ id: 'admin', group: 'Go to', label: 'Admin', run: () => go('/admin') }] : []),
+		...(data.companies.length > 1 && data.defaultCompany?.id !== data.company.id
+			? [{
+					id: 'default',
+					group: 'Commands',
+					label: `Make ${data.company.name} my default company`,
+					hint: 'it opens after login',
+					run: async () => {
+						close();
+						try {
+							await data.setDefaultCompany(data.company.id);
+							toasts.ok('Default company', data.company.name);
+						} catch (error) {
+							toasts.error('Could not change the default', error);
+						}
+					}
+				}]
+			: []),
 		...data.companies
 			.filter((company) => company.id !== data.company.id)
 			.map((company) => ({
 				id: `company-${company.id}`,
 				group: 'Commands',
 				label: `Switch to ${company.name}`,
-				hint: company.country,
+				hint: `${company.country}${company.isDefault ? ' · default' : ''}`,
 				run: async () => { close(); await data.switchCompany(company.id); }
 			})),
-		...(['system', 'light', 'dark'] as const).map((value) => ({
+		...THEMES.map((value) => ({
 			id: `theme-${value}`,
 			group: 'Commands',
 			label: `Theme: ${value}`,

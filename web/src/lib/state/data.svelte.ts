@@ -109,6 +109,16 @@ class Data {
 		await this.loadInvoices();
 	}
 
+	get defaultCompany() {
+		return this.companies.find((c) => c.isDefault) ?? null;
+	}
+
+	// the company that opens after login
+	async setDefaultCompany(id: string) {
+		await api(`/companies/${id}/default`, { method: 'PUT' });
+		this.companies = this.companies.map((c) => ({ ...c, isDefault: c.id === id }));
+	}
+
 	async addCompany(name: string, country: Company['country']) {
 		const created = await api<Company>('/companies', { method: 'POST', body: { name, country } });
 		this.companies.push(created);
@@ -118,7 +128,8 @@ class Data {
 	private replaceCompany(updated: Company) {
 		this.company = updated;
 		const index = this.companies.findIndex((c) => c.id === updated.id);
-		if (index >= 0) this.companies[index] = updated;
+		// /company does not say which company is the default, the list does
+		if (index >= 0) this.companies[index] = { ...updated, isDefault: this.companies[index].isDefault };
 	}
 
 	async saveCompany(fields: Partial<Company>) {

@@ -7,7 +7,7 @@
 		['Move', [['j / k', 'down / up'], ['gg / G', 'first / last'], ['ctrl-d / ctrl-u', 'half a page'], ['enter', 'open'], ['ctrl-o', 'back']]],
 		['Go to', [['gi', 'inbox'], ['gv', 'invoices'], ['gc', 'clients'], ['gb', 'books'], ['ga', 'agents'], ['gs', 'company'], ['gC', 'switch company']]],
 		['On the row', [['n', 'new invoice'], ['c', 'new client'], ['e', 'edit'], ['D', 'duplicate'], ['p', 'print / PDF'], ['a / x', 'approve / dismiss'], ['m', 'mark paid'], ['yy', 'copy number'], ['dd', 'delete draft']]],
-		['Modes', [['/', 'search'], [': or ⌘K', 'command'], ['esc', 'leave a field'], ['t', 'test mode'], ['T', 'theme: system / light / dark'], ['⌘S', 'save'], ['⌘↵', 'send to KSeF'], ['?', 'this help']]]
+		['Modes', [['/', 'search'], [': or ⌘K', 'command'], ['esc', 'leave a field'], ['t', 'test mode'], ['T', 'theme: light / dark / hacker'], ['⌘S', 'save'], ['⌘↵', 'send to KSeF'], ['?', 'this help']]]
 	];
 	const syntax = ['client:acmenad', 'is:unpaid', 'is:overdue', 'is:draft', 'is:approval', 'in:ksef', 'by:agent', 'month:2026-10', 'year:2025', '>10000', 'cur:EUR', '-is:paid'];
 </script>

@@ -151,7 +151,9 @@
 </article>
 
 <style>
+	/* a document, not the app: its font stays the same in every theme (hacker mode sets monospace) */
 	.paper {
+		font-family: 'IBM Plex Sans', system-ui, sans-serif;
 		width: 210mm;
 		min-height: 297mm;
 		padding: 16mm 15mm;

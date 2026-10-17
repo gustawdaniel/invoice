@@ -24,22 +24,27 @@
 		data.rates().then((list) => (rates = list.sort((a, b) => b.date.localeCompare(a.date)).slice(0, 10))).catch(() => {});
 	});
 
-	const bars = $derived<MonthBar[]>(
-		Array.from({ length: 12 }, (_, i) => {
-			const m = dayjs().subtract(11 - i, 'month');
+	// every month from the first invoice to now (at least a year), the chart scrolls back through them
+	const bars = $derived.by<MonthBar[]>(() => {
+		const now = dayjs().startOf('month');
+		const first = data.invoices.reduce((min, inv) => (inv.issueDate < min ? inv.issueDate : min), now.format('YYYY-MM-DD'));
+		const count = Math.max(12, now.diff(dayjs(first).startOf('month'), 'month') + 1);
+		const totals = new Map<string, { paid: number; waiting: number }>();
+		for (const inv of data.invoices) {
+			const key = inv.issueDate.slice(0, 7);
+			const total = toBase(gross(inv), inv);
+			const received = Math.min(total, toBase(inv.paid, inv));
+			const entry = totals.get(key) ?? { paid: 0, waiting: 0 };
+			entry.paid += received;
+			entry.waiting += total - received;
+			totals.set(key, entry);
+		}
+		return Array.from({ length: count }, (_, i) => {
+			const m = now.subtract(count - 1 - i, 'month');
 			const key = m.format('YYYY-MM');
-			let paid = 0;
-			let waiting = 0;
-			for (const inv of data.invoices) {
-				if (!inv.issueDate.startsWith(key)) continue;
-				const total = toBase(gross(inv), inv);
-				const received = Math.min(total, toBase(inv.paid, inv));
-				paid += received;
-				waiting += total - received;
-			}
-			return { month: key, label: m.format('MMM'), paid, waiting };
-		})
-	);
+			return { month: key, label: m.format('MMM'), ...(totals.get(key) ?? { paid: 0, waiting: 0 }) };
+		});
+	});
 
 	const rows = $derived(
 		sortInvoices(

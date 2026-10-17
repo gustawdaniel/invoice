@@ -91,15 +91,31 @@
 		}
 	}
 
+	async function makeDefault() {
+		try {
+			await data.setDefaultCompany(data.company.id);
+			toasts.ok('Default company', `${data.company.name} opens after login.`);
+		} catch (error) {
+			toasts.error('Could not change the default', error);
+		}
+	}
+
 	$effect(() => keys.use({ 'mod-s': () => save() }));
 </script>
 
 <svelte:head><title>Company · openinvoice</title></svelte:head>
 
 <div class="mx-auto flex w-full max-w-3xl flex-col gap-5 px-5 pt-4 pb-10">
-	<div class="flex flex-wrap items-baseline gap-2">
+	<div class="flex flex-wrap items-center gap-2">
 		<h1 class="text-lg font-semibold">Company</h1>
 		<span class="text-[13px] text-muted">settings of {data.company.name}</span>
+		{#if data.companies.length > 1}
+			{#if data.defaultCompany?.id === data.company.id}
+				<span class="ml-auto rounded-full bg-accent-soft px-2 py-0.5 text-xs text-accent-ink" title="Opens after login">Default company</span>
+			{:else}
+				<button class="btn ml-auto" onclick={makeDefault} title="This company opens after login">Make it my default</button>
+			{/if}
+		{/if}
 	</div>
 
 	{#if data.company.country === 'PL'}
@@ -196,8 +212,25 @@
 	{/if}
 
 	<section class="rounded-lg border border-line bg-panel p-4">
-		<h2 class="font-semibold">Another company</h2>
-		<p class="mt-0.5 mb-3 text-[13px] text-muted">Each company has its own clients, invoices and KSeF. Switch with <span class="font-mono">gC</span>.</p>
+		<h2 class="font-semibold">Your companies</h2>
+		<p class="mt-0.5 mb-3 text-[13px] text-muted">Each company has its own clients, invoices and KSeF. Switch with <span class="font-mono">gC</span>; the default one opens after login.</p>
+		<ul class="mb-4 flex flex-col divide-y divide-line-soft rounded-md border border-line text-[13px]">
+			{#each data.companies as company (company.id)}
+				<li class="flex flex-wrap items-center gap-2 px-3 py-2">
+					<span class="flex h-[18px] w-[22px] shrink-0 items-center justify-center rounded bg-ink text-[10px] font-semibold text-bg">{company.country}</span>
+					<span class="min-w-0 flex-1 truncate">{company.name}</span>
+					{#if company.isDefault}<span class="rounded-full bg-accent-soft px-2 py-0.5 text-xs text-accent-ink">default</span>{/if}
+					{#if company.id === data.company.id}
+						<span class="text-xs text-muted">open now</span>
+					{:else}
+						<button class="btn h-7 text-xs" onclick={() => data.switchCompany(company.id)}>Open</button>
+					{/if}
+					{#if !company.isDefault}
+						<button class="btn h-7 text-xs" onclick={async () => { try { await data.setDefaultCompany(company.id); toasts.ok('Default company', company.name); } catch (error) { toasts.error('Could not change the default', error); } }}>Make default</button>
+					{/if}
+				</li>
+			{/each}
+		</ul>
 		<form class="flex flex-wrap gap-2" onsubmit={addCompany}>
 			<label for="n-name" class="sr-only">Company name</label>
 			<input id="n-name" bind:value={newName} placeholder="Company name" class="field max-w-sm flex-1" />

@@ -124,6 +124,8 @@ export interface Company {
 	defaultPublicNote: string;
 	ksefConnected: boolean;
 	ksefDemoConnected: boolean;
+	// opens after login; only in the list of companies
+	isDefault?: boolean;
 }
 
 export interface User {

@@ -55,35 +55,7 @@
 	color-scheme: light;
 }
 
-/* dark: chosen in the app (data-theme="dark"), or following the system unless light was chosen */
-@media (prefers-color-scheme: dark) {
-	:root:not([data-theme='light']) {
-		--bg: #121110;
-		--panel: #1a1918;
-		--sunken: #232120;
-		--line: #2e2c2a;
-		--line-soft: #232120;
-		--ink: #f5f5f4;
-		--muted: #b5b0ab;
-		--faint: #9a948e;
-		--accent: #7b93f5;
-		--accent-ink: #c3cdfb;
-		--accent-soft: #1f2645;
-		--accent-line: #34407a;
-		--on-accent: #0b1020;
-		--test: #fb923c;
-		--test-soft: #2a1a0e;
-		--on-test: #1c0d02;
-		--ok: #86efac;
-		--ok-soft: #12291b;
-		--warn: #fcd34d;
-		--warn-soft: #2b2310;
-		--bad: #fca5a5;
-		--bad-soft: #2f1414;
-		color-scheme: dark;
-	}
-}
-
+/* dark: chosen in the app */
 :root[data-theme='dark'] {
 	--bg: #121110;
 	--panel: #1a1918;
@@ -107,6 +79,34 @@
 	--warn-soft: #2b2310;
 	--bad: #fca5a5;
 	--bad-soft: #2f1414;
+	color-scheme: dark;
+}
+
+/* hacker: a terminal, black with phosphor green and monospace everywhere */
+:root[data-theme='hacker'] {
+	--font-sans: 'IBM Plex Mono', ui-monospace, monospace;
+	--bg: #000000;
+	--panel: #050a05;
+	--sunken: #0b140b;
+	--line: #173317;
+	--line-soft: #0e1f0e;
+	--ink: #4dff7c;
+	--muted: #2fcf5a;
+	--faint: #22a446;
+	--accent: #4dff7c;
+	--accent-ink: #b8ffc9;
+	--accent-soft: #0c2a12;
+	--accent-line: #1f5a2a;
+	--on-accent: #000000;
+	--test: #ffb000;
+	--test-soft: #2a1d00;
+	--on-test: #000000;
+	--ok: #4dff7c;
+	--ok-soft: #0c2a12;
+	--warn: #ffd23f;
+	--warn-soft: #2a2200;
+	--bad: #ff5f56;
+	--bad-soft: #2e0d0b;
 	color-scheme: dark;
 }
 
@@ -166,21 +166,16 @@ kbd {
 	}
 }
 
-/* screenshots in both themes: the one matching the page shows */
-.only-dark {
+/* screenshots in every theme: the one matching the page shows */
+.shot-dark,
+.shot-hacker {
 	display: none;
 }
-@media (prefers-color-scheme: dark) {
-	:root:not([data-theme='light']) .only-dark {
-		display: block;
-	}
-	:root:not([data-theme='light']) .only-light {
-		display: none;
-	}
+:root[data-theme='dark'] .shot-light,
+:root[data-theme='hacker'] .shot-light {
+	display: none;
 }
-:root[data-theme='dark'] .only-dark {
+:root[data-theme='dark'] .shot-dark,
+:root[data-theme='hacker'] .shot-hacker {
 	display: block;
-}
-:root[data-theme='dark'] .only-light {
-	display: none;
 }
