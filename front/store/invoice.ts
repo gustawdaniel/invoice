@@ -2,6 +2,7 @@ import { ref } from "vue";
 import { defineStore } from "pinia";
 import type { Invoice } from "~/interfaces/Invoice";
 import { authHeaders } from "~/helpers/authHeaders";
+import {apiFetch} from "~/helpers/apiFetch";
 import { paymentForms } from "~/helpers/paymentForms";
 
 export const useInvoiceStore = defineStore('invoiceStore', (): {
@@ -19,7 +20,7 @@ export const useInvoiceStore = defineStore('invoiceStore', (): {
     const invoice = ref<Invoice | null>(null);
 
     const getInvoices = async () => {
-        const response = await $fetch<Invoice[]>(`${import.meta.env.VITE_API_URL}/invoices`, {
+        const response = await apiFetch<Invoice[]>(`${import.meta.env.VITE_API_URL}/invoices`, {
             headers: {
                 ...authHeaders()
             }
@@ -33,7 +34,7 @@ export const useInvoiceStore = defineStore('invoiceStore', (): {
     const addInvoice = async (invoiceData: Partial<Invoice>) => {
         if (!invoiceData.client) throw new Error('No client');
 
-        const response = await $fetch<any>(`${import.meta.env.VITE_API_URL}/invoices`, {
+        const response = await apiFetch<any>(`${import.meta.env.VITE_API_URL}/invoices`, {
             method: 'POST',
             body: JSON.stringify({
                 ...invoiceData,
@@ -54,7 +55,7 @@ export const useInvoiceStore = defineStore('invoiceStore', (): {
     const updateInvoice = async (invoiceData: Partial<Invoice> & { id: string }) => {
         if (!invoiceData.client) throw new Error('No client');
 
-        const response = await $fetch<any>(`${import.meta.env.VITE_API_URL}/invoices/${invoiceData.id}`, {
+        const response = await apiFetch<any>(`${import.meta.env.VITE_API_URL}/invoices/${invoiceData.id}`, {
             method: 'PUT',
             body: JSON.stringify({
                 ...invoiceData,
@@ -73,7 +74,7 @@ export const useInvoiceStore = defineStore('invoiceStore', (): {
     }
 
     const deleteInvoice = async (id: string) => {
-        const response = await $fetch<Invoice>(`${import.meta.env.VITE_API_URL}/invoices/${id}`, {
+        const response = await apiFetch<Invoice>(`${import.meta.env.VITE_API_URL}/invoices/${id}`, {
             method: 'DELETE',
             headers: {
                 ...authHeaders()
@@ -84,7 +85,7 @@ export const useInvoiceStore = defineStore('invoiceStore', (): {
 
     const sendKsef = async (id: string) => {
         try {
-            await $fetch(`${import.meta.env.VITE_API_URL}/invoices/${id}/ksef`, {
+            await apiFetch(`${import.meta.env.VITE_API_URL}/invoices/${id}/ksef`, {
                 method: 'POST',
                 headers: {
                     ...authHeaders()
@@ -98,7 +99,7 @@ export const useInvoiceStore = defineStore('invoiceStore', (): {
 
     // an agent asked to send the invoice to production KSeF, the human says no
     const dismissKsefRequest = async (id: string) => {
-        await $fetch(`${import.meta.env.VITE_API_URL}/invoices/${id}/ksef-request`, {
+        await apiFetch(`${import.meta.env.VITE_API_URL}/invoices/${id}/ksef-request`, {
             method: 'DELETE',
             headers: authHeaders(),
         });
@@ -106,7 +107,7 @@ export const useInvoiceStore = defineStore('invoiceStore', (): {
     }
 
     const downloadKsefXml = async (invoice: Invoice) => {
-        const xml = await $fetch<string>(`${import.meta.env.VITE_API_URL}/invoices/${invoice.id}/ksef/xml`, {
+        const xml = await apiFetch<string>(`${import.meta.env.VITE_API_URL}/invoices/${invoice.id}/ksef/xml`, {
             headers: authHeaders(),
             responseType: 'text',
         });

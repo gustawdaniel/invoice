@@ -1,6 +1,7 @@
 import {defineStore} from 'pinia';
 import {ref} from 'vue';
 import {authHeaders} from "~/helpers/authHeaders";
+import {apiFetch} from "~/helpers/apiFetch";
 import {apiErrorMessage} from "~/helpers/apiErrorMessage";
 
 export interface AgentKey {
@@ -15,7 +16,7 @@ const api = (path: string) => `${import.meta.env.VITE_API_URL}${path}`;
 
 async function call<T>(path: string, options: Parameters<typeof $fetch>[1] = {}): Promise<T> {
     try {
-        return await $fetch<T>(api(path), {...options, headers: authHeaders()});
+        return await apiFetch<T>(api(path), {...options, headers: authHeaders()});
     } catch (error) {
         throw new Error(apiErrorMessage(error));
     }

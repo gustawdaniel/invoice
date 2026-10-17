@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import {authHeaders} from "~/helpers/authHeaders";
+import {apiFetch} from "~/helpers/apiFetch";
 import {apiErrorMessage} from "~/helpers/apiErrorMessage";
 
 interface AdminCompany {
@@ -21,7 +22,7 @@ const filter = ref('');
 
 onMounted(async () => {
   try {
-    companies.value = await $fetch<AdminCompany[]>(`${import.meta.env.VITE_API_URL}/admin/companies`, {headers: authHeaders()});
+    companies.value = await apiFetch<AdminCompany[]>(`${import.meta.env.VITE_API_URL}/admin/companies`, {headers: authHeaders()});
   } catch (e) {
     error.value = apiErrorMessage(e);
   }

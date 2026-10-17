@@ -80,7 +80,7 @@ export function getFastify(): FastifyInstance {
             }
 
             if (isAdmin(request.routeOptions.config) && !effectiveRoles(request.user).includes('admin')) {
-                return reply.unauthorized('You are not an admin');
+                return reply.forbidden('You are not an admin');
             }
 
             const requestedCompanyId = request.headers['x-company-id'];
