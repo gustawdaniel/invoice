@@ -20,8 +20,8 @@ export const serverVariables = z.object({
 
     EXCHANGE_RATES_API_TOKEN: z.string(),
 
-    KSEF_API_URL: z.string().default('https://api-test.ksef.mf.gov.pl/v2'),
-    KSEF_TOKEN: z.string().optional(), // For test environment authorization
+    // 32 bytes, base64; encrypts KSeF tokens stored in companies.ksefTokenEnc
+    KSEF_SECRET_KEY: z.string().optional(),
 });
 
 export const config = serverVariables.parse(process.env);

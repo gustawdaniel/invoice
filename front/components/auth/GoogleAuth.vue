@@ -44,6 +44,9 @@ async function handleSignInWithGoogle(userData: GoogleLoginCallbackPayload) {
   userStore.verifyGoogleCredential(userData.credential)
       .then(async () => {
         await useExchangeStore().syncLatestExchangeRate();
+        // a fresh login starts on the default company of this user
+        useCompanyStore().activeCompanyId = null;
+        await useCompanyStore().getCompanies();
         await useCompanyStore().getCompany();
         await useClientStore().getClients();
         await useInvoiceStore().getInvoices();
