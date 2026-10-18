@@ -10,7 +10,7 @@ const PutCompanySchema = z.object({
     info: z.string(),
     logo: z.string(),
     signature: z.string(),
-    country: z.enum(['GE', 'PL']),
+    country: z.enum(['GE', 'PL', 'GB']),
     vatExemptionBasis: z.string(),
     krs: z.string(),
     regon: z.string(),

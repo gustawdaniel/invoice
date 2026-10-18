@@ -1,6 +1,6 @@
 export type Currency = 'PLN' | 'EUR' | 'USD' | 'GBP';
 export type Lang = 'pl' | 'en';
-export type Country = 'PL' | 'GE';
+export type Country = 'PL' | 'GE' | 'GB';
 // prod: production KSeF (live mode), demo: KSeF DEMO (test mode, no legal effect)
 export type KsefEnv = 'prod' | 'demo';
 

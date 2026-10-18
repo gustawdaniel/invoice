@@ -5,7 +5,7 @@
 	interface AdminCompany {
 		id: string;
 		name: string;
-		country: 'PL' | 'GE';
+		country: 'PL' | 'GE' | 'GB';
 		tin: string;
 		ksefConnected: boolean;
 		ksefDemoConnected: boolean;

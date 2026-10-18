@@ -5,7 +5,7 @@ import {publicCompany} from "../../helpers/publicCompany";
 
 const NewCompanySchema = z.object({
     name: z.string().min(1),
-    country: z.enum(['GE', 'PL']),
+    country: z.enum(['GE', 'PL', 'GB']),
 });
 
 export type AddCompanyRoute = { Body: z.infer<typeof NewCompanySchema> };

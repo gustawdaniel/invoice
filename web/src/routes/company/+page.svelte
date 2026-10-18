@@ -247,7 +247,7 @@
 			<label for="n-name" class="sr-only">Company name</label>
 			<input id="n-name" bind:value={newName} placeholder="Company name" class="field max-w-sm flex-1" />
 			<label for="n-country" class="sr-only">Country</label>
-			<select id="n-country" bind:value={newCountry} class="field w-24"><option>PL</option><option>GE</option></select>
+			<select id="n-country" bind:value={newCountry} class="field w-24"><option>PL</option><option>GE</option><option>GB</option></select>
 			<button class="btn" disabled={!newName.trim()}>Add company</button>
 		</form>
 	</section>

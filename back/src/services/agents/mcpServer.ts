@@ -133,7 +133,7 @@ export function createMcpServer(ctx: AgentContext): McpServer {
             + 'in the app; agents cannot connect KSeF.',
         inputSchema: {
             name: z.string().min(1),
-            country: z.enum(['PL', 'GE']).describe('PL: Polish invoices and KSeF; GE: Georgian, no KSeF'),
+            country: z.enum(['PL', 'GE', 'GB']).describe('PL: Polish invoices and KSeF; GE: Georgian, no KSeF; GB: UK, plain invoices, no KSeF'),
             tin: z.string().default('').describe('NIP for Polish companies (lookup_nip fills name and address)'),
             address: z.string().default(''),
             vat_exemption_basis: z.string().default('')
