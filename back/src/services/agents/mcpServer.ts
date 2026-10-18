@@ -183,6 +183,8 @@ export function createMcpServer(ctx: AgentContext): McpServer {
             name: z.string().min(1).optional(),
             tin: z.string().optional(),
             address: z.string().optional(),
+            status: z.enum(['active', 'suspended', 'closed', 'dissolved', 'sold']).optional()
+                .describe('suspended: no activity for now; closed, dissolved (struck off) and sold companies stay as an archive'),
             info: z.string().optional().describe('Extra lines printed under the company, e.g. bank details'),
             vat_exemption_basis: z.string().optional(),
             krs: z.string().optional(),

@@ -13,6 +13,7 @@ function emptyCompany(): Company {
 		logo: '',
 		signature: '',
 		country: 'GE',
+		status: 'active',
 		vatExemptionBasis: '',
 		krs: '',
 		regon: '',

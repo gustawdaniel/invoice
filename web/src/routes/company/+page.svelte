@@ -138,8 +138,19 @@
 				<select id="c-country" bind:value={form.country} class="field">
 					<option value="PL">Poland (KSeF)</option>
 					<option value="GE">Georgia (no KSeF)</option>
+					<option value="GB">United Kingdom (no KSeF)</option>
 				</select>
 			</div>
+		</div>
+		<div>
+			<label for="c-status" class="mb-1 block text-xs text-muted">Status</label>
+			<select id="c-status" bind:value={form.status} class="field max-w-xs">
+				<option value="active">Active</option>
+				<option value="suspended">Suspended</option>
+				<option value="closed">Closed</option>
+				<option value="dissolved">Dissolved</option>
+				<option value="sold">Sold</option>
+			</select>
 		</div>
 		<div>
 			<label for="c-tin" class="mb-1 block text-xs text-muted">{pl ? 'NIP' : 'Tax ID'}</label>
@@ -231,6 +242,7 @@
 				<li class="flex flex-wrap items-center gap-2 px-3 py-2">
 					<span class="flex h-[18px] w-[22px] shrink-0 items-center justify-center rounded bg-ink text-[10px] font-semibold text-bg">{company.country}</span>
 					<span class="min-w-0 flex-1 truncate">{company.name}</span>
+					{#if company.status !== 'active'}<span class="rounded-full border border-line px-2 py-0.5 text-xs text-muted">{company.status}</span>{/if}
 					{#if company.isDefault}<span class="rounded-full bg-accent-soft px-2 py-0.5 text-xs text-accent-ink">default</span>{/if}
 					{#if company.id === data.company.id}
 						<span class="text-xs text-muted">open now</span>

@@ -26,6 +26,7 @@ const company: Company = {
 	logo: '',
 	signature: '',
 	country: 'PL',
+	status: 'active',
 	vatExemptionBasis: 'Art. 113 ust. 1 ustawy o VAT',
 	krs: '',
 	regon: '',

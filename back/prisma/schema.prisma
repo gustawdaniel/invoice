@@ -50,6 +50,14 @@ enum Country {
 
 // prod: legally binding; demo: pre-production with real NIP, no legal effect (test mode of the app);
 // test: MF test environment with fake NIPs, only on invoices sent before test mode moved to demo
+enum CompanyStatus {
+  active
+  suspended
+  closed
+  dissolved
+  sold
+}
+
 enum KsefEnv {
   test
   demo
@@ -66,6 +74,8 @@ model companies {
   signature String     @default("")
 
   country           Country  @default(GE)
+  // closed, dissolved and sold companies stay as an archive of their invoices and books
+  status            CompanyStatus @default(active)
   // deprecated: the single KSeF mode before test/live mode, only read by migrations/ksefModes.ts
   ksefEnv           KsefEnv?
   // AES-256-GCM encrypted KSeF tokens (services/ksef/tokenCrypto.ts), one per environment, like Stripe live/test keys

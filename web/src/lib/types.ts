@@ -1,6 +1,8 @@
 export type Currency = 'PLN' | 'EUR' | 'USD' | 'GBP';
 export type Lang = 'pl' | 'en';
 export type Country = 'PL' | 'GE' | 'GB';
+// closed, dissolved and sold companies stay as an archive of their invoices and books
+export type CompanyStatus = 'active' | 'suspended' | 'closed' | 'dissolved' | 'sold';
 // prod: production KSeF (live mode), demo: KSeF DEMO (test mode, no legal effect)
 export type KsefEnv = 'prod' | 'demo';
 
@@ -121,6 +123,7 @@ export interface Company {
 	logo: string;
 	signature: string;
 	country: Country;
+	status: CompanyStatus;
 	vatExemptionBasis: string;
 	krs: string;
 	regon: string;

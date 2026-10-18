@@ -104,7 +104,7 @@
 				id: `company-${company.id}`,
 				group: 'Commands',
 				label: `Switch to ${company.name}`,
-				hint: `${company.country}${company.isDefault ? ' · default' : ''}`,
+				hint: `${company.country}${company.status !== 'active' ? ` · ${company.status}` : ''}${company.isDefault ? ' · default' : ''}`,
 				run: async () => { close(); await data.switchCompany(company.id); }
 			})),
 		...THEMES.map((value) => ({

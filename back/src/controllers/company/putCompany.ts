@@ -11,6 +11,7 @@ const PutCompanySchema = z.object({
     logo: z.string(),
     signature: z.string(),
     country: z.enum(['GE', 'PL', 'GB']),
+    status: z.enum(['active', 'suspended', 'closed', 'dissolved', 'sold']),
     vatExemptionBasis: z.string(),
     krs: z.string(),
     regon: z.string(),
