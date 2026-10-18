@@ -62,3 +62,17 @@ export async function api<T>(path: string, options: Options = {}): Promise<T> {
 	if (options.text) return raw as T;
 	return (raw ? JSON.parse(raw) : null) as T;
 }
+
+// authenticated binary download (company documents); returns a Blob for a temporary object URL
+export async function apiDownload(path: string): Promise<Blob> {
+	const response = await fetch(`${API_URL}${path}`, { headers: headers({}) });
+	if (response.status === 401) {
+		session.logout();
+		await goto('/login');
+		throw new ApiError('Session expired, log in again', 401);
+	}
+	if (!response.ok) {
+		throw new ApiError((await response.text()) || response.statusText, response.status);
+	}
+	return response.blob();
+}

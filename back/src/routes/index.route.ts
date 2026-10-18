@@ -48,6 +48,16 @@ import {
     type UpdateFilingRoute,
 } from "../controllers/books/books";
 import { mcp } from "../controllers/agents/mcp";
+import {
+    addDocument,
+    deleteDocument,
+    downloadDocument,
+    listDocuments,
+    updateDocument,
+    type AddDocumentRoute,
+    type DocumentRoute,
+    type UpdateDocumentRoute,
+} from "../controllers/documents/documents";
 import { lookupNip, type LookupNipRoute } from "../controllers/lookup/lookupNip";
 import { getKsefXml, type GetKsefXmlRoute } from "../controllers/ksef/getKsefXml";
 import {
@@ -120,6 +130,13 @@ export default function indexRoute(
     server.put<UpdateCostRoute>('/costs/:id', SECRET, updateCost);
     server.get('/filings', SECRET, listFilings);
     server.put<UpdateFilingRoute>('/filings/:id', SECRET, updateFiling);
+
+    // company documents: private files in Spaces or external links (e.g. Google Drive)
+    server.get('/documents', SECRET, listDocuments);
+    server.post<AddDocumentRoute>('/documents', {...SECRET, bodyLimit: 12 * 1024 * 1024}, addDocument);
+    server.put<UpdateDocumentRoute>('/documents/:id', SECRET, updateDocument);
+    server.delete<DocumentRoute>('/documents/:id', SECRET, deleteDocument);
+    server.get<DocumentRoute>('/documents/:id/file', SECRET, downloadDocument);
 
     // AI agents: keys are managed by the logged in human, agents use them only on /mcp (own auth, see mcp.ts)
     server.get('/agent-keys', SECRET, listAgentKeys);

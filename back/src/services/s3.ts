@@ -1,4 +1,7 @@
 import {
+  DeleteObjectCommand,
+  GetObjectCommand,
+  GetObjectCommandOutput,
   PutObjectCommand,
   PutObjectCommandInput,
   PutObjectCommandOutput,
@@ -39,4 +42,20 @@ const putObject = async (
   return s3.send(command);
 };
 
-export { s3, composeUrl, putObject };
+// Company documents are private: no public-read ACL and no composeUrl. The API proxies
+// downloads after checking that the user has access to the company.
+const putPrivateObject = async (
+  input: Omit<PutObjectCommandInput, 'Bucket' | 'ACL'>,
+): Promise<PutObjectCommandOutput> => {
+  return s3.send(new PutObjectCommand({Bucket: config.SPACE_BUCKET, ...input}));
+};
+
+const getObject = async (key: string): Promise<GetObjectCommandOutput> => {
+  return s3.send(new GetObjectCommand({Bucket: config.SPACE_BUCKET, Key: key}));
+};
+
+const deleteObject = async (key: string): Promise<void> => {
+  await s3.send(new DeleteObjectCommand({Bucket: config.SPACE_BUCKET, Key: key}));
+};
+
+export { s3, composeUrl, putObject, putPrivateObject, getObject, deleteObject };

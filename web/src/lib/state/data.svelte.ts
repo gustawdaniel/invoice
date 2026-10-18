@@ -1,5 +1,5 @@
 import { clientFromApi, fromApi, toApi } from '../invoice';
-import type { AgentKey, BankTransaction, Client, Company, Cost, ExchangeRate, Filing, Invoice, KsefEnv, NipLookup, User } from '../types';
+import type { AgentKey, BankTransaction, Client, Company, CompanyDocument, Cost, DocumentKind, ExchangeRate, Filing, Invoice, KsefEnv, NipLookup, User } from '../types';
 import { api } from './api';
 import { session } from './session.svelte';
 
@@ -36,6 +36,7 @@ class Data {
 	transactions = $state<BankTransaction[]>([]);
 	costs = $state<Cost[]>([]);
 	filings = $state<Filing[]>([]);
+	documents = $state<CompanyDocument[]>([]);
 	rate = $state<ExchangeRate | null>(null);
 	loading = $state(false);
 	loaded = $state(false);
@@ -122,6 +123,34 @@ class Data {
 		const index = this.filings.findIndex((f) => f.id === id);
 		if (index >= 0) this.filings[index] = saved;
 		return saved;
+	}
+
+	async loadDocuments() {
+		this.documents = await api<CompanyDocument[]>('/documents');
+	}
+
+	async addDocument(input: {
+		title: string;
+		kind: DocumentKind;
+		url?: string;
+		note?: string;
+		file?: { name: string; mime: string; data: string };
+	}) {
+		const saved = await api<CompanyDocument>('/documents', { method: 'POST', body: input });
+		this.documents = [saved, ...this.documents];
+		return saved;
+	}
+
+	async updateDocument(id: string, change: Partial<Pick<CompanyDocument, 'title' | 'kind' | 'url' | 'note'>>) {
+		const saved = await api<CompanyDocument>(`/documents/${id}`, { method: 'PUT', body: change });
+		const index = this.documents.findIndex((d) => d.id === id);
+		if (index >= 0) this.documents[index] = saved;
+		return saved;
+	}
+
+	async deleteDocument(id: string) {
+		await api(`/documents/${id}`, { method: 'DELETE' });
+		this.documents = this.documents.filter((d) => d.id !== id);
 	}
 
 	// overdue returns and filings, by what the authority says

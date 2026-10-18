@@ -90,6 +90,26 @@ model companies {
   bankTransactions bankTransactions[]
   costs     costs[]
   filings   filings[]
+  documents documents[]
+}
+
+// Contracts, tax decisions and other company files. A document is either an external link
+// (e.g. Google Drive) or a private object in the Spaces bucket, never a public URL.
+model documents {
+  id         String    @id @default(auto()) @map("_id") @db.ObjectId
+  company    companies @relation(fields: [companyId], references: [id])
+  companyId  String    @db.ObjectId
+  title      String
+  // contract | tax | invoice | accounting | other
+  kind       String    @default("other")
+  url        String    @default("")
+  storageKey String    @default("")
+  fileName   String    @default("")
+  mimeType   String    @default("")
+  size       Int       @default(0)
+  note       String    @default("")
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 }
 
 model accessLogs {

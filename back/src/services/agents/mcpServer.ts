@@ -16,6 +16,9 @@ import {buildFa3} from "../ksef/buildFa3";
 import {sendStoredInvoice} from "../ksef/sendStoredInvoice";
 import {optionalFields} from "./optionalFields";
 import {lookupNip} from "../mf/whiteList";
+import {randomUUID} from "node:crypto";
+import {putPrivateObject} from "../s3";
+import {DOCUMENT_KINDS, DOCUMENT_MAX_BYTES, DOCUMENT_MIME} from "../documents/kinds";
 
 // What an agent (MCP client with an agent key) may do on behalf of its user. Agents prepare data; anything that
 // reaches production KSeF is only a request, the human sends it from the app. Agents cannot connect or disconnect
@@ -34,6 +37,9 @@ const VAT_NAMES = Object.keys(VAT_RATES) as [keyof typeof VAT_RATES, ...(keyof t
 const UNITS = ['piece', 'service', 'hour', 'pack.', 'box', 'palette', 't.', 'kg', 'm2', 'm3', 'km', 'mb', 'l', 'mh.'] as const;
 const PAYMENT_FORMS = ['cash', 'prepaid', '14d', '7d', 'card', 'delivery', 'check', 'dotpay', 'paypal', 'payu', 'other'] as const;
 const DATE = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Use YYYY-MM-DD');
+const HTTP_URL = z.string().url()
+    .refine((value) => /^https?:\/\//i.test(value), 'Use an http(s) link')
+    .or(z.literal(''));
 
 const itemShape = z.object({
     name: z.string().min(1),
@@ -88,6 +94,28 @@ async function requireDraft(companyId: string, invoiceId: string) {
 // the stored XML is large and only useful to humans, agents get the rest
 function agentInvoice<T extends { ksefXml?: string | null }>({ksefXml, ...invoice}: T) {
     return invoice;
+}
+
+type AgentDocument = {
+    id: string;
+    title: string;
+    kind: string;
+    url: string;
+    storageKey: string;
+    fileName: string;
+    mimeType: string;
+    size: number;
+    note: string;
+    createdAt: Date;
+    updatedAt: Date;
+};
+
+function agentDocument({storageKey, ...document}: AgentDocument) {
+    return {...document, has_file: Boolean(storageKey)};
+}
+
+function safeDocumentName(name: string): string {
+    return (name.replace(/[^A-Za-z0-9._-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 120) || 'document');
 }
 
 function items(input: z.infer<typeof itemShape>[]) {
@@ -464,6 +492,65 @@ export function createMcpServer(ctx: AgentContext): McpServer {
     }, async ({company_id}) => {
         await requireCompany(ctx, company_id);
         return json(await prisma.filings.findMany({where: {companyId: company_id}, orderBy: [{dueDate: 'asc'}, {externalId: 'asc'}]}));
+    });
+
+    server.registerTool('list_documents', {
+        description: 'Contracts, tax decisions and other files or links of a company',
+        inputSchema: {company_id: z.string()},
+        annotations: {readOnlyHint: true},
+    }, async ({company_id}) => {
+        await requireCompany(ctx, company_id);
+        const documents = await prisma.documents.findMany({
+            where: {companyId: company_id},
+            orderBy: [{createdAt: 'desc'}, {title: 'asc'}],
+            select: {id: true, title: true, kind: true, url: true, storageKey: true, fileName: true,
+                mimeType: true, size: true, note: true, createdAt: true, updatedAt: true},
+        });
+        return json(documents.map(agentDocument));
+    });
+
+    server.registerTool('create_document', {
+        description: 'Attach a contract or another file to a company: either a private uploaded file '
+            + '(file_base64) or an external link such as Google Drive (url). Files are private and downloadable in the app.',
+        inputSchema: {
+            company_id: z.string(),
+            title: z.string().min(1).max(200),
+            kind: z.enum(DOCUMENT_KINDS).default('other'),
+            url: HTTP_URL.default('').describe('External link, e.g. Google Drive'),
+            note: z.string().max(5000).default(''),
+            file_name: z.string().max(255).optional(),
+            file_mime: z.string().optional().describe(DOCUMENT_MIME.join(', ')),
+            file_base64: z.string().optional().describe('Base64 contents; max 8 MB before encoding'),
+        },
+    }, async ({company_id, title, kind, url, note, file_name, file_mime, file_base64}) => {
+        await requireCompany(ctx, company_id);
+        if (!url && !file_base64) throw new Error('Add a file_base64 or a url');
+
+        let storageKey = '';
+        let fileName = '';
+        let mimeType = '';
+        let size = 0;
+        if (file_base64) {
+            mimeType = file_mime || 'application/pdf';
+            if (!(DOCUMENT_MIME as readonly string[]).includes(mimeType)) {
+                throw new Error('Unsupported file type: ' + mimeType);
+            }
+            const buffer = Buffer.from(file_base64.replace(/^data:[^;]+;base64,/, ''), 'base64');
+            if (!buffer.length || buffer.length > DOCUMENT_MAX_BYTES) {
+                throw new Error('The file must be between 1 byte and 8 MB');
+            }
+            fileName = file_name || 'document.pdf';
+            size = buffer.length;
+            storageKey = `invoice/documents/${company_id}/${randomUUID()}-${safeDocumentName(fileName)}`;
+            await putPrivateObject({Key: storageKey, Body: buffer, ContentType: mimeType, ContentLength: size});
+        }
+
+        const document = await prisma.documents.create({
+            data: {companyId: company_id, title, kind, url, note, storageKey, fileName, mimeType, size},
+            select: {id: true, title: true, kind: true, url: true, storageKey: true, fileName: true,
+                mimeType: true, size: true, note: true, createdAt: true, updatedAt: true},
+        });
+        return json(agentDocument(document));
     });
 
     server.registerTool('record_issued_invoice', {

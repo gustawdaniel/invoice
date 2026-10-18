@@ -23,6 +23,7 @@
 		{ href: '/books', label: 'Books', keys: 'gb' },
 		{ href: '/bank', label: 'Bank', keys: 'gt' },
 		{ href: '/costs', label: 'Costs', keys: 'gk' },
+		{ href: '/documents', label: 'Documents', keys: 'gd' },
 		{ href: '/taxes', label: 'Taxes', keys: 'gx' },
 		{ href: '/agents', label: 'Agents', keys: 'ga' },
 		{ href: '/company', label: 'Company', keys: 'gs' }
@@ -64,6 +65,7 @@
 			gs: () => goto('/company'),
 			gt: () => goto('/bank'),
 			gk: () => goto('/costs'),
+			gd: () => goto('/documents'),
 			gx: () => goto('/taxes'),
 			gC: () => ui.openPalette('switch '),
 			n: () => goto('/invoices/new'),

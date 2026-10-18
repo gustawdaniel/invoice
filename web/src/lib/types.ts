@@ -256,3 +256,20 @@ export interface Filing {
 	amount: number | null;
 	note: string;
 }
+
+export type DocumentKind = 'contract' | 'tax' | 'invoice' | 'accounting' | 'other';
+
+// a contract, tax decision or other company file: a private upload or an external link
+export interface CompanyDocument {
+	id: string;
+	title: string;
+	kind: DocumentKind;
+	url: string;
+	fileName: string;
+	mimeType: string;
+	size: number;
+	note: string;
+	hasFile: boolean;
+	createdAt: string;
+	updatedAt: string;
+}
