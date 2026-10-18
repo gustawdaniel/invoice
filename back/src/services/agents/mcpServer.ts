@@ -14,6 +14,7 @@ import {getVatRate} from "../../helpers/getVatRate";
 import {publicCompany} from "../../helpers/publicCompany";
 import {buildFa3} from "../ksef/buildFa3";
 import {sendStoredInvoice} from "../ksef/sendStoredInvoice";
+import {optionalFields} from "./optionalFields";
 import {lookupNip} from "../mf/whiteList";
 
 // What an agent (MCP client with an agent key) may do on behalf of its user. Agents prepare data; anything that
@@ -550,9 +551,7 @@ export function createMcpServer(ctx: AgentContext): McpServer {
         inputSchema: {
             company_id: z.string(),
             invoice_id: z.string(),
-            ...Object.fromEntries(Object.entries(invoiceFields).map(([key, schema]) => [key, schema.optional()])) as {
-                [K in keyof typeof invoiceFields]: z.ZodOptional<(typeof invoiceFields)[K]>
-            },
+            ...optionalFields(invoiceFields),
         },
     }, async ({company_id, invoice_id, ...input}) => {
         await requireCompany(ctx, company_id);
