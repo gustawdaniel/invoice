@@ -142,7 +142,7 @@ export default function indexRoute(
     server.get('/agent-keys', SECRET, listAgentKeys);
     server.post<AddAgentKeyRoute>('/agent-keys', SECRET, addAgentKey);
     server.delete<DeleteAgentKeyRoute>('/agent-keys/:id', SECRET, deleteAgentKey);
-    server.all('/mcp', PUBLIC, mcp);
+    server.all('/mcp', {...PUBLIC, bodyLimit: 12 * 1024 * 1024}, mcp);
 
     // admin
     server.get('/admin/companies', ADMIN, listAllCompanies);
