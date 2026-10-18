@@ -164,7 +164,6 @@
 			width: auto;
 			min-height: 0;
 			padding: 0;
-			break-after: page;
 		}
 	}
 </style>

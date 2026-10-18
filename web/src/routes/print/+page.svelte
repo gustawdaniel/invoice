@@ -40,7 +40,7 @@
 <svelte:head><title>{title}</title></svelte:head>
 <svelte:window onafterprint={() => window.close()} />
 
-<div class="print-root min-h-dvh bg-sunken py-8 print:bg-white print:py-0">
+<div class="print-root min-h-dvh bg-sunken py-8 print:min-h-0 print:bg-white print:py-0">
 	{#if error}
 		<p class="text-center text-bad">{error}</p>
 	{:else if !data.loaded}
@@ -49,8 +49,9 @@
 		<p class="text-center text-muted">Nothing to print: the invoices are not in the selected company and mode.</p>
 	{:else}
 		<div class="flex flex-col items-center gap-8 print:block">
+			<!-- a break before every invoice but the first; a break after the last one printed an empty page -->
 			{#each invoices as invoice (invoice.id)}
-				<div class="shadow-lg print:shadow-none"><InvoicePaper {invoice} company={data.company} /></div>
+				<div class="shadow-lg print:shadow-none print:[&:not(:first-child)]:break-before-page"><InvoicePaper {invoice} company={data.company} /></div>
 			{/each}
 		</div>
 	{/if}
