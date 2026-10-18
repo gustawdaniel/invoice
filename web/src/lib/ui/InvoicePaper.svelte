@@ -18,8 +18,8 @@
 
 	const t = $derived(
 		pl
-			? { invoice: 'Faktura', issued: 'Data wystawienia', sold: 'Data sprzedaży', place: 'Miejsce wystawienia', seller: 'Sprzedawca', buyer: 'Nabywca', no: 'Lp.', name: 'Nazwa towaru lub usługi', unit: 'J.m.', qty: 'Ilość', price: 'Cena netto', net: 'Wartość netto', rate: 'Stawka VAT', vat: 'Kwota VAT', gross: 'Wartość brutto', total: 'Razem', payment: 'Forma płatności', account: 'Numer rachunku', due: 'Termin płatności', toPay: 'Do zapłaty' }
-			: { invoice: 'Invoice', issued: 'Issue date', sold: 'Sale date', place: 'Issued in', seller: 'Seller', buyer: 'Buyer and payer', no: 'No.', name: 'Product or service', unit: 'Unit', qty: 'Qty', price: 'Net price', net: 'Total net', rate: 'VAT', vat: 'VAT amount', gross: 'Total gross', total: 'Total', payment: 'Payment type', account: 'Bank account', due: 'Due date', toPay: 'Amount due' }
+			? { invoice: 'Faktura', issued: 'Data wystawienia', sold: 'Data sprzedaży', place: 'Miejsce wystawienia', seller: 'Sprzedawca', buyer: 'Nabywca', no: 'Lp.', name: 'Nazwa towaru lub usługi', unit: 'J.m.', qty: 'Ilość', price: 'Cena netto', net: 'Wartość netto', rate: 'Stawka VAT', vat: 'Kwota VAT', gross: 'Wartość brutto', total: 'Razem', payment: 'Forma płatności', account: 'Numer rachunku', due: 'Termin płatności', toPay: 'Do zapłaty', issuerSign: 'Podpis osoby upoważnionej do wystawienia faktury', receiverSign: 'Podpis osoby upoważnionej do odbioru faktury' }
+			: { invoice: 'Invoice', issued: 'Issue date', sold: 'Sale date', place: 'Issued in', seller: 'Seller', buyer: 'Buyer and payer', no: 'No.', name: 'Product or service', unit: 'Unit', qty: 'Qty', price: 'Net price', net: 'Total net', rate: 'VAT', vat: 'VAT amount', gross: 'Total gross', total: 'Total', payment: 'Payment type', account: 'Bank account', due: 'Due date', toPay: 'Amount due', issuerSign: 'Signature of the person authorized to issue the invoice', receiverSign: 'Signature of the person authorized to collect the invoice' }
 	);
 </script>
 
@@ -134,21 +134,20 @@
 		</div>
 	{/if}
 
-	{#if !pl}
-		<section class="mt-auto grid grid-cols-2 gap-16 pt-8 text-center text-[10px] text-neutral-600">
-			<div>
-				<div class="flex h-24 flex-col items-center justify-end border-b border-neutral-400 pb-1">
-					{#if company.signature}<img src={company.signature} alt="" class="max-h-16" />{/if}
-					<p class="text-[12px] text-black">{invoice.issuerName}</p>
-				</div>
-				<p class="mt-1">Signature of the person authorized to issue the invoice</p>
+	<!-- not required by art. 106e, but customary on paper: signatures of the issuer and of the recipient -->
+	<section class="mt-auto grid grid-cols-2 gap-16 pt-8 text-center text-[10px] text-neutral-600">
+		<div>
+			<div class="flex h-24 flex-col items-center justify-end border-b border-neutral-400 pb-1">
+				{#if company.signature}<img src={company.signature} alt="" class="max-h-16" />{/if}
+				<p class="text-[12px] text-black">{invoice.issuerName}</p>
 			</div>
-			<div>
-				<div class="flex h-24 items-end justify-center border-b border-neutral-400 pb-1"><p class="text-[12px] text-black">{invoice.receiverName}</p></div>
-				<p class="mt-1">Signature of the person authorized to collect the invoice</p>
-			</div>
-		</section>
-	{/if}
+			<p class="mt-1">{t.issuerSign}</p>
+		</div>
+		<div>
+			<div class="flex h-24 items-end justify-center border-b border-neutral-400 pb-1"><p class="text-[12px] text-black">{invoice.receiverName}</p></div>
+			<p class="mt-1">{t.receiverSign}</p>
+		</div>
+	</section>
 </article>
 
 <style>

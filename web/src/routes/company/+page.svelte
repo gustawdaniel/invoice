@@ -202,7 +202,7 @@
 				{#if form.logo}<img src={form.logo} alt="Logo" class="mt-2 h-14 rounded border border-line object-contain p-1" />{/if}
 			</div>
 			<div>
-				<label for="c-signature" class="mb-1 block text-xs text-muted">Signature (English invoices)</label>
+				<label for="c-signature" class="mb-1 block text-xs text-muted">Signature (printed on invoices)</label>
 				<input id="c-signature" type="file" accept="image/*" class="text-xs" onchange={(event) => upload(event, 'signature')} />
 				{#if form.signature}<img src={form.signature} alt="Signature" class="mt-2 h-14 rounded border border-line bg-white object-contain p-1" />{/if}
 			</div>
