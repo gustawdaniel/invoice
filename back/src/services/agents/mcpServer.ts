@@ -454,6 +454,32 @@ export function createMcpServer(ctx: AgentContext): McpServer {
         }));
     });
 
+    server.registerTool('delete_costs', {
+        description: 'Remove purchase documents an agent added by mistake (e.g. a sales e-mail read as a cost), by '
+            + 'external_id. A cost the human confirmed or a bank operation is linked to is kept and reported.',
+        inputSchema: {
+            company_id: z.string(),
+            external_ids: z.array(z.string().min(1)).min(1).max(500),
+        },
+        annotations: {destructiveHint: true},
+    }, async ({company_id, external_ids}) => {
+        await requireCompany(ctx, company_id);
+        const deleted: string[] = [];
+        const kept: Record<string, string> = {};
+        for (const externalId of external_ids) {
+            const cost = await prisma.costs.findUnique({where: {companyId_externalId: {companyId: company_id, externalId}}});
+            if (!cost) { kept[externalId] = 'not found'; continue; }
+            if (cost.status === 'confirmed') { kept[externalId] = 'confirmed by a human'; continue; }
+            if (await prisma.bankTransactions.count({where: {companyId: company_id, costId: cost.id}})) {
+                kept[externalId] = 'linked to a bank operation';
+                continue;
+            }
+            await prisma.costs.delete({where: {id: cost.id}});
+            deleted.push(externalId);
+        }
+        return json({deleted: deleted.length, kept});
+    });
+
     server.registerTool('upsert_filings', {
         description: 'Record what the company owes the authorities (tax returns, JPK, financial statements, registrations) '
             + 'and their state, one per kind and period (idempotent). kinds: ' + FILING_KINDS.join(', ')
