@@ -45,6 +45,7 @@ model agentKeys {
 enum Country {
   GE
   PL
+  GB
 }
 
 // prod: legally binding; demo: pre-production with real NIP, no legal effect (test mode of the app);
