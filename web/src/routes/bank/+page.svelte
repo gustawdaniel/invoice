@@ -12,7 +12,7 @@
 	let tab = $state<'review' | 'all'>(page.url.searchParams.get('tab') === 'all' ? 'all' : 'review');
 	let year = $state('all');
 	let query = $state('');
-	let selectedId = $state<string | null>(null);
+	let selectedId = $state<string | null>(page.url.searchParams.get('id'));
 	let search: HTMLInputElement | undefined = $state();
 	let tbody: HTMLTableSectionElement | undefined = $state();
 	let note = $state('');
@@ -209,7 +209,7 @@
 					<h2 class="label-caps mb-1.5">Cost document</h2>
 					{#each linkedCosts as cost (cost.id)}
 						<p class="flex items-center justify-between gap-2 text-[13px]">
-							<span class="truncate">{cost.supplierName} · <span class="font-mono">{cost.number}</span></span>
+							<a href="/costs?id={cost.id}" class="truncate hover:text-accent">{cost.supplierName} · <span class="font-mono">{cost.number}</span></a>
 							<button class="text-xs text-muted hover:text-bad" title="Unlink this document" onclick={() => decide(selected, { costIds: selected.costIds.filter((id) => id !== cost.id), status: 'confirmed' })}>unlink</button>
 						</p>
 					{/each}

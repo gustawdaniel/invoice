@@ -336,6 +336,8 @@ model costs {
   // a service bought from abroad: VAT settled by the company as import of services
   reverseCharge  Boolean   @default(false)
   // where the original is, e.g. "2021.03 Marzec/faktury otrzymane/ovh.pdf"
+  // the original uploaded as a company document (private file, downloadable in the app)
+  documentId   String?   @db.ObjectId
   file           String    @default("")
   status         String    @default("review")
   note           String    @default("")

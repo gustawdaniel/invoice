@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { page } from '$app/state';
+	import { apiDownload } from '#lib/state/api.js';
 	import { CATEGORY_LABEL, STATUS_LABEL } from '#lib/books.js';
 	import { money } from '#lib/invoice.js';
 	import { data } from '#lib/state/data.svelte.js';
@@ -11,7 +13,7 @@
 	let year = $state('all');
 	let query = $state('');
 	let onlyReview = $state(false);
-	let selectedId = $state<string | null>(null);
+	let selectedId = $state<string | null>(page.url.searchParams.get('id'));
 	let search: HTMLInputElement | undefined = $state();
 	let tbody: HTMLTableSectionElement | undefined = $state();
 	let loading = $state(true);
@@ -55,6 +57,15 @@
 	const moveTo = (next: number) => {
 		if (shown.length) selectedId = shown[Math.min(shown.length - 1, Math.max(0, next))].id;
 	};
+
+	async function openOriginal(documentId: string) {
+		try {
+			const blob = await apiDownload(`/documents/${documentId}/file`);
+			window.open(URL.createObjectURL(blob), '_blank');
+		} catch (error) {
+			toasts.error('Could not open the original', error);
+		}
+	}
 
 	async function update(cost: Cost | null, change: Parameters<typeof data.updateCost>[1]) {
 		if (!cost) return;
@@ -174,15 +185,18 @@
 			<div>
 				<h3 class="label-caps mb-1.5">Paid</h3>
 				{#each paidBy as t (t.id)}
-					<p class="text-[13px]"><a href="/bank?tab=all" class="font-mono">{t.date}</a> · <span class="font-mono">{fmt(t.amount)}</span> {t.currency}</p>
+					<p class="text-[13px]"><a href="/bank?tab=all&id={t.id}" class="font-mono">{t.date}</a> · <span class="font-mono">{fmt(t.amount)}</span> {t.currency}</p>
 				{:else}
 					<p class="text-xs text-muted">No bank operation linked yet.</p>
 				{/each}
 			</div>
-			{#if selected.file}
+			{#if selected.file || selected.documentId}
 				<div>
 					<h3 class="label-caps mb-1">Original</h3>
-					<p class="font-mono text-xs break-all text-muted">{selected.file}</p>
+					{#if selected.documentId}
+						<button class="btn mb-1 w-full justify-center text-xs" onclick={() => openOriginal(selected.documentId!)}>Open the original</button>
+					{/if}
+					{#if selected.file}<p class="font-mono text-xs break-all text-muted">{selected.file}</p>{/if}
 				</div>
 			{/if}
 			{#if selected.note}<p class="text-[13px] text-muted">{selected.note}</p>{/if}

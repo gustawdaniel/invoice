@@ -419,6 +419,7 @@ export function createMcpServer(ctx: AgentContext): McpServer {
                 category: z.enum(COST_CATEGORIES).optional(),
                 reverse_charge: z.boolean().optional().describe('A service bought from abroad (import of services)'),
                 file: z.string().default(''),
+                document_id: z.string().optional().describe('Company document holding the original (create_document returns its id)'),
                 status: AGENT_STATUS.optional(),
                 note: z.string().optional(),
             })).min(1).max(200),
@@ -431,7 +432,7 @@ export function createMcpServer(ctx: AgentContext): McpServer {
             const current = await prisma.costs.findUnique({where: key, select: {status: true}});
             const facts = {supplierName: c.supplier_name, supplierTin: c.supplier_tin, supplierCountry: c.supplier_country,
                 number: c.number, issueDate: c.issue_date, saleDate: c.sale_date, currency: c.currency, net: c.net,
-                vat: c.vat, gross: c.gross, file: c.file};
+                vat: c.vat, gross: c.gross, file: c.file, ...(c.document_id ? {documentId: c.document_id} : {})};
             const data = agentUpdate(current, facts,
                 {category: c.category, reverseCharge: c.reverse_charge, status: c.status, note: c.note});
             const saved = current

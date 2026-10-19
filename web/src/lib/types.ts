@@ -240,6 +240,8 @@ export interface Cost {
 	category: CostCategory;
 	reverseCharge: boolean;
 	file: string;
+	// the original, uploaded as a company document
+	documentId: string | null;
 	status: BookStatus;
 	note: string;
 }
