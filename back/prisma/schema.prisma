@@ -305,7 +305,8 @@ model bankTransactions {
   kind         String    @default("unclassified")
   status       String    @default("review")
   invoiceId    String?   @db.ObjectId
-  costId       String?   @db.ObjectId
+  // cost documents this operation pays: one transfer can pay several documents, one document can be paid in parts
+  costIds      String[]  @db.ObjectId
   note         String    @default("")
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt

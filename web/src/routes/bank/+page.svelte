@@ -36,7 +36,7 @@
 		shown.reduce((acc, t) => ({ in: acc.in + Math.max(0, t.amount), out: acc.out + Math.min(0, t.amount) }), { in: 0, out: 0 })
 	);
 	const linkedInvoice = $derived(selected?.invoiceId ? data.invoice(selected.invoiceId) : undefined);
-	const linkedCost = $derived(selected?.costId ? data.costs.find((c) => c.id === selected.costId) : undefined);
+	const linkedCosts = $derived(selected ? data.costs.filter((c) => selected.costIds.includes(c.id)) : []);
 
 	$effect(() => {
 		note = selected?.note ?? '';
@@ -207,15 +207,18 @@
 				{@const candidates = costCandidates(selected, data.costs)}
 				<div>
 					<h2 class="label-caps mb-1.5">Cost document</h2>
-					{#if linkedCost}
-						<p class="text-[13px]">{linkedCost.supplierName} · <span class="font-mono">{linkedCost.number}</span></p>
-					{/if}
-					{#each candidates.filter((c) => c.id !== selected.costId) as cost (cost.id)}
-						<button class="btn mt-1 h-auto w-full justify-between py-1.5 text-left text-xs" onclick={() => decide(selected, { kind: 'cost_payment', costId: cost.id, status: 'confirmed' })}>
+					{#each linkedCosts as cost (cost.id)}
+						<p class="flex items-center justify-between gap-2 text-[13px]">
+							<span class="truncate">{cost.supplierName} · <span class="font-mono">{cost.number}</span></span>
+							<button class="text-xs text-muted hover:text-bad" title="Unlink this document" onclick={() => decide(selected, { costIds: selected.costIds.filter((id) => id !== cost.id), status: 'confirmed' })}>unlink</button>
+						</p>
+					{/each}
+					{#each candidates.filter((c) => !selected.costIds.includes(c.id)) as cost (cost.id)}
+						<button class="btn mt-1 h-auto w-full justify-between py-1.5 text-left text-xs" onclick={() => decide(selected, { kind: 'cost_payment', costIds: [...selected.costIds, cost.id], status: 'confirmed' })}>
 							<span class="truncate">{cost.supplierName} · {cost.issueDate}</span><span class="font-mono">{fmt(cost.gross)}</span>
 						</button>
 					{:else}
-						{#if !linkedCost}<p class="text-xs text-muted">No cost document with this amount yet.</p>{/if}
+						{#if !linkedCosts.length}<p class="text-xs text-muted">No cost document with this amount yet.</p>{/if}
 					{/each}
 				</div>
 			{/if}

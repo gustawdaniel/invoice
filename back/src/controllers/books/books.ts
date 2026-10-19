@@ -18,7 +18,7 @@ const ClassificationSchema = z.object({
     kind: z.enum(TRANSACTION_KINDS).optional(),
     status: z.enum(STATUSES).optional(),
     invoiceId: z.string().nullable().optional(),
-    costId: z.string().nullable().optional(),
+    costIds: z.array(z.string()).optional(),
     note: z.string().optional(),
 });
 

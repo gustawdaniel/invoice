@@ -37,7 +37,7 @@
 			shown.reduce<Record<string, number>>((acc, c) => ({ ...acc, [c.currency]: (acc[c.currency] ?? 0) + c.gross }), {})
 		).sort()
 	);
-	const paidBy = $derived(selected ? data.transactions.filter((t) => t.costId === selected.id) : []);
+	const paidBy = $derived(selected ? data.transactions.filter((t) => t.costIds.includes(selected.id)) : []);
 
 	$effect(() => {
 		ui.context = shown.length ? `costs ${index + 1}/${shown.length}` : 'costs';

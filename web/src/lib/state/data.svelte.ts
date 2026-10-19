@@ -105,7 +105,7 @@ class Data {
 	}
 
 	// a human decision on a bank operation
-	async classify(id: string, change: Partial<Pick<BankTransaction, 'kind' | 'status' | 'invoiceId' | 'costId' | 'note'>>) {
+	async classify(id: string, change: Partial<Pick<BankTransaction, 'kind' | 'status' | 'invoiceId' | 'costIds' | 'note'>>) {
 		const saved = await api<BankTransaction>(`/bank-transactions/${id}`, { method: 'PUT', body: change });
 		const index = this.transactions.findIndex((t) => t.id === id);
 		if (index >= 0) this.transactions[index] = saved;

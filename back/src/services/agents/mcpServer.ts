@@ -323,7 +323,7 @@ export function createMcpServer(ctx: AgentContext): McpServer {
                 kind: z.enum(TRANSACTION_KINDS).optional(),
                 status: AGENT_STATUS.optional(),
                 invoice_id: z.string().optional(),
-                cost_id: z.string().optional(),
+                cost_ids: z.array(z.string()).optional().describe('Cost documents this operation pays (one transfer can pay several)'),
                 note: z.string().optional(),
             })).min(1).max(500),
         },
@@ -336,7 +336,7 @@ export function createMcpServer(ctx: AgentContext): McpServer {
             const facts = {bank: t.bank, account: t.account, date: t.date, amount: t.amount, currency: t.currency,
                 description: t.description, bankCategory: t.bank_category};
             const data = agentUpdate(current, facts,
-                {kind: t.kind, status: t.status, invoiceId: t.invoice_id, costId: t.cost_id, note: t.note});
+                {kind: t.kind, status: t.status, invoiceId: t.invoice_id, costIds: t.cost_ids, note: t.note});
             if (current) {
                 await prisma.bankTransactions.update({where: key, data});
                 if (current.status === 'confirmed') kept++; else updated++;
@@ -378,7 +378,8 @@ export function createMcpServer(ctx: AgentContext): McpServer {
                 kind: z.enum(TRANSACTION_KINDS),
                 status: AGENT_STATUS,
                 invoice_id: z.string().nullable().optional(),
-                cost_id: z.string().nullable().optional(),
+                cost_ids: z.array(z.string()).optional()
+                    .describe('Cost documents this operation pays: one transfer can pay several, a document paid in parts is listed on each part'),
                 note: z.string().optional(),
             })).min(1).max(500),
         },
@@ -391,7 +392,7 @@ export function createMcpServer(ctx: AgentContext): McpServer {
             if (current.status === 'confirmed') { kept++; continue; }
             await prisma.bankTransactions.update({
                 where: {id: current.id},
-                data: {kind: item.kind, status: item.status, invoiceId: item.invoice_id, costId: item.cost_id, note: item.note},
+                data: {kind: item.kind, status: item.status, invoiceId: item.invoice_id, costIds: item.cost_ids, note: item.note},
             });
             changed++;
         }
@@ -470,7 +471,7 @@ export function createMcpServer(ctx: AgentContext): McpServer {
             const cost = await prisma.costs.findUnique({where: {companyId_externalId: {companyId: company_id, externalId}}});
             if (!cost) { kept[externalId] = 'not found'; continue; }
             if (cost.status === 'confirmed') { kept[externalId] = 'confirmed by a human'; continue; }
-            if (await prisma.bankTransactions.count({where: {companyId: company_id, costId: cost.id}})) {
+            if (await prisma.bankTransactions.count({where: {companyId: company_id, costIds: {has: cost.id}}})) {
                 kept[externalId] = 'linked to a bank operation';
                 continue;
             }

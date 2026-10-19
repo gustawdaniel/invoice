@@ -205,7 +205,8 @@ export interface BankTransaction {
 	kind: TransactionKind;
 	status: BookStatus;
 	invoiceId: string | null;
-	costId: string | null;
+	// cost documents this operation pays: one transfer can pay several, a document can be paid in parts
+	costIds: string[];
 	note: string;
 }
 
