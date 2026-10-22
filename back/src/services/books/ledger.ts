@@ -16,6 +16,8 @@ export interface Posting {
     date: string;
     source: string; // "bank:<id>", "cost:<id>", "invoice:<id>", "journal:<externalId>"
     description: string;
+    // the opening balance: shown as the opening of its year, not as turnover
+    opening?: boolean;
     lines: Line[];
 }
 
@@ -100,7 +102,7 @@ function cr(account: string, amount: number, ref?: string): Line {
 function taxAccount(description: string): string {
     if (/\bVAT\b|JPK/i.test(description)) return '220-VAT';
     if (/\bCIT\b/i.test(description)) return '220-CIT';
-    if (/\bPIT\b/i.test(description)) return '220-PIT';
+    if (/\bPIT/i.test(description)) return '220-PIT';
     return '220';
 }
 
@@ -220,7 +222,7 @@ export function buildPostings(input: LedgerInput): { postings: Posting[]; warnin
         if (unknown.length) warnings.push({source, message: `nieznane konta: ${unknown.map((l) => l.account).join(', ')}`});
         const balance = round(j.lines.reduce((s, l) => s + l.debit - l.credit, 0));
         if (balance) warnings.push({source, message: `zapis niezbilansowany o ${balance}`});
-        postings.push({date: j.date, source, description: j.description, lines: j.lines.map((l) => ({...l}))});
+        postings.push({date: j.date, source, description: j.description, opening: j.kind === 'opening', lines: j.lines.map((l) => ({...l}))});
     }
 
     // foreign currency documents settled by payments: what is left on the document is an exchange difference
@@ -278,7 +280,7 @@ export function trialBalance(postings: Posting[], year: number) {
     for (const p of postings) {
         if (p.date > to) continue;
         for (const l of p.lines) {
-            const before = p.date < from;
+            const before = p.date < from || (p.opening === true && p.date === from);
             const account = before && isResultAccount(l.account) ? '820' : l.account;
             const r = row(account);
             if (before) r.o = round(r.o + l.debit - l.credit);

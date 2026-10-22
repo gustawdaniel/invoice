@@ -92,6 +92,12 @@ describe('ledger', () => {
         expect(s.bilans.Pasywa_B_III_3_G).toBe(9.2);
     });
 
+    it('shows the opening balance as the opening of its year', () => {
+        const {postings} = buildPostings(base({journal: [opening]}));
+        const bank = trialBalance(postings, 2022).rows.find((r) => r.account === '130-1652')!;
+        expect([bank.openingDebit, bank.debit, bank.closingDebit]).toEqual([1000, 0, 1000]);
+    });
+
     it('finds the day before', () => {
         expect(previousDay('2024-03-01')).toBe('2024-02-29');
     });
