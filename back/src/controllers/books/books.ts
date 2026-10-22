@@ -3,6 +3,7 @@ import {z} from "zod";
 import {prisma} from "../../db";
 import {COST_CATEGORIES, STATUSES, TRANSACTION_KINDS} from "../../services/books/kinds";
 import {FILING_STATUSES} from "../../services/books/filings";
+import {companyBooks} from "../../services/books/companyLedger";
 
 // the bookkeeping of the selected company: bank operations and purchase documents
 
@@ -96,4 +97,15 @@ export const updateFiling = async (req: FastifyRequest<UpdateFilingRoute>, reply
     const filing = await prisma.filings.findFirst({where: {id: req.params.id, companyId: req.companyId}});
     if (!filing) return reply.notFound('Filing not found');
     return reply.send(await prisma.filings.update({where: {id: filing.id}, data: body}));
+}
+
+export interface GetBooksRoute {
+    Params: { year: string };
+}
+
+// trial balance, balance sheet and profit and loss of a year, computed from the books
+export const getBooks = async (req: FastifyRequest<GetBooksRoute>, reply: FastifyReply): Promise<FastifyReply> => {
+    const year = Number(req.params.year);
+    if (!Number.isInteger(year) || year < 2000 || year > 2100) return reply.badRequest('Invalid year');
+    return reply.send(await companyBooks(req.companyId, year));
 }

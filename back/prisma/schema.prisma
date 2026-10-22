@@ -65,42 +65,45 @@ enum KsefEnv {
 }
 
 model companies {
-  id        String     @id @default(auto()) @map("_id") @db.ObjectId
+  id        String @id @default(auto()) @map("_id") @db.ObjectId
   name      String
-  tin       String     @default("")
-  address   String     @default("")
-  info      String     @default("")
-  logo      String     @default("")
-  signature String     @default("")
+  tin       String @default("")
+  address   String @default("")
+  info      String @default("")
+  logo      String @default("")
+  signature String @default("")
 
-  country           Country  @default(GE)
+  country                  Country       @default(GE)
   // closed, dissolved and sold companies stay as an archive of their invoices and books
-  status            CompanyStatus @default(active)
+  status                   CompanyStatus @default(active)
   // deprecated: the single KSeF mode before test/live mode, only read by migrations/ksefModes.ts
-  ksefEnv           KsefEnv?
+  ksefEnv                  KsefEnv?
   // AES-256-GCM encrypted KSeF tokens (services/ksef/tokenCrypto.ts), one per environment, like Stripe live/test keys
-  ksefTokenEnc      String?
-  ksefDemoTokenEnc  String?
+  ksefTokenEnc             String?
+  ksefDemoTokenEnc         String?
   // e.g. "Art. 113 ust. 1 ustawy o VAT", printed and sent when items are VAT exempt
-  vatExemptionBasis String   @default("")
+  vatExemptionBasis        String        @default("")
+  // last day the company deducted VAT as an active taxpayer ("" = still active unless vatExemptionBasis is set)
+  vatActiveTo              String        @default("")
   // court register and statistics numbers, printed on Polish invoices of companies
-  krs               String   @default("")
-  regon             String   @default("")
+  krs                      String        @default("")
+  regon                    String        @default("")
   // prefilled on new invoices, e.g. bank account or a note about VAT
-  defaultIssuePlace        String @default("")
-  defaultIssuerName        String @default("")
-  defaultBankAccountNumber String @default("")
-  defaultPublicNote        String @default("")
+  defaultIssuePlace        String        @default("")
+  defaultIssuerName        String        @default("")
+  defaultBankAccountNumber String        @default("")
+  defaultPublicNote        String        @default("")
 
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  users     users[]
-  clients   clients[]
-  invoices  invoices[]
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  users            users[]
+  clients          clients[]
+  invoices         invoices[]
   bankTransactions bankTransactions[]
-  costs     costs[]
-  filings   filings[]
-  documents documents[]
+  costs            costs[]
+  filings          filings[]
+  documents        documents[]
+  journalEntries   journalEntries[]
 }
 
 // Contracts, tax decisions and other company files. A document is either an external link
@@ -262,28 +265,28 @@ model invoices {
   paid                 Float
   paymentDate          String?
   // withheld by a foreign client and paid to its own tax office: the invoice is settled when paid + withholdingTax covers it
-  withholdingTax       Float    @default(0)
+  withholdingTax       Float   @default(0)
   // issued before KSeF (historical, from another program): a final invoice that is never sent to KSeF
-  outsideKsef          Boolean  @default(false)
+  outsideKsef          Boolean @default(false)
 
   // false: test mode invoice, listed only in test mode and sent only to KSeF DEMO (no legal effect)
-  livemode             Boolean  @default(true)
+  livemode Boolean @default(true)
 
-  ksefEnv              KsefEnv?
-  ksefStatus           String?   // 'Accepted' | 'Rejected'
-  ksefReferenceNumber  String?
-  ksefNumber           String?
-  ksefSentAt           DateTime?
-  ksefXml              String?
-  ksefQrUrl            String?
-  ksefError            String?
+  ksefEnv             KsefEnv?
+  ksefStatus          String? // 'Accepted' | 'Rejected'
+  ksefReferenceNumber String?
+  ksefNumber          String?
+  ksefSentAt          DateTime?
+  ksefXml             String?
+  ksefQrUrl           String?
+  ksefError           String?
 
   // name of the agent key that created the invoice through MCP, null when made by a human
-  createdByAgent       String?
+  createdByAgent      String?
   // an agent asked to send it to production KSeF, a human approves (sends) or dismisses it in the app
-  ksefSendRequestedAt  DateTime?
-  ksefSendRequestedBy  String?
-  ksefSendRequestNote  String?
+  ksefSendRequestedAt DateTime?
+  ksefSendRequestedBy String?
+  ksefSendRequestNote String?
 }
 
 // Bookkeeping. Every operation on the company's bank accounts, and how it is booked.
@@ -316,33 +319,33 @@ model bankTransactions {
 
 // Purchase documents: invoices, bills and receipts the company paid
 model costs {
-  id             String    @id @default(auto()) @map("_id") @db.ObjectId
-  company        companies @relation(fields: [companyId], references: [id])
-  companyId      String    @db.ObjectId
+  id              String    @id @default(auto()) @map("_id") @db.ObjectId
+  company         companies @relation(fields: [companyId], references: [id])
+  companyId       String    @db.ObjectId
   // stable id, e.g. a hash of the source file: loading twice adds nothing
-  externalId     String
-  supplierName   String
-  supplierTin    String    @default("")
-  supplierCountry String   @default("PL")
-  number         String    @default("")
-  issueDate      String
-  saleDate       String?
-  currency       String    @default("PLN")
-  net            Float
-  vat            Float     @default(0)
-  gross          Float
+  externalId      String
+  supplierName    String
+  supplierTin     String    @default("")
+  supplierCountry String    @default("PL")
+  number          String    @default("")
+  issueDate       String
+  saleDate        String?
+  currency        String    @default("PLN")
+  net             Float
+  vat             Float     @default(0)
+  gross           Float
   // e.g. hosting, software, equipment, travel, accounting, office, marketing, education, other
-  category       String    @default("other")
+  category        String    @default("other")
   // a service bought from abroad: VAT settled by the company as import of services
-  reverseCharge  Boolean   @default(false)
+  reverseCharge   Boolean   @default(false)
   // where the original is, e.g. "2021.03 Marzec/faktury otrzymane/ovh.pdf"
   // the original uploaded as a company document (private file, downloadable in the app)
-  documentId   String?   @db.ObjectId
-  file           String    @default("")
-  status         String    @default("review")
-  note           String    @default("")
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  documentId      String?   @db.ObjectId
+  file            String    @default("")
+  status          String    @default("review")
+  note            String    @default("")
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
   @@unique([companyId, externalId])
 }
@@ -372,4 +375,45 @@ model filings {
   updatedAt  DateTime  @updatedAt
 
   @@unique([companyId, externalId])
+}
+
+// Hand-made entries of the general ledger: the opening balance, offsets, payroll, write-offs, income tax. Everything else
+// in the ledger is derived from bank operations, costs and invoices (services/books/ledger.ts).
+type JournalLine {
+  account String
+  debit   Float   @default(0)
+  credit  Float   @default(0)
+  // the document a settlement line belongs to, e.g. "cost:<id>" or "invoice:<id>"
+  ref     String?
+}
+
+model journalEntries {
+  id          String        @id @default(auto()) @map("_id") @db.ObjectId
+  company     companies     @relation(fields: [companyId], references: [id])
+  companyId   String        @db.ObjectId
+  // stable id: loading twice adds nothing
+  externalId  String
+  date        String
+  // opening: the opening balance (the books start on its date); entry: any other
+  kind        String        @default("entry")
+  description String
+  lines       JournalLine[]
+  documentId  String?       @db.ObjectId
+  status      String        @default("review")
+  note        String        @default("")
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@unique([companyId, externalId])
+}
+
+// Average NBP rates (table A), the rates the books use for foreign currency
+model nbpRates {
+  id       String @id @default(auto()) @map("_id") @db.ObjectId
+  currency String
+  date     String
+  mid      Float
+  table    String
+
+  @@unique([currency, date])
 }

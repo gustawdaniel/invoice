@@ -46,6 +46,8 @@ import {
     type ClassifyTransactionRoute,
     type UpdateCostRoute,
     type UpdateFilingRoute,
+    getBooks,
+    type GetBooksRoute,
 } from "../controllers/books/books";
 import { mcp } from "../controllers/agents/mcp";
 import {
@@ -130,6 +132,7 @@ export default function indexRoute(
     server.put<UpdateCostRoute>('/costs/:id', SECRET, updateCost);
     server.get('/filings', SECRET, listFilings);
     server.put<UpdateFilingRoute>('/filings/:id', SECRET, updateFiling);
+    server.get<GetBooksRoute>('/books/:year', SECRET, getBooks);
 
     // company documents: private files in Spaces or external links (e.g. Google Drive)
     server.get('/documents', SECRET, listDocuments);

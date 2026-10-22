@@ -18,6 +18,8 @@ import {optionalFields} from "./optionalFields";
 import {lookupNip} from "../mf/whiteList";
 import {randomUUID} from "node:crypto";
 import {putPrivateObject} from "../s3";
+import {companyBooks, companyLedger} from "../books/companyLedger";
+import {ACCOUNTS} from "../books/accounts";
 import {DOCUMENT_KINDS, DOCUMENT_MAX_BYTES, DOCUMENT_MIME} from "../documents/kinds";
 
 // What an agent (MCP client with an agent key) may do on behalf of its user. Agents prepare data; anything that
@@ -187,6 +189,8 @@ export function createMcpServer(ctx: AgentContext): McpServer {
                 .describe('suspended: no activity for now; closed, dissolved (struck off) and sold companies stay as an archive'),
             info: z.string().optional().describe('Extra lines printed under the company, e.g. bank details'),
             vat_exemption_basis: z.string().optional(),
+            vat_active_to: z.string().optional()
+                .describe('Last day the company deducted VAT as an active taxpayer (YYYY-MM-DD), "" while still active'),
             krs: z.string().optional(),
             regon: z.string().optional(),
             default_issue_place: z.string().optional().describe('Prefilled on new invoices'),
@@ -194,7 +198,7 @@ export function createMcpServer(ctx: AgentContext): McpServer {
             default_bank_account_number: z.string().optional().describe('Prefilled on new invoices'),
             default_public_note: z.string().optional().describe('Prefilled on new invoices, e.g. a note about VAT'),
         },
-    }, async ({company_id, vat_exemption_basis, default_issue_place, default_issuer_name,
+    }, async ({company_id, vat_exemption_basis, vat_active_to, default_issue_place, default_issuer_name,
                   default_bank_account_number, default_public_note, ...fields}) => {
         const company = await requireCompany(ctx, company_id);
         if (fields.tin !== undefined && fields.tin !== company.tin && (company.ksefTokenEnc || company.ksefDemoTokenEnc)) {
@@ -205,6 +209,7 @@ export function createMcpServer(ctx: AgentContext): McpServer {
             data: {
                 ...fields,
                 vatExemptionBasis: vat_exemption_basis,
+                vatActiveTo: vat_active_to,
                 defaultIssuePlace: default_issue_place,
                 defaultIssuerName: default_issuer_name,
                 defaultBankAccountNumber: default_bank_account_number,
@@ -522,6 +527,94 @@ export function createMcpServer(ctx: AgentContext): McpServer {
     }, async ({company_id}) => {
         await requireCompany(ctx, company_id);
         return json(await prisma.filings.findMany({where: {companyId: company_id}, orderBy: [{dueDate: 'asc'}, {externalId: 'asc'}]}));
+    });
+
+    const LINE = z.object({
+        account: z.string().min(3).describe('Account, e.g. 130-1652, 201, 240-WSP, 403 (see get_books for the chart)'),
+        debit: z.number().min(0).default(0),
+        credit: z.number().min(0).default(0),
+        ref: z.string().optional().describe('Document a settlement line belongs to: "cost:<id>" or "invoice:<id>"'),
+    });
+
+    server.registerTool('upsert_journal_entries', {
+        description: 'Add hand-made entries to the general ledger (idempotent by external_id): the opening balance '
+            + '(kind "opening", the books start on its date), offsets, payroll, write-offs, income tax. Bank operations, '
+            + 'costs and invoices are booked automatically, do not book them again. Each entry must balance. '
+            + 'An entry the human confirmed is not changed.',
+        inputSchema: {
+            company_id: z.string(),
+            entries: z.array(z.object({
+                external_id: z.string().min(1),
+                date: DATE,
+                kind: z.enum(['opening', 'entry']).default('entry'),
+                description: z.string().min(1),
+                lines: z.array(LINE).min(2).max(500),
+                document_id: z.string().optional(),
+                status: AGENT_STATUS.optional(),
+                note: z.string().optional(),
+            })).min(1).max(200),
+        },
+    }, async ({company_id, entries}) => {
+        await requireCompany(ctx, company_id);
+        let saved = 0, kept = 0;
+        for (const e of entries) {
+            const balance = Math.round(e.lines.reduce((s, l) => s + l.debit - l.credit, 0) * 100) / 100;
+            if (balance) throw new Error(`${e.external_id}: debit and credit differ by ${balance}`);
+            const key = {companyId_externalId: {companyId: company_id, externalId: e.external_id}};
+            const current = await prisma.journalEntries.findUnique({where: key, select: {status: true}});
+            if (current?.status === 'confirmed') { kept++; continue; }
+            const data = {date: e.date, kind: e.kind, description: e.description,
+                lines: e.lines.map((l) => ({account: l.account, debit: l.debit, credit: l.credit, ref: l.ref ?? null})),
+                documentId: e.document_id, status: e.status ?? 'auto', note: e.note ?? ''};
+            if (current) await prisma.journalEntries.update({where: key, data});
+            else await prisma.journalEntries.create({data: {...data, companyId: company_id, externalId: e.external_id}});
+            saved++;
+        }
+        return json({saved, keptHumanDecisions: kept});
+    });
+
+    server.registerTool('list_journal_entries', {
+        description: 'Hand-made entries of the general ledger',
+        inputSchema: {company_id: z.string(), from: DATE.optional(), to: DATE.optional()},
+        annotations: {readOnlyHint: true},
+    }, async ({company_id, from, to}) => {
+        await requireCompany(ctx, company_id);
+        return json(await prisma.journalEntries.findMany({
+            where: {companyId: company_id, date: {gte: from, lte: to}}, orderBy: [{date: 'asc'}, {externalId: 'asc'}],
+        }));
+    });
+
+    server.registerTool('delete_journal_entries', {
+        description: 'Remove hand-made entries an agent added by mistake, by external_id. Confirmed entries are kept.',
+        inputSchema: {company_id: z.string(), external_ids: z.array(z.string().min(1)).min(1).max(200)},
+        annotations: {destructiveHint: true},
+    }, async ({company_id, external_ids}) => {
+        await requireCompany(ctx, company_id);
+        const removed = await prisma.journalEntries.deleteMany({
+            where: {companyId: company_id, externalId: {in: external_ids}, status: {not: 'confirmed'}},
+        });
+        return json({deleted: removed.count});
+    });
+
+    server.registerTool('get_books', {
+        description: 'The books of a year computed from bank operations, costs, invoices and journal entries: trial '
+            + 'balance (zestawienie obrotów i sald), balance sheet and profit and loss in the lines of the MF schema '
+            + '(JednostkaInna), checks and warnings. With account: the postings of that account (account card).',
+        inputSchema: {
+            company_id: z.string(),
+            year: z.number().int().min(2000).max(2100),
+            account: z.string().optional().describe('Account or prefix, e.g. 240-WSP or 201'),
+        },
+        annotations: {readOnlyHint: true},
+    }, async ({company_id, year, account}) => {
+        await requireCompany(ctx, company_id);
+        if (!account) return json({...await companyBooks(company_id, year), chart: ACCOUNTS});
+        const {postings} = await companyLedger(company_id);
+        const card = postings
+            .filter((p) => p.date <= `${year}-12-31`)
+            .flatMap((p) => p.lines.filter((l) => l.account === account || l.account.startsWith(`${account}-`))
+                .map((l) => ({date: p.date, source: p.source, description: p.description, ...l})));
+        return json(card);
     });
 
     server.registerTool('list_documents', {
