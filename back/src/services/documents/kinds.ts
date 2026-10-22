@@ -16,6 +16,7 @@ export const DOCUMENT_MIME = [
     'image/jpeg',
     'image/webp',
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/xml', // e.g. a financial statement or a JPK file
 ] as const;
 
 export const DOCUMENT_KIND_LABEL: Record<DocumentKind, string> = {

@@ -17,7 +17,9 @@ import {sendStoredInvoice} from "../ksef/sendStoredInvoice";
 import {optionalFields} from "./optionalFields";
 import {lookupNip} from "../mf/whiteList";
 import {randomUUID} from "node:crypto";
-import {putPrivateObject} from "../s3";
+import {getObject, putPrivateObject} from "../s3";
+import {statementXml} from "../books/statementXml";
+import {statement as bookStatement} from "../books/ledger";
 import {companyBooks, companyLedger} from "../books/companyLedger";
 import {ACCOUNTS} from "../books/accounts";
 import {DOCUMENT_KINDS, DOCUMENT_MAX_BYTES, DOCUMENT_MIME} from "../documents/kinds";
@@ -615,6 +617,68 @@ export function createMcpServer(ctx: AgentContext): McpServer {
             .flatMap((p) => p.lines.filter((l) => l.account === account || l.account.startsWith(`${account}-`))
                 .map((l) => ({date: p.date, source: p.source, description: p.description, ...l})));
         return json(card);
+    });
+
+    const STATEMENT_LINES = z.record(z.string(), z.number());
+
+    server.registerTool('build_financial_statement', {
+        description: 'Build the annual financial statement XML for KRS (MF structure JednostkaInnaWZlotych) from the books '
+            + 'of the year (see get_books): balance sheet, profit and loss, introduction, and the additional information '
+            + 'as a PDF company document. Saved as a private company document for the human to check, sign and file; '
+            + 'nothing is sent anywhere. previous: the figures of the year before when the books start this year.',
+        inputSchema: {
+            company_id: z.string(),
+            year: z.number().int().min(2000).max(2100),
+            prepared_on: DATE,
+            header: z.object({
+                name: z.string(),
+                seat: z.object({wojewodztwo: z.string(), powiat: z.string(), gmina: z.string(), miejscowosc: z.string()}),
+                address: z.object({wojewodztwo: z.string(), powiat: z.string(), gmina: z.string(), ulica: z.string().optional(),
+                    nr_domu: z.string(), nr_lokalu: z.string().optional(), miejscowosc: z.string(), kod_pocztowy: z.string(), poczta: z.string()}),
+                pkd: z.string().describe('Main PKD, e.g. 6201Z'),
+                nip: z.string(),
+                krs: z.string().optional(),
+            }),
+            going_concern: z.object({assumed: z.boolean(), no_threats: z.boolean(), threats: z.string().optional()}),
+            policies: z.object({A: z.array(z.string().min(1)).min(1), B: z.string().min(1), C: z.string().min(1), D: z.string().optional()})
+                .describe('P_7: A accounting policies (one or more texts), B how the result is set, C how the statement is made, D other'),
+            previous: z.object({bilans: STATEMENT_LINES, rzis: STATEMENT_LINES}).optional(),
+            additional_info_document_id: z.string().describe('Company document with the additional information (PDF)'),
+            additional_info_description: z.string().default('Informacja dodatkowa'),
+            return_xml: z.boolean().default(false),
+        },
+    }, async (args) => {
+        const company = await requireCompany(ctx, args.company_id);
+        const books = await companyBooks(company.id, args.year);
+        const previous = args.previous ?? (await (async () => {
+            const {postings} = await companyLedger(company.id);
+            const s = bookStatement(postings, args.year - 1);
+            return {bilans: s.bilans, rzis: s.rzis};
+        })());
+        const info = await prisma.documents.findFirst({where: {id: args.additional_info_document_id, companyId: company.id}});
+        if (!info?.storageKey) throw new Error('The additional information document has no file');
+        const object = await getObject(info.storageKey);
+        const pdf = Buffer.from(await object.Body!.transformToByteArray()).toString('base64');
+        const h = args.header;
+        const xml = statementXml({
+            header: {name: h.name, seat: h.seat, pkd: h.pkd, nip: h.nip, krs: h.krs,
+                address: {...h.address, nrDomu: h.address.nr_domu, nrLokalu: h.address.nr_lokalu, kodPocztowy: h.address.kod_pocztowy}},
+            from: `${args.year}-01-01`, to: `${args.year}-12-31`, preparedOn: args.prepared_on,
+            goingConcern: {assumed: args.going_concern.assumed, noThreats: args.going_concern.no_threats, threats: args.going_concern.threats},
+            policies: args.policies,
+            current: {bilans: books.statement.bilans, rzis: books.statement.rzis},
+            previous,
+            additionalInfo: {description: args.additional_info_description, fileName: info.fileName, base64: pdf},
+        });
+        const fileName = `sprawozdanie-finansowe-${args.year}.xml`;
+        const storageKey = `invoice/documents/${company.id}/${randomUUID()}-${fileName}`;
+        const body = Buffer.from(xml, 'utf8');
+        await putPrivateObject({Key: storageKey, Body: body, ContentType: 'application/xml', ContentLength: body.length});
+        const document = await prisma.documents.create({data: {companyId: company.id, title: `Sprawozdanie finansowe ${args.year} (XML do podpisu)`,
+            kind: 'accounting', storageKey, fileName, mimeType: 'application/xml', size: body.length,
+            note: `Wygenerowane z ksiąg ${new Date().toISOString().slice(0, 10)}; do sprawdzenia i podpisu przez zarząd`}});
+        return json({document_id: document.id, bilans: books.statement.bilans, rzis: books.statement.rzis, previous,
+            checks: books.statement.checks, warnings: books.warnings, ...(args.return_xml ? {xml} : {})});
     });
 
     server.registerTool('list_documents', {
