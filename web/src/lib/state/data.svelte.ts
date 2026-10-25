@@ -1,3 +1,4 @@
+import dayjs from 'dayjs';
 import { clientFromApi, fromApi, toApi } from '../invoice';
 import type { AgentKey, BankTransaction, Client, Company, CompanyDocument, Cost, DocumentKind, ExchangeRate, Filing, Invoice, KsefEnv, NipLookup, User } from '../types';
 import { api } from './api';
@@ -54,6 +55,12 @@ class Data {
 	// agent requests a human has to approve or dismiss
 	get waiting() {
 		return this.invoices.filter((inv) => inv.ksefSendRequestedAt && !inv.ksefNumber);
+	}
+
+	// scheduled drafts whose day has come: a human sends them to KSeF
+	get dueToday() {
+		const today = dayjs().format('YYYY-MM-DD');
+		return this.invoices.filter((inv) => !inv.ksefNumber && !inv.outsideKsef && !inv.ksefSendRequestedAt && inv.issueDate === today);
 	}
 
 	// bank operations the agent could not classify

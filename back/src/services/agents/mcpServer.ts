@@ -784,7 +784,9 @@ export function createMcpServer(ctx: AgentContext): McpServer {
 
     server.registerTool('create_invoice_draft', {
         description: 'Create an invoice draft. It is not sent anywhere; the user sees it in the app marked as made by '
-            + 'this agent. With test_mode it is a test invoice, visible in the test mode of the app.',
+            + 'this agent. With test_mode it is a test invoice, visible in the test mode of the app. '
+            + 'An issue_date in the future schedules it: the draft waits, shows up in the inbox of the app on that day and '
+            + 'the user sends it to KSeF then (not earlier). Use it for recurring invoices agreed in advance, one draft per month.',
         inputSchema: {
             company_id: z.string(),
             test_mode: z.boolean().default(false).describe('Test invoice: no legal effect, can go only to KSeF DEMO'),

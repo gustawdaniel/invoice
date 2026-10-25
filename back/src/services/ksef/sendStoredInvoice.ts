@@ -4,6 +4,9 @@ import {getErrorMessage} from "../../helpers/getErrorMessage";
 import {buildFa3} from "./buildFa3";
 import {envForLivemode, sendInvoiceToKsef} from "./ksef";
 
+// YYYY-MM-DD in Warsaw, whatever the server's time zone
+export const todayInPoland = (now = new Date()) => new Intl.DateTimeFormat('sv-SE', {timeZone: 'Europe/Warsaw'}).format(now);
+
 export type SendFailure = 'notFound' | 'conflict' | 'invalid' | 'rejected' | 'unavailable';
 
 export class SendInvoiceError extends Error {
@@ -23,6 +26,8 @@ export async function sendStoredInvoice(invoiceId: string, companyId: string) {
     if (!invoice) throw new SendInvoiceError('Invoice not found', 'notFound');
     if (invoice.ksefNumber) throw new SendInvoiceError(`Invoice is already in KSeF as ${invoice.ksefNumber}`, 'conflict');
     if (invoice.outsideKsef) throw new SendInvoiceError('Invoice was issued outside KSeF (before it applied), it is never sent', 'conflict');
+    // a scheduled invoice: KSeF takes the day it receives an invoice as the day it was issued
+    if (invoice.issueDate > todayInPoland()) throw new SendInvoiceError(`Invoice is scheduled for ${invoice.issueDate}, send it on that day`, 'conflict');
 
     let xml: string;
     try {

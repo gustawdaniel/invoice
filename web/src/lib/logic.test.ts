@@ -44,6 +44,7 @@ function invoice(overrides: Partial<Invoice> = {}): Invoice {
 		id: 'i1',
 		clientId: patronad.id,
 		client: patronad,
+		issueDate: '2026-10-17',
 		items: [{ name: 'Consulting', unit: 'service', quantity: 1, priceNet: 12000, vat: { name: 'zw.', value: 0 } }],
 		...overrides
 	};
@@ -102,6 +103,14 @@ describe('status', () => {
 		expect(status(invoice(), true, today)).toBe('draft');
 		expect(status(invoice({ ksefSendRequestedAt: '2026-10-17T12:00:00Z' }), true, today)).toBe('approval');
 		expect(status(invoice({ ksefError: 'bad' }), true, today)).toBe('error');
+		// paid in advance, still to be sent
+		expect(status(invoice({ paid: 12000 }), true, today)).toBe('draft');
+	});
+	it('is scheduled until its issue date', () => {
+		expect(status(invoice({ issueDate: '2026-11-01' }), true, today)).toBe('scheduled');
+		expect(status(invoice({ issueDate: '2026-11-01' }), true, '2026-11-01')).toBe('draft');
+		expect(status(invoice({ issueDate: '2026-11-01' }), false, today)).toBe('scheduled');
+		expect(status(invoice({ issueDate: '2026-11-01', ksefSendRequestedAt: '2026-10-17T12:00:00Z' }), true, today)).toBe('approval');
 	});
 	it('tracks payment once issued', () => {
 		const issued = { ksefNumber: '5272923603-20261017-ABC' };

@@ -2,7 +2,7 @@ import { gross, status, type Status } from './invoice';
 import type { Invoice } from './types';
 
 // query language of the invoice list: free text plus filters, "-" negates a filter
-//   is:unpaid|paid|overdue|draft|approval|error|partial|ksef  client:acme  month:2026-10  year:2025
+//   is:unpaid|paid|overdue|draft|scheduled|approval|error|partial|ksef  client:acme  month:2026-10  year:2025
 //   cur:EUR  by:agent|me|<agent name>  >10000  <500
 export interface Filter {
 	key: string;

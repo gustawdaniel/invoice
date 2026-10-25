@@ -7,6 +7,7 @@
 	const tone: Record<Status, string> = {
 		approval: 'bg-warn-soft text-warn',
 		error: 'bg-bad-soft text-bad',
+		scheduled: 'bg-accent-soft text-accent-ink',
 		draft: 'bg-sunken text-muted',
 		paid: 'bg-ok-soft text-ok',
 		partial: 'bg-warn-soft text-warn',
@@ -14,7 +15,7 @@
 		unpaid: 'bg-sunken text-ink'
 	};
 	const label = $derived(
-		status === 'overdue' ? `Overdue ${daysOverdue(invoice)}d` : status === 'paid' && invoice.ksefNumber ? 'In KSeF · paid' : invoice.ksefNumber && status === 'unpaid' ? 'In KSeF · unpaid' : STATUS_LABEL[status]
+		status === 'overdue' ? `Overdue ${daysOverdue(invoice)}d` : status === 'scheduled' ? `Scheduled ${invoice.issueDate}` : status === 'paid' && invoice.ksefNumber ? 'In KSeF · paid' : invoice.ksefNumber && status === 'unpaid' ? 'In KSeF · unpaid' : STATUS_LABEL[status]
 	);
 </script>
 

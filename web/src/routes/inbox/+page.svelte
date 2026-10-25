@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import dayjs from 'dayjs';
 	import { daysOverdue, gross, money, status } from '#lib/invoice.js';
 	import { sortInvoices } from '#lib/search.js';
 	import { data } from '#lib/state/data.svelte.js';
@@ -12,7 +13,7 @@
 	import Kbd from '#lib/ui/Kbd.svelte';
 	import KsefSend from '#lib/ui/KsefSend.svelte';
 
-	type Kind = 'request' | 'rejected' | 'agent-draft' | 'overdue' | 'draft';
+	type Kind = 'request' | 'today' | 'rejected' | 'agent-draft' | 'overdue' | 'draft' | 'scheduled';
 	interface Entry {
 		kind: Kind;
 		invoice: Invoice;
@@ -22,11 +23,17 @@
 	const lang = $derived(data.company.country === 'PL' ? 'pl' : 'en');
 	const title: Record<Kind, string> = {
 		request: 'Agents ask to send to KSeF',
+		today: 'Scheduled for today',
 		rejected: 'Rejected by KSeF',
 		'agent-draft': 'Drafted by agents',
 		overdue: 'Overdue',
-		draft: 'Your drafts not in KSeF'
+		draft: 'Your drafts not in KSeF',
+		scheduled: 'Coming up'
 	};
+
+	// scheduled drafts show up a month ahead, so the next ones are in sight
+	const today = dayjs().format('YYYY-MM-DD');
+	const horizon = dayjs().add(35, 'day').format('YYYY-MM-DD');
 
 	// one list of everything that waits for a human, most urgent first
 	const entries = $derived.by<Entry[]>(() => {
@@ -35,13 +42,15 @@
 			const current = status(invoice, data.usesKsef);
 			const amount = `${money(gross(invoice), lang)} ${invoice.currency}`;
 			if (current === 'approval') result.push({ kind: 'request', invoice, text: `${invoice.ksefSendRequestedBy ?? 'An agent'}: ${invoice.ksefSendRequestNote || `send ${invoice.number}`} — ${amount}` });
+			else if (current === 'draft' && invoice.issueDate === today) result.push({ kind: 'today', invoice, text: `issue today — ${amount}` });
+			else if (current === 'scheduled' && invoice.issueDate <= horizon) result.push({ kind: 'scheduled', invoice, text: `on ${invoice.issueDate} — ${amount}` });
 			else if (current === 'error') result.push({ kind: 'rejected', invoice, text: invoice.ksefError ?? 'rejected' });
 			else if (current === 'draft' && invoice.createdByAgent) result.push({ kind: 'agent-draft', invoice, text: `${invoice.createdByAgent} drafted it — ${amount}` });
 			else if (current === 'overdue') result.push({ kind: 'overdue', invoice, text: `${daysOverdue(invoice)} days after ${invoice.deadlineDate} — ${amount}` });
 			else if (current === 'draft') result.push({ kind: 'draft', invoice, text: `issued ${invoice.issueDate} — ${amount}` });
 		}
-		const order: Kind[] = ['request', 'rejected', 'agent-draft', 'overdue', 'draft'];
-		return result.sort((a, b) => order.indexOf(a.kind) - order.indexOf(b.kind));
+		const order: Kind[] = ['request', 'today', 'rejected', 'agent-draft', 'overdue', 'draft', 'scheduled'];
+		return result.sort((a, b) => order.indexOf(a.kind) - order.indexOf(b.kind) || (a.kind === 'scheduled' ? a.invoice.issueDate.localeCompare(b.invoice.issueDate) : 0));
 	});
 
 	let selectedId = $state<string | null>(null);
@@ -64,6 +73,7 @@
 
 	function send(invoice: Invoice | undefined) {
 		if (!invoice || invoice.ksefNumber || !data.usesKsef) return;
+		if (invoice.issueDate > today) return toasts.show('Scheduled', `${invoice.number} goes to KSeF on ${invoice.issueDate}, its issue date.`, 'warn');
 		if (!data.ksefConnected) toasts.show('KSeF is not connected', 'Connect it on the Company page (gs).', 'warn');
 		else sending = invoice;
 	}
@@ -125,7 +135,7 @@
 		{#if !entries.length}
 			<div class="rounded-lg border border-line bg-panel px-6 py-12 text-center">
 				<p class="font-medium">Nothing waits for you</p>
-				<p class="mt-1 text-[13px] text-muted">No agent requests, no rejected or overdue invoices.</p>
+				<p class="mt-1 text-[13px] text-muted">No agent requests, no invoices to issue today, no rejected or overdue ones.</p>
 			</div>
 		{:else}
 			<ul class="overflow-hidden rounded-lg border border-line bg-panel">

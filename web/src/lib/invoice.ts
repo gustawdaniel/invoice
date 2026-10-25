@@ -221,11 +221,12 @@ export function outstanding(invoice: Invoice): number {
 	return Math.max(0, Math.round((gross(invoice) - settled(invoice)) * 100) / 100);
 }
 
-export type Status = 'approval' | 'error' | 'draft' | 'paid' | 'partial' | 'overdue' | 'unpaid';
+export type Status = 'approval' | 'error' | 'scheduled' | 'draft' | 'paid' | 'partial' | 'overdue' | 'unpaid';
 
 export const STATUS_LABEL: Record<Status, string> = {
 	approval: 'Awaiting approval',
 	error: 'KSeF rejected',
+	scheduled: 'Scheduled',
 	draft: 'Draft',
 	paid: 'Paid',
 	partial: 'Partly paid',
@@ -233,15 +234,17 @@ export const STATUS_LABEL: Record<Status, string> = {
 	unpaid: 'Unpaid'
 };
 
-// a Polish invoice exists legally once it is in KSeF; a Georgian one once it is issued
+// a Polish invoice exists legally once it is in KSeF (even when the client paid in advance); a Georgian one once it is
+// issued. A draft with a future issue date is scheduled: it waits for its day, then a human sends it.
 export function status(invoice: Invoice, usesKsef: boolean, today = dayjs().format('YYYY-MM-DD')): Status {
-	const total = gross(invoice);
-	if (total > 0 && settled(invoice) >= total - 0.005) return 'paid';
 	if (usesKsef && !invoice.ksefNumber && !invoice.outsideKsef) {
 		if (invoice.ksefSendRequestedAt) return 'approval';
 		if (invoice.ksefError) return 'error';
-		return 'draft';
+		return invoice.issueDate > today ? 'scheduled' : 'draft';
 	}
+	if (!usesKsef && invoice.issueDate > today) return 'scheduled';
+	const total = gross(invoice);
+	if (total > 0 && settled(invoice) >= total - 0.005) return 'paid';
 	if (invoice.paid > 0) return 'partial';
 	if (invoice.deadlineDate < today) return 'overdue';
 	return 'unpaid';

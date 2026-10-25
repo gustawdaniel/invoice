@@ -82,7 +82,9 @@
 	{/if}
 
 	<div class="grid grid-cols-2 gap-1.5">
-		{#if canSend}
+		{#if canSend && current === 'scheduled'}
+			<p class="col-span-2 rounded-md bg-accent-soft px-3 py-2 text-[13px] text-accent-ink">Scheduled: it shows up in the inbox on {invoice.issueDate}, to send to KSeF that day.</p>
+		{:else if canSend}
 			<button class="btn-primary col-span-2" disabled={!data.ksefConnected} title={data.ksefConnected ? '' : 'Connect KSeF on the Company page'} onclick={onsend}>
 				{invoice.ksefSendRequestedAt ? 'Approve & send to KSeF' : invoice.livemode ? 'Send to KSeF' : 'Send to KSeF DEMO'} <Kbd keys="a" tone="inverse" />
 			</button>
