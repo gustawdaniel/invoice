@@ -26,8 +26,11 @@ describe('statementXml', () => {
         expect(xml).toMatch(/<jin:Aktywa>\s*<dtsf:KwotaA>100\.00<\/dtsf:KwotaA>\s*<dtsf:KwotaB>50\.00</);
     });
 
-    it('refuses years that need the newer MF structure', () => {
+    it('uses the structure of the year and refuses the years of the new template', () => {
         expect(schemaVersion('2023-01-01')).toBe('1-2');
-        expect(() => statementXml({...input, from: '2024-01-01', to: '2024-12-31'})).toThrow(/1-3/);
+        const xml = statementXml({...input, from: '2024-01-01', to: '2024-12-31'});
+        expect(xml).toContain('wersjaSchemy="1-3"');
+        expect(xml).toContain('DefinicjeTypySprawozdaniaFinansowe/2025/01/01/JednostkaInnaWZlotych');
+        expect(() => statementXml({...input, from: '2025-01-01', to: '2025-12-31'})).toThrow(/SFJINZ\(2\)/);
     });
 });

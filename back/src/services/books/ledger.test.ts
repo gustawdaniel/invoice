@@ -92,6 +92,17 @@ describe('ledger', () => {
         expect(s.bilans.Pasywa_B_III_3_G).toBe(9.2);
     });
 
+    it('shows a write-down of receivables as revaluation of non-financial assets, net in the balance sheet', () => {
+        const {postings} = buildPostings(base({
+            journal: [opening, {externalId: 'writeoff', date: '2022-09-30', kind: 'entry', description: 'Odpis',
+                lines: [{account: '761-ODP', debit: 500, credit: 0}, {account: '290', debit: 0, credit: 500}]}],
+        }));
+        const s = statement(postings, 2022);
+        expect([s.rzis.E_II, s.rzis.E_III, s.rzis.E]).toEqual([500, 0, 500]);
+        expect(s.bilans.Aktywa_B_II_3_A_1 ?? 0).toBe(0);
+        expect(s.bilans.Aktywa).toBe(s.bilans.Pasywa);
+    });
+
     it('shows the opening balance as the opening of its year', () => {
         const {postings} = buildPostings(base({journal: [opening]}));
         const bank = trialBalance(postings, 2022).rows.find((r) => r.account === '130-1652')!;

@@ -314,8 +314,10 @@ function sumTree(values: Record<string, number>, tree: Record<string, string[]>,
 export function statement(postings: Posting[], year: number): Statement {
     const {rows, refs} = trialBalance(postings, year);
     const rzis: Record<string, number> = {};
+    const lineOf = (account: string) => RZIS_LINES.find((l) => l.accounts.includes(account))
+        ?? RZIS_LINES.find((l) => l.accounts.includes(synthetic(account)));
     for (const line of RZIS_LINES) {
-        rzis[line.key] = round(rows.filter((r) => line.accounts.includes(synthetic(r.account)))
+        rzis[line.key] = round(rows.filter((r) => lineOf(r.account) === line)
             .reduce((s, r) => s + line.sign * (r.debit - r.credit), 0));
     }
     for (const key of Object.keys(RZIS_TREE)) sumTree(rzis, RZIS_TREE, key);

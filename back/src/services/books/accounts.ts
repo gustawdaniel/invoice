@@ -58,7 +58,8 @@ export const COST_ACCOUNT: Record<string, string> = {
 };
 
 // Profit and loss, comparative variant (załącznik nr 1 do ustawy o rachunkowości), element names of the MF schema
-// JednostkaInna: each line is the sum of turnovers (Ct − Dt for revenue, Dt − Ct for costs) of its accounts
+// JednostkaInna: each line is the sum of turnovers (Ct − Dt for revenue, Dt − Ct for costs) of its accounts; an analytic
+// account listed on a line (761-ODP: write-downs of receivables) goes there instead of the line of its synthetic one
 export const RZIS_LINES: { key: string; label: string; accounts: string[]; sign: 1 | -1 }[] = [
     {key: 'A_I', label: 'Przychody netto ze sprzedaży produktów', accounts: ['700'], sign: -1},
     {key: 'B_I', label: 'Amortyzacja', accounts: ['401'], sign: 1},
@@ -69,6 +70,7 @@ export const RZIS_LINES: { key: string; label: string; accounts: string[]; sign:
     {key: 'B_VI', label: 'Ubezpieczenia społeczne i inne świadczenia', accounts: ['406'], sign: 1},
     {key: 'B_VII', label: 'Pozostałe koszty rodzajowe', accounts: ['409'], sign: 1},
     {key: 'D_IV', label: 'Inne przychody operacyjne', accounts: ['760'], sign: -1},
+    {key: 'E_II', label: 'Aktualizacja wartości aktywów niefinansowych', accounts: ['761-ODP'], sign: 1},
     {key: 'E_III', label: 'Inne koszty operacyjne', accounts: ['761'], sign: 1},
     {key: 'G_V', label: 'Inne przychody finansowe', accounts: ['750'], sign: -1},
     {key: 'H_IV', label: 'Inne koszty finansowe', accounts: ['751'], sign: 1},
@@ -126,7 +128,7 @@ export const RZIS_TREE: Record<string, string[]> = {
     A: ['A_I'],
     B: ['B_I', 'B_II', 'B_III', 'B_IV', 'B_V', 'B_VI', 'B_VII'],
     D: ['D_IV'],
-    E: ['E_III'],
+    E: ['E_II', 'E_III'],
     G: ['G_V'],
     H: ['H_IV'],
 };

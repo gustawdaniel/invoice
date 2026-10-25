@@ -1,6 +1,7 @@
 // The financial statement of a company that is not micro or small ("jednostka inna", załącznik nr 1 do ustawy
 // o rachunkowości) as the XML the court register (KRS) accepts: the MF logical structure JednostkaInnaWZlotych.
-// Version 1-2 is for years that began before 2024, 1-3 for later ones (structures published by MF in November 2024).
+// Version 1-2 is for years that began before 2024, 1-3 for 2024 (structures published by MF in November 2024); years
+// from 2025 use the new template SFJINZ(2) with the amended profit and loss, not supported yet.
 import {create} from "xmlbuilder2";
 
 export interface StatementHeader {
@@ -38,11 +39,19 @@ const NS = {
         location: 'https://www.gov.pl/documents/2034621/2182793/JednostkaInnaWZlotych%281%29_v1-2.xsd',
         code: 'SFJINZ (1)',
     },
+    '1-3': {
+        root: 'http://www.mf.gov.pl/schematy/SF/DefinicjeTypySprawozdaniaFinansowe/2025/01/01/JednostkaInnaWZlotych',
+        dtsf: 'http://www.mf.gov.pl/schematy/SF/DefinicjeTypySprawozdaniaFinansowe/2018/07/09/DefinicjeTypySprawozdaniaFinansowe/',
+        jin: 'http://www.mf.gov.pl/schematy/SF/DefinicjeTypySprawozdaniaFinansowe/2025/01/01/JednostkaInnaStruktury',
+        etd: 'http://crd.gov.pl/xml/schematy/dziedzinowe/mf/2016/01/25/eD/DefinicjeTypy/',
+        location: 'https://www.gov.pl/static/finanse/SF/DefinicjeTypySprawozdaniaFinansowe/2024/10/24/JednostkaInnaWZlotych(1)_v1-3.xsd',
+        code: 'SFJINZ (1)',
+    },
 } as const;
 
 export function schemaVersion(from: string): keyof typeof NS {
-    if (from >= '2024-01-01') throw new Error('Years from 2024 use the MF structure 1-3, not supported yet');
-    return '1-2';
+    if (from >= '2025-01-01') throw new Error('Years from 2025 use the MF template SFJINZ(2), not supported yet');
+    return from >= '2024-01-01' ? '1-3' : '1-2';
 }
 
 const ROMAN: Record<string, number> = {I: 1, II: 2, III: 3, IV: 4, V: 5, VI: 6, VII: 7, VIII: 8, IX: 9, X: 10};
