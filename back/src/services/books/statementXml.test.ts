@@ -31,6 +31,18 @@ describe('statementXml', () => {
         const xml = statementXml({...input, from: '2024-01-01', to: '2024-12-31'});
         expect(xml).toContain('wersjaSchemy="1-3"');
         expect(xml).toContain('DefinicjeTypySprawozdaniaFinansowe/2025/01/01/JednostkaInnaWZlotych');
-        expect(() => statementXml({...input, from: '2025-01-01', to: '2025-12-31'})).toThrow(/SFJINZ\(2\)/);
+    });
+
+    it('writes years from 2025 as the SFJINZ(2) document: envelope, legal form, head count, choices as 1/2', () => {
+        expect(schemaVersion('2025-01-01')).toBe('2');
+        const xml = statementXml({...input, from: '2025-01-01', to: '2025-12-31'});
+        expect(xml).toMatch(/^<\?xml[^>]*>\s*<Dokument xmlns="http:\/\/crd.gov.pl\/wzor\/2025\/08\/07\/13817\/"/);
+        expect(xml).toContain('kodSystemowy="SFJINZ (2)" wersjaSchemy="1-0E"');
+        expect(xml).toMatch(/<P_1B>\s*<FormaPrawna>17</);
+        expect(xml).toMatch(/<dtsf:AdresPol>\s*<dtsf:KodKraju>PL</);
+        expect(xml).not.toContain('Poczta');
+        expect(xml).toContain('<P_5A>1</P_5A>');
+        expect(xml).toContain('<P_8>0.00</P_8>');
+        expect(xml).toContain('<jin:Aktywa_B_III_1_C_1>');
     });
 });
