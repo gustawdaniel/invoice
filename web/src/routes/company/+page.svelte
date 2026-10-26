@@ -28,6 +28,21 @@
 	]);
 	const ready = $derived(steps.every((s) => s.done || s.optional));
 
+	let myAddress = $state(data.me?.eDeliveryAddress ?? '');
+	$effect(() => {
+		myAddress = data.me?.eDeliveryAddress ?? '';
+	});
+
+	async function saveMe(event: SubmitEvent) {
+		event.preventDefault();
+		try {
+			await data.saveMe({ eDeliveryAddress: myAddress.trim() });
+			toasts.ok('Saved', 'Your e-Delivery address');
+		} catch (error) {
+			toasts.error('Could not save', error);
+		}
+	}
+
 	async function save(event?: SubmitEvent) {
 		event?.preventDefault();
 		if (!form.name.trim()) return toasts.show('The company needs a name', undefined, 'warn');
@@ -170,6 +185,10 @@
 					<input id="c-regon" bind:value={form.regon} class="field font-mono" />
 				</div>
 			</div>
+			<div>
+				<label for="c-ade" class="mb-1 block text-xs text-muted">e-Delivery address <span class="text-faint">— adres do e-Doręczeń of the company</span></label>
+				<input id="c-ade" bind:value={form.eDeliveryAddress} placeholder="AE:PL-12345-67890-ABCDE-12" class="field font-mono" />
+			</div>
 		{/if}
 		<div>
 			<label for="c-address" class="mb-1 block text-xs text-muted">Address <span class="text-faint">— street, comma, postcode and city</span></label>
@@ -233,6 +252,16 @@
 			<p class="text-xs text-muted">Changing the NIP disconnects both.</p>
 		</div>
 	{/if}
+
+	<form class="rounded-lg border border-line bg-panel p-4" onsubmit={saveMe}>
+		<h2 class="font-semibold">You</h2>
+		<p class="mt-0.5 mb-3 text-[13px] text-muted">{data.me?.full_name} · {data.me?.email}</p>
+		<label for="me-ade" class="mb-1 block text-xs text-muted">Your e-Delivery address <span class="text-faint">— personal box (skrzynka osobista)</span></label>
+		<div class="flex gap-2">
+			<input id="me-ade" bind:value={myAddress} placeholder="AE:PL-12345-67890-ABCDE-12" class="field font-mono" />
+			<button class="btn" disabled={myAddress.trim() === (data.me?.eDeliveryAddress ?? '')}>Save</button>
+		</div>
+	</form>
 
 	<section class="rounded-lg border border-line bg-panel p-4">
 		<h2 class="font-semibold">Your companies</h2>

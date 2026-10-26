@@ -1,6 +1,6 @@
 import dayjs from 'dayjs';
 import { clientFromApi, fromApi, toApi } from '../invoice';
-import type { AgentKey, BankTransaction, Client, Company, CompanyDocument, Cost, DocumentKind, ExchangeRate, Filing, Invoice, KsefEnv, NipLookup, User } from '../types';
+import type { Me, AgentKey, BankTransaction, Client, Company, CompanyDocument, Cost, DocumentKind, ExchangeRate, Filing, Invoice, KsefEnv, NipLookup, User } from '../types';
 import { api } from './api';
 import { session } from './session.svelte';
 
@@ -18,6 +18,7 @@ function emptyCompany(): Company {
 		vatExemptionBasis: '',
 		krs: '',
 		regon: '',
+		eDeliveryAddress: '',
 		defaultIssuePlace: '',
 		defaultIssuerName: '',
 		defaultBankAccountNumber: '',
@@ -29,6 +30,7 @@ function emptyCompany(): Company {
 
 // everything the screens show for the selected company, loaded fresh from the API
 class Data {
+	me = $state<Me | null>(null);
 	companies = $state<Company[]>([]);
 	company = $state<Company>(emptyCompany());
 	clients = $state<Client[]>([]);
@@ -79,10 +81,12 @@ class Data {
 	async loadAll() {
 		this.loading = true;
 		try {
-			const [companies, company] = await Promise.all([
+			const [companies, company, me] = await Promise.all([
 				api<Company[]>('/companies'),
-				api<Company>('/company')
+				api<Company>('/company'),
+				api<Me>('/me')
 			]);
+			this.me = me;
 			this.companies = companies;
 			this.company = company;
 			await Promise.all([this.loadClients(), this.loadInvoices(), this.loadRate()]);
@@ -228,6 +232,10 @@ class Data {
 	async saveCompany(fields: Partial<Company>) {
 		const { id: _id, ksefConnected: _a, ksefDemoConnected: _b, ...body } = fields;
 		this.replaceCompany(await api<Company>('/company', { method: 'PUT', body }));
+	}
+
+	async saveMe(fields: Pick<Me, 'eDeliveryAddress'>) {
+		this.me = await api<Me>('/me', { method: 'PUT', body: fields });
 	}
 
 	async saveClient(client: Client): Promise<Client> {

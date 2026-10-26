@@ -30,6 +30,7 @@ const company: Company = {
 	vatExemptionBasis: 'Art. 113 ust. 1 ustawy o VAT',
 	krs: '',
 	regon: '',
+	eDeliveryAddress: '',
 	defaultIssuePlace: 'Warszawa',
 	defaultIssuerName: '',
 	defaultBankAccountNumber: 'PL61 1090 1014 0000 0712 1981 2874',

@@ -21,6 +21,8 @@ model users {
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
   lastVerifiedAt DateTime?
+  // address for e-Delivery (e-Doręczenia) of the person, e.g. AE:PL-12345-67890-ABCDE-12
+  eDeliveryAddress String     @default("")
   company        companies    @relation(fields: [companyId], references: [id])
   companyId      String       @db.ObjectId
   // further companies the user can switch to; companyId is the default one
@@ -88,6 +90,8 @@ model companies {
   // court register and statistics numbers, printed on Polish invoices of companies
   krs                      String        @default("")
   regon                    String        @default("")
+  // address for e-Delivery (e-Doręczenia) of the company, e.g. AE:PL-12345-67890-ABCDE-12
+  eDeliveryAddress         String        @default("")
   // prefilled on new invoices, e.g. bank account or a note about VAT
   defaultIssuePlace        String        @default("")
   defaultIssuerName        String        @default("")

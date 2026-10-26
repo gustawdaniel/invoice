@@ -195,12 +195,13 @@ export function createMcpServer(ctx: AgentContext): McpServer {
                 .describe('Last day the company deducted VAT as an active taxpayer (YYYY-MM-DD), "" while still active'),
             krs: z.string().optional(),
             regon: z.string().optional(),
+            e_delivery_address: z.string().optional().describe('Address for e-Delivery (e-Doręczenia), e.g. AE:PL-12345-67890-ABCDE-12'),
             default_issue_place: z.string().optional().describe('Prefilled on new invoices'),
             default_issuer_name: z.string().optional().describe('Prefilled on new invoices'),
             default_bank_account_number: z.string().optional().describe('Prefilled on new invoices'),
             default_public_note: z.string().optional().describe('Prefilled on new invoices, e.g. a note about VAT'),
         },
-    }, async ({company_id, vat_exemption_basis, vat_active_to, default_issue_place, default_issuer_name,
+    }, async ({company_id, vat_exemption_basis, vat_active_to, e_delivery_address, default_issue_place, default_issuer_name,
                   default_bank_account_number, default_public_note, ...fields}) => {
         const company = await requireCompany(ctx, company_id);
         if (fields.tin !== undefined && fields.tin !== company.tin && (company.ksefTokenEnc || company.ksefDemoTokenEnc)) {
@@ -212,6 +213,7 @@ export function createMcpServer(ctx: AgentContext): McpServer {
                 ...fields,
                 vatExemptionBasis: vat_exemption_basis,
                 vatActiveTo: vat_active_to,
+                eDeliveryAddress: e_delivery_address?.trim(),
                 defaultIssuePlace: default_issue_place,
                 defaultIssuerName: default_issuer_name,
                 defaultBankAccountNumber: default_bank_account_number,

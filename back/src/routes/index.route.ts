@@ -12,6 +12,7 @@ import { syncExchangeRate } from "../controllers/exchange/syncExchangeRate";
 
 import { getCompany } from "../controllers/company/getCompany";
 import { putCompany, type PutCompanyBody } from "../controllers/company/putCompany";
+import { getMe, putMe, type PutMeBody } from "../controllers/auth/me";
 import { listCompanies } from "../controllers/company/listCompanies";
 import { addCompany, type AddCompanyRoute } from "../controllers/company/addCompany";
 import { setDefaultCompany, type SetDefaultCompanyRoute } from "../controllers/company/setDefaultCompany";
@@ -86,6 +87,8 @@ export default function indexRoute(
 
     // auth
     server.post('/logout', SECRET, logout);
+    server.get('/me', SECRET, getMe);
+    server.put<PutMeBody>('/me', SECRET, putMe);
     server.post<{ Body: { credential: string } }>('/google-verify', PUBLIC, googleVerify)
 
     // exchange rates

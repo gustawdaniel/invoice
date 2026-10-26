@@ -127,6 +127,8 @@ export interface Company {
 	vatExemptionBasis: string;
 	krs: string;
 	regon: string;
+	// address for e-Delivery (e-Doręczenia), e.g. AE:PL-12345-67890-ABCDE-12
+	eDeliveryAddress: string;
 	defaultIssuePlace: string;
 	defaultIssuerName: string;
 	defaultBankAccountNumber: string;
@@ -143,6 +145,11 @@ export interface User {
 	full_name: string;
 	avatar: string;
 	roles: ('admin' | 'user')[];
+}
+
+// the signed-in person as the API keeps them (GET /me)
+export interface Me extends User {
+	eDeliveryAddress: string;
 }
 
 export interface AgentKey {

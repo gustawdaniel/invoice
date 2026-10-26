@@ -15,6 +15,7 @@ const PutCompanySchema = z.object({
     vatExemptionBasis: z.string(),
     krs: z.string(),
     regon: z.string(),
+    eDeliveryAddress: z.string().trim(),
     defaultIssuePlace: z.string(),
     defaultIssuerName: z.string(),
     defaultBankAccountNumber: z.string(),
