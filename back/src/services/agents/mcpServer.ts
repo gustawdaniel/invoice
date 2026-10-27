@@ -255,6 +255,27 @@ export function createMcpServer(ctx: AgentContext): McpServer {
         return json(await prisma.clients.create({data: {...client, tinName: tin_name, companyId: company_id}}));
     });
 
+    server.registerTool('update_client', {
+        description: 'Change the name, address or tax id of a client, e.g. after a move. Invoices already in KSeF keep the XML they were sent with.',
+        inputSchema: {
+            company_id: z.string(),
+            client_id: z.string(),
+            name: z.string().min(1).optional(),
+            street: z.string().optional(),
+            post: z.string().optional(),
+            city: z.string().optional(),
+            tin: z.string().optional(),
+            tin_name: z.string().optional(),
+            country: z.string().optional(),
+        },
+    }, async ({company_id, client_id, tin_name, ...client}) => {
+        await requireCompany(ctx, company_id);
+        return json(await prisma.clients.update({
+            where: {id: client_id, companyId: company_id},
+            data: {...client, ...(tin_name === undefined ? {} : {tinName: tin_name})},
+        }));
+    });
+
     server.registerTool('list_invoices', {
         description: 'Live or test mode invoices of a company, newest first. Invoices without ksefNumber are drafts '
             + 'that can be edited. Live and test mode have separate numbering.',
