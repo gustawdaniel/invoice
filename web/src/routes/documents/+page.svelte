@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { page } from '$app/state';
 	import { apiDownload } from '#lib/state/api.js';
 	import { data } from '#lib/state/data.svelte.js';
 	import { toasts } from '#lib/state/toast.svelte.js';
@@ -28,7 +29,8 @@
 	let file = $state<File | null>(null);
 	let busy = $state(false);
 	let loading = $state(true);
-	let query = $state('');
+	// /documents?q=KRS 2022 opens the list filtered, so a document set can be linked from elsewhere
+	let query = $state(page.url.searchParams.get('q') ?? '');
 
 	$effect(() => {
 		const companyId = data.company.id;
