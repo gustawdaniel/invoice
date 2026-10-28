@@ -332,13 +332,18 @@ export function createMcpServer(ctx: AgentContext): McpServer {
         return json(agentInvoice(updated));
     });
 
-    // ---- bookkeeping: the agent keeps the books with the human, who confirms in the app ----
+    // ---- bookkeeping: the agent keeps the books with the human ----
+    // A record the human confirmed stays as it is unless the human asks the agent to change it (override_confirmed),
+    // so loaders that run again never undo a decision. confirmed: the human decided, in the app or in the chat.
 
-    const AGENT_STATUS = z.enum(['auto', 'review']).describe('auto: sure; review: the human should decide in the app');
+    const AGENT_STATUS = z.enum(['auto', 'review', 'confirmed'])
+        .describe('auto: sure; review: the human should decide; confirmed: the human decided (in the app or told you in the chat)');
+    const OVERRIDE = z.boolean().default(false)
+        .describe('Also change records the human confirmed. Only when the human asked for this change.');
 
     server.registerTool('upsert_bank_transactions', {
         description: 'Add bank operations of a company (idempotent by external_id). A classification the human '
-            + 'confirmed is never changed. kinds: ' + TRANSACTION_KINDS.join(', '),
+            + 'confirmed is kept unless override_confirmed. kinds: ' + TRANSACTION_KINDS.join(', '),
         inputSchema: {
             company_id: z.string(),
             transactions: z.array(z.object({
@@ -356,8 +361,9 @@ export function createMcpServer(ctx: AgentContext): McpServer {
                 cost_ids: z.array(z.string()).optional().describe('Cost documents this operation pays (one transfer can pay several)'),
                 note: z.string().optional(),
             })).min(1).max(500),
+            override_confirmed: OVERRIDE,
         },
-    }, async ({company_id, transactions}) => {
+    }, async ({company_id, transactions, override_confirmed}) => {
         await requireCompany(ctx, company_id);
         let created = 0, updated = 0, kept = 0;
         for (const t of transactions) {
@@ -366,10 +372,10 @@ export function createMcpServer(ctx: AgentContext): McpServer {
             const facts = {bank: t.bank, account: t.account, date: t.date, amount: t.amount, currency: t.currency,
                 description: t.description, bankCategory: t.bank_category};
             const data = agentUpdate(current, facts,
-                {kind: t.kind, status: t.status, invoiceId: t.invoice_id, costIds: t.cost_ids, note: t.note});
+                {kind: t.kind, status: t.status, invoiceId: t.invoice_id, costIds: t.cost_ids, note: t.note}, override_confirmed);
             if (current) {
                 await prisma.bankTransactions.update({where: key, data});
-                if (current.status === 'confirmed') kept++; else updated++;
+                if (current.status === 'confirmed' && !override_confirmed) kept++; else updated++;
             } else {
                 await prisma.bankTransactions.create({data: {...data, companyId: company_id, externalId: t.external_id}});
                 created++;
@@ -399,7 +405,7 @@ export function createMcpServer(ctx: AgentContext): McpServer {
     });
 
     server.registerTool('classify_bank_transactions', {
-        description: 'Set what bank operations were. Operations the human confirmed are skipped. kinds: '
+        description: 'Set what bank operations were. Operations the human confirmed are skipped unless override_confirmed. kinds: '
             + TRANSACTION_KINDS.join(', '),
         inputSchema: {
             company_id: z.string(),
@@ -412,14 +418,15 @@ export function createMcpServer(ctx: AgentContext): McpServer {
                     .describe('Cost documents this operation pays: one transfer can pay several, a document paid in parts is listed on each part'),
                 note: z.string().optional(),
             })).min(1).max(500),
+            override_confirmed: OVERRIDE,
         },
-    }, async ({company_id, items}) => {
+    }, async ({company_id, items, override_confirmed}) => {
         await requireCompany(ctx, company_id);
         let changed = 0, kept = 0;
         for (const item of items) {
             const current = await prisma.bankTransactions.findFirst({where: {id: item.id, companyId: company_id}});
             if (!current) throw new Error(`Transaction ${item.id} not found in this company`);
-            if (current.status === 'confirmed') { kept++; continue; }
+            if (current.status === 'confirmed' && !override_confirmed) { kept++; continue; }
             await prisma.bankTransactions.update({
                 where: {id: current.id},
                 data: {kind: item.kind, status: item.status, invoiceId: item.invoice_id, costIds: item.cost_ids, note: item.note},
@@ -431,7 +438,7 @@ export function createMcpServer(ctx: AgentContext): McpServer {
 
     server.registerTool('upsert_costs', {
         description: 'Add purchase documents (invoices, bills, receipts) of a company, idempotent by external_id. '
-            + 'A cost the human confirmed keeps its classification. categories: ' + COST_CATEGORIES.join(', '),
+            + 'A cost the human confirmed keeps its classification unless override_confirmed. categories: ' + COST_CATEGORIES.join(', '),
         inputSchema: {
             company_id: z.string(),
             costs: z.array(z.object({
@@ -453,8 +460,9 @@ export function createMcpServer(ctx: AgentContext): McpServer {
                 status: AGENT_STATUS.optional(),
                 note: z.string().optional(),
             })).min(1).max(200),
+            override_confirmed: OVERRIDE,
         },
-    }, async ({company_id, costs}) => {
+    }, async ({company_id, costs, override_confirmed}) => {
         await requireCompany(ctx, company_id);
         const ids: Record<string, string> = {};
         for (const c of costs) {
@@ -464,7 +472,7 @@ export function createMcpServer(ctx: AgentContext): McpServer {
                 number: c.number, issueDate: c.issue_date, saleDate: c.sale_date, currency: c.currency, net: c.net,
                 vat: c.vat, gross: c.gross, file: c.file, ...(c.document_id ? {documentId: c.document_id} : {})};
             const data = agentUpdate(current, facts,
-                {category: c.category, reverseCharge: c.reverse_charge, status: c.status, note: c.note});
+                {category: c.category, reverseCharge: c.reverse_charge, status: c.status, note: c.note}, override_confirmed);
             const saved = current
                 ? await prisma.costs.update({where: key, data})
                 : await prisma.costs.create({data: {...data, companyId: company_id, externalId: c.external_id}});
@@ -488,20 +496,21 @@ export function createMcpServer(ctx: AgentContext): McpServer {
 
     server.registerTool('delete_costs', {
         description: 'Remove purchase documents an agent added by mistake (e.g. a sales e-mail read as a cost), by '
-            + 'external_id. A cost the human confirmed or a bank operation is linked to is kept and reported.',
+            + 'external_id. A cost the human confirmed (unless override_confirmed) or a bank operation is linked to is kept and reported.',
         inputSchema: {
             company_id: z.string(),
             external_ids: z.array(z.string().min(1)).min(1).max(500),
+            override_confirmed: OVERRIDE,
         },
         annotations: {destructiveHint: true},
-    }, async ({company_id, external_ids}) => {
+    }, async ({company_id, external_ids, override_confirmed}) => {
         await requireCompany(ctx, company_id);
         const deleted: string[] = [];
         const kept: Record<string, string> = {};
         for (const externalId of external_ids) {
             const cost = await prisma.costs.findUnique({where: {companyId_externalId: {companyId: company_id, externalId}}});
             if (!cost) { kept[externalId] = 'not found'; continue; }
-            if (cost.status === 'confirmed') { kept[externalId] = 'confirmed by a human'; continue; }
+            if (cost.status === 'confirmed' && !override_confirmed) { kept[externalId] = 'confirmed by a human'; continue; }
             if (await prisma.bankTransactions.count({where: {companyId: company_id, costIds: {has: cost.id}}})) {
                 kept[externalId] = 'linked to a bank operation';
                 continue;
@@ -565,7 +574,7 @@ export function createMcpServer(ctx: AgentContext): McpServer {
         description: 'Add hand-made entries to the general ledger (idempotent by external_id): the opening balance '
             + '(kind "opening", the books start on its date), offsets, payroll, write-offs, income tax. Bank operations, '
             + 'costs and invoices are booked automatically, do not book them again. Each entry must balance. '
-            + 'An entry the human confirmed is not changed.',
+            + 'An entry the human confirmed is not changed unless override_confirmed.',
         inputSchema: {
             company_id: z.string(),
             entries: z.array(z.object({
@@ -578,8 +587,9 @@ export function createMcpServer(ctx: AgentContext): McpServer {
                 status: AGENT_STATUS.optional(),
                 note: z.string().optional(),
             })).min(1).max(200),
+            override_confirmed: OVERRIDE,
         },
-    }, async ({company_id, entries}) => {
+    }, async ({company_id, entries, override_confirmed}) => {
         await requireCompany(ctx, company_id);
         let saved = 0, kept = 0;
         for (const e of entries) {
@@ -587,7 +597,7 @@ export function createMcpServer(ctx: AgentContext): McpServer {
             if (balance) throw new Error(`${e.external_id}: debit and credit differ by ${balance}`);
             const key = {companyId_externalId: {companyId: company_id, externalId: e.external_id}};
             const current = await prisma.journalEntries.findUnique({where: key, select: {status: true}});
-            if (current?.status === 'confirmed') { kept++; continue; }
+            if (current?.status === 'confirmed' && !override_confirmed) { kept++; continue; }
             const data = {date: e.date, kind: e.kind, description: e.description,
                 lines: e.lines.map((l) => ({account: l.account, debit: l.debit, credit: l.credit, ref: l.ref ?? null})),
                 documentId: e.document_id, status: e.status ?? 'auto', note: e.note ?? ''};
@@ -610,13 +620,13 @@ export function createMcpServer(ctx: AgentContext): McpServer {
     });
 
     server.registerTool('delete_journal_entries', {
-        description: 'Remove hand-made entries an agent added by mistake, by external_id. Confirmed entries are kept.',
-        inputSchema: {company_id: z.string(), external_ids: z.array(z.string().min(1)).min(1).max(200)},
+        description: 'Remove hand-made entries an agent added by mistake, by external_id. Confirmed entries are kept unless override_confirmed.',
+        inputSchema: {company_id: z.string(), external_ids: z.array(z.string().min(1)).min(1).max(200), override_confirmed: OVERRIDE},
         annotations: {destructiveHint: true},
-    }, async ({company_id, external_ids}) => {
+    }, async ({company_id, external_ids, override_confirmed}) => {
         await requireCompany(ctx, company_id);
         const removed = await prisma.journalEntries.deleteMany({
-            where: {companyId: company_id, externalId: {in: external_ids}, status: {not: 'confirmed'}},
+            where: {companyId: company_id, externalId: {in: external_ids}, ...(override_confirmed ? {} : {status: {not: 'confirmed'}})},
         });
         return json({deleted: removed.count});
     });

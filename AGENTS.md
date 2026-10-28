@@ -14,7 +14,8 @@ AI agents work through its MCP server; humans review and approve in the app.
 ## Rules for changes
 
 - Agents never send anything legally binding: production KSeF goes through a human approval.
-- Agents never override a classification a human confirmed (`status: confirmed`); loaders are idempotent (`externalId`).
+- A record a human confirmed (`status: confirmed`) stays as it is; agents change it only when the human asks (`override_confirmed`),
+  and may set `confirmed` themselves for a decision the human made in the chat. Loaders are idempotent (`externalId`).
 - Money is rounded per item to grosze, like the invoice shows it.
 
 ## The private workspace: `private/`

@@ -9,7 +9,9 @@ describe('agentUpdate', () => {
         expect(agentUpdate({status: 'review'}, facts, {kind: 'bank_fee', status: 'auto'}))
             .toMatchObject({kind: 'bank_fee', status: 'auto'});
     });
-    it('never overrides a human decision', () => {
+    it('keeps a human decision unless the human asked to change it', () => {
         expect(agentUpdate({status: 'confirmed'}, facts, {kind: 'other', status: 'auto'})).toEqual(facts);
+        expect(agentUpdate({status: 'confirmed'}, facts, {kind: 'other', status: 'confirmed'}, true))
+            .toMatchObject({kind: 'other', status: 'confirmed'});
     });
 });
