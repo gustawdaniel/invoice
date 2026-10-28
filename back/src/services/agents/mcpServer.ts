@@ -17,7 +17,7 @@ import {sendStoredInvoice} from "../ksef/sendStoredInvoice";
 import {optionalFields} from "./optionalFields";
 import {lookupNip} from "../mf/whiteList";
 import {randomUUID} from "node:crypto";
-import {getObject, putPrivateObject} from "../s3";
+import {deleteObject, getObject, putPrivateObject} from "../s3";
 import {statementXml} from "../books/statementXml";
 import {statement as bookStatement} from "../books/ledger";
 import {companyBooks, companyLedger} from "../books/companyLedger";
@@ -537,6 +537,8 @@ export function createMcpServer(ctx: AgentContext): McpServer {
                 reference: z.string().optional().describe('UPO number or another proof'),
                 amount: z.number().optional().describe('Tax to pay, PLN'),
                 note: z.string().optional(),
+                document_ids: z.array(z.string()).optional()
+                    .describe('Company documents that prove it (the file sent, the UPO); replaces the list'),
             })).min(1).max(200),
         },
     }, async ({company_id, filings}) => {
@@ -544,7 +546,11 @@ export function createMcpServer(ctx: AgentContext): McpServer {
         for (const f of filings) {
             const externalId = `${f.kind}:${f.period}`;
             const data = {kind: f.kind, period: f.period, authority: f.authority, dueDate: f.due_date, status: f.status,
-                filedAt: f.filed_at, reference: f.reference, amount: f.amount, note: f.note};
+                filedAt: f.filed_at, reference: f.reference, amount: f.amount, note: f.note, documentIds: f.document_ids};
+            if (f.document_ids?.length) {
+                const found = await prisma.documents.count({where: {companyId: company_id, id: {in: f.document_ids}}});
+                if (found !== f.document_ids.length) throw new Error(`${externalId}: a document is not in this company`);
+            }
             await prisma.filings.upsert({
                 where: {companyId_externalId: {companyId: company_id, externalId}},
                 create: {...data, companyId: company_id, externalId},
@@ -771,6 +777,29 @@ export function createMcpServer(ctx: AgentContext): McpServer {
                 mimeType: true, size: true, note: true, createdAt: true, updatedAt: true},
         });
         return json(agentDocument(document));
+    });
+
+    server.registerTool('delete_documents', {
+        description: 'Remove company documents (e.g. stale drafts) and their files. A document a cost, a journal entry or '
+            + 'a filing points to is kept and reported.',
+        inputSchema: {company_id: z.string(), ids: z.array(z.string()).min(1).max(200)},
+        annotations: {destructiveHint: true},
+    }, async ({company_id, ids}) => {
+        await requireCompany(ctx, company_id);
+        const deleted: string[] = [];
+        const kept: Record<string, string> = {};
+        for (const id of ids) {
+            const document = await prisma.documents.findFirst({where: {id, companyId: company_id}, select: {id: true, storageKey: true}});
+            if (!document) { kept[id] = 'not found'; continue; }
+            const used = await prisma.costs.count({where: {companyId: company_id, documentId: id}})
+                + await prisma.journalEntries.count({where: {companyId: company_id, documentId: id}})
+                + await prisma.filings.count({where: {companyId: company_id, documentIds: {has: id}}});
+            if (used) { kept[id] = 'in use'; continue; }
+            if (document.storageKey) await deleteObject(document.storageKey);
+            await prisma.documents.delete({where: {id}});
+            deleted.push(id);
+        }
+        return json({deleted: deleted.length, kept});
     });
 
     server.registerTool('record_issued_invoice', {

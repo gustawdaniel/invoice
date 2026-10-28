@@ -1,5 +1,6 @@
 <script lang="ts">
 	import dayjs from 'dayjs';
+	import { apiDownload } from '#lib/state/api.js';
 	import { money } from '#lib/invoice.js';
 	import { data } from '#lib/state/data.svelte.js';
 	import { keys } from '#lib/state/keys.svelte.js';
@@ -27,7 +28,22 @@
 
 	$effect(() => {
 		data.loadBooks().catch((error) => toasts.error('Could not load', error)).finally(() => (loading = false));
+		data.loadDocuments().catch((error) => toasts.error('Could not load documents', error));
 	});
+
+	async function download(id: string, name: string) {
+		try {
+			const blob = await apiDownload(`/documents/${id}/file`);
+			const objectUrl = URL.createObjectURL(blob);
+			const anchor = document.createElement('a');
+			anchor.href = objectUrl;
+			anchor.download = name;
+			anchor.click();
+			URL.revokeObjectURL(objectUrl);
+		} catch (error) {
+			toasts.error('Could not download the document', error);
+		}
+	}
 
 	const shown = $derived(
 		[...data.filings]
@@ -37,6 +53,8 @@
 	const index = $derived(Math.max(0, shown.findIndex((f) => f.id === selectedId)));
 	const selected = $derived(shown[index] ?? null);
 	const today = dayjs().format('YYYY-MM-DD');
+	// the documents that prove the filing (the file sent, the UPO)
+	const proofs = $derived((selected?.documentIds ?? []).map((id) => data.documents.find((d) => d.id === id)).filter((d) => d !== undefined));
 
 	$effect(() => {
 		reference = selected?.reference ?? '';
@@ -158,6 +176,16 @@
 				</div>
 				<button class="btn-primary">Save</button>
 			</form>
+			{#if proofs.length}
+				<div>
+					<h3 class="label-caps mb-2">Documents</h3>
+					<ul class="flex flex-col gap-1">
+						{#each proofs as doc (doc.id)}
+							<li><button class="text-left text-xs text-accent-ink hover:underline" onclick={() => download(doc.id, doc.fileName || doc.title)}>{doc.title}</button></li>
+						{/each}
+					</ul>
+				</div>
+			{/if}
 		</aside>
 	{/if}
 </div>

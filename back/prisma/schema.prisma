@@ -372,6 +372,8 @@ model filings {
   filedAt    String?
   // UPO number, KRS document id, or similar proof
   reference  String    @default("")
+  // company documents that prove it: the file sent, the UPO, the status report
+  documentIds String[] @default([]) @db.ObjectId
   // tax to pay for the period, in PLN
   amount     Float?
   note       String    @default("")

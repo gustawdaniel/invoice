@@ -268,6 +268,8 @@ export interface Filing {
 	reference: string;
 	amount: number | null;
 	note: string;
+	// company documents that prove it (the file sent, the UPO)
+	documentIds?: string[];
 }
 
 export type DocumentKind = 'contract' | 'tax' | 'invoice' | 'accounting' | 'other';
