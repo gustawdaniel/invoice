@@ -37,6 +37,6 @@
     "jsonwebtoken": "^9.0.3",
     "ksef-client-ts": "0.14.0",
     "xmlbuilder2": "^4.0.3",
-    "zod": "^3.25.76"
+    "zod": "^4.6.6"
   }
 }
