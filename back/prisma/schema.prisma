@@ -162,6 +162,8 @@ model clients {
 
   tinName String @default("NIP")
   country String @default("Poland")
+  // where invoices are e-mailed
+  email   String @default("")
 
   invoices invoices[]
 }

@@ -249,6 +249,7 @@ export function createMcpServer(ctx: AgentContext): McpServer {
             tin: z.string().describe('Tax id of the buyer, NIP for Polish companies'),
             tin_name: z.string().default('NIP'),
             country: z.string().default('Poland'),
+            email: z.union([z.string().email(), z.literal('')]).default('').describe('Where invoices are e-mailed'),
         },
     }, async ({company_id, tin_name, ...client}) => {
         await requireCompany(ctx, company_id);
@@ -256,7 +257,7 @@ export function createMcpServer(ctx: AgentContext): McpServer {
     });
 
     server.registerTool('update_client', {
-        description: 'Change the name, address or tax id of a client, e.g. after a move. Invoices already in KSeF keep the XML they were sent with.',
+        description: 'Change the name, address, tax id or e-mail of a client, e.g. after a move. Invoices already in KSeF keep the XML they were sent with.',
         inputSchema: {
             company_id: z.string(),
             client_id: z.string(),
@@ -267,6 +268,7 @@ export function createMcpServer(ctx: AgentContext): McpServer {
             tin: z.string().optional(),
             tin_name: z.string().optional(),
             country: z.string().optional(),
+            email: z.union([z.string().email(), z.literal('')]).optional().describe('Where invoices are e-mailed'),
         },
     }, async ({company_id, client_id, tin_name, ...client}) => {
         await requireCompany(ctx, company_id);

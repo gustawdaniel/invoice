@@ -138,7 +138,8 @@ export function clientFromApi(raw: any): Client {
 		city: raw.city ?? '',
 		tin: raw.tin ?? '',
 		tinName: raw.tinName ?? 'NIP',
-		country: raw.country ?? 'Poland'
+		country: raw.country ?? 'Poland',
+		email: raw.email ?? ''
 	};
 }
 /* eslint-enable @typescript-eslint/no-explicit-any */
@@ -173,7 +174,7 @@ export function toApi(invoice: Invoice) {
 }
 
 export function emptyClient(): Client {
-	return { id: '', name: '', street: '', post: '', city: '', tin: '', tinName: 'NIP', country: 'Poland' };
+	return { id: '', name: '', street: '', post: '', city: '', tin: '', tinName: 'NIP', country: 'Poland', email: '' };
 }
 
 const round2 = (value: number) => Math.round(value * 100) / 100;

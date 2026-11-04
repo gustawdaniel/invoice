@@ -104,6 +104,11 @@
 				<input id="client-tin-name" bind:value={client.tinName} class="field" placeholder="NIP, VAT, Company No." />
 			</div>
 		</div>
+		<div>
+			<label for="client-email" class="mb-1 block text-xs text-muted">E-mail</label>
+			<input id="client-email" type="email" bind:value={client.email} class="field" placeholder="invoices@client.com" autocomplete="off" />
+			<p class="mt-1 text-xs text-muted">Where invoices are sent.</p>
+		</div>
 		<div class="flex items-center justify-end gap-2 pt-1">
 			<span class="mr-auto text-xs text-muted"><Kbd keys="⌘S" /> save · <Kbd keys="esc" /> cancel</span>
 			<button type="button" class="btn" onclick={close}>Cancel</button>

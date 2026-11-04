@@ -13,7 +13,8 @@ const patronad: Client = {
 	city: 'Warszawa',
 	tin: '1133022863',
 	tinName: 'NIP',
-	country: 'Poland'
+	country: 'Poland',
+	email: ''
 };
 const ovh: Client = { ...patronad, id: 'c2', name: 'OVH SPÓŁKA Z OGRANICZONĄ ODPOWIEDZIALNOŚCIĄ', tin: '8992520556' };
 

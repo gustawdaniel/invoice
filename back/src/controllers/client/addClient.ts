@@ -4,7 +4,7 @@ import {prisma} from "../../db";
 import { z } from "zod";
 
 export type AddClientBody = {
-    Body: Partial<Pick<clients, 'name' | 'street' | 'post' | 'city' | 'tin' | 'country' | 'tinName'>>
+    Body: Partial<Pick<clients, 'name' | 'street' | 'post' | 'city' | 'tin' | 'country' | 'tinName' | 'email'>>
 };
 
 const NewClientSchema = z.object({
@@ -15,6 +15,7 @@ const NewClientSchema = z.object({
     tin: z.string(),
     country: z.string().optional(),
     tinName: z.string().optional(),
+    email: z.union([z.string().email(), z.literal('')]).optional(),
 });
 
 export const addClient = async (

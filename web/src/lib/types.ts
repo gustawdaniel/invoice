@@ -72,6 +72,7 @@ export interface Client {
 	tin: string;
 	tinName: string;
 	country: string;
+	email: string;
 }
 
 export interface Invoice {
