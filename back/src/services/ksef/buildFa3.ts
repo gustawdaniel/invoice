@@ -34,7 +34,7 @@ const COUNTRY_CODES: Record<string, string> = {
 
 const amount = (n: number) => (Math.round(n * 100) / 100).toFixed(2);
 
-function countryCode(country: string): string {
+export function countryCode(country: string): string {
     if (/^[A-Z]{2}$/.test(country)) return country;
     const code = COUNTRY_CODES[country.trim().toLowerCase()];
     if (!code) throw new Error(`Unknown country "${country}" of the client, use a 2-letter ISO code`);

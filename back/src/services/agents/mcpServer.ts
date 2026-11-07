@@ -21,6 +21,7 @@ import {deleteObject, getObject, putPrivateObject} from "../s3";
 import {statementXml} from "../books/statementXml";
 import {statement as bookStatement} from "../books/ledger";
 import {companyBooks, companyLedger} from "../books/companyLedger";
+import {companyJpk} from "../books/companyJpk";
 import {ACCOUNTS} from "../books/accounts";
 import {DOCUMENT_KINDS, DOCUMENT_MAX_BYTES, DOCUMENT_MIME} from "../documents/kinds";
 
@@ -457,6 +458,9 @@ export function createMcpServer(ctx: AgentContext): McpServer {
                 gross: z.number(),
                 category: z.enum(COST_CATEGORIES).optional(),
                 reverse_charge: z.boolean().optional().describe('A service bought from abroad (import of services)'),
+                vat_period: z.string().regex(/^(\d{4}-\d{2}|none)$/).optional().describe('Month (YYYY-MM) the document is in '
+                    + 'the VAT register (JPK_V7M) when not the month of its issue date (or, for an import of services, of its sale '
+                    + 'date), e.g. the month the invoice came in; "none" = not in the register'),
                 file: z.string().default(''),
                 document_id: z.string().optional().describe('Company document holding the original (create_document returns its id)'),
                 status: AGENT_STATUS.optional(),
@@ -472,7 +476,8 @@ export function createMcpServer(ctx: AgentContext): McpServer {
             const current = await prisma.costs.findUnique({where: key, select: {status: true}});
             const facts = {supplierName: c.supplier_name, supplierTin: c.supplier_tin, supplierCountry: c.supplier_country,
                 number: c.number, issueDate: c.issue_date, saleDate: c.sale_date, currency: c.currency, net: c.net,
-                vat: c.vat, gross: c.gross, file: c.file, ...(c.document_id ? {documentId: c.document_id} : {})};
+                vat: c.vat, gross: c.gross, file: c.file, ...(c.document_id ? {documentId: c.document_id} : {}),
+                ...(c.vat_period !== undefined ? {vatPeriod: c.vat_period} : {})};
             const data = agentUpdate(current, facts,
                 {category: c.category, reverseCharge: c.reverse_charge, status: c.status, note: c.note}, override_confirmed);
             const saved = current
@@ -720,6 +725,63 @@ export function createMcpServer(ctx: AgentContext): McpServer {
             note: `Wygenerowane z ksiąg ${new Date().toISOString().slice(0, 10)}; do sprawdzenia i podpisu przez zarząd`}});
         return json({document_id: document.id, bilans: books.statement.bilans, rzis: books.statement.rzis, previous,
             checks: books.statement.checks, warnings: books.warnings, ...(args.return_xml ? {xml} : {})});
+    });
+
+    const MONTH = z.string().regex(/^\d{4}-\d{2}$/, 'Use YYYY-MM');
+
+    server.registerTool('build_jpk', {
+        description: 'Compute the monthly VAT returns with the VAT register (JPK_V7M) of consecutive months from the books: '
+            + 'issued invoices (sales), purchase documents with Polish VAT (deductions, see vat_period on costs), imports of '
+            + 'services on both sides, bad debt relief (set_invoice_bad_debt). Each month carries the surplus (P_62) of the '
+            + 'month before; the first takes carried_in. Returns the declaration fields, the register rows and warnings of every '
+            + 'month, and with return_xml the XML to sign and send (nothing is sent anywhere). JPK_V7M(2) up to 01.2026, (3) after.',
+        inputSchema: {
+            company_id: z.string(),
+            from: MONTH,
+            to: MONTH,
+            carried_in: z.number().int().min(0).describe('P_39 of the first month: P_62 of the return of the month before'),
+            corrections: z.boolean().describe('true: every month is a correction (CelZlozenia 2), false: a first filing (1)'),
+            refunds: z.record(MONTH, z.object({amount: z.number().int().min(1), term: z.enum(['P_540', 'P_55', 'P_56', 'P_560', 'P_58'])}))
+                .optional().describe('Months that ask for a refund of the surplus (P_54) and its term'),
+            email: z.string().email().describe('Contact e-mail in the file (Podmiot1)'),
+            tax_office_code: z.string().regex(/^\d{4}$/).describe('Kod urzędu skarbowego, e.g. 1440 for Warszawa-Wola'),
+            created_at: z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/).optional()
+                .describe('DataWytworzeniaJPK, defaults to now (UTC); must not be in the future when the file is sent'),
+            return_xml: z.boolean().default(false),
+        },
+        annotations: {readOnlyHint: true},
+    }, async (args) => {
+        const company = await requireCompany(ctx, args.company_id);
+        if (args.from > args.to) throw new Error('from is after to');
+        const months = await companyJpk(company.id, args.from, args.to, {
+            company: {email: args.email, taxOfficeCode: args.tax_office_code},
+            carriedIn: args.carried_in,
+            purpose: () => (args.corrections ? 2 : 1),
+            refunds: args.refunds,
+            createdAt: args.created_at ?? new Date().toISOString().slice(0, 19),
+        });
+        return json(months.map((m) => ({month: m.month, declaration: m.declaration, warnings: m.register.warnings,
+            sales: m.register.sales, purchases: m.register.purchases, ...(args.return_xml ? {xml: m.xml} : {})})));
+    });
+
+    server.registerTool('set_invoice_bad_debt', {
+        description: 'Bad debt relief (ulga na złe długi, art. 89a ustawy o VAT) of an issued invoice: the month its VAT was '
+            + 'taken back in the VAT register, and the month the debtor paid after all (the VAT goes back in). Empty string clears.',
+        inputSchema: {
+            company_id: z.string(),
+            invoice_number: z.string().min(1),
+            bad_debt_period: z.union([MONTH, z.literal('')]).optional(),
+            bad_debt_paid_period: z.union([MONTH, z.literal('')]).optional(),
+        },
+    }, async ({company_id, invoice_number, bad_debt_period, bad_debt_paid_period}) => {
+        await requireCompany(ctx, company_id);
+        const invoice = await prisma.invoices.findFirst({where: {companyId: company_id, livemode: true, number: invoice_number}});
+        if (!invoice) throw new Error(`No live invoice ${invoice_number}`);
+        const saved = await prisma.invoices.update({where: {id: invoice.id}, data: {
+            ...(bad_debt_period !== undefined ? {badDebtPeriod: bad_debt_period || null} : {}),
+            ...(bad_debt_paid_period !== undefined ? {badDebtPaidPeriod: bad_debt_paid_period || null} : {}),
+        }});
+        return json({number: saved.number, badDebtPeriod: saved.badDebtPeriod, badDebtPaidPeriod: saved.badDebtPaidPeriod});
     });
 
     server.registerTool('list_documents', {

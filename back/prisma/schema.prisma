@@ -274,6 +274,10 @@ model invoices {
   withholdingTax       Float   @default(0)
   // issued before KSeF (historical, from another program): a final invoice that is never sent to KSeF
   outsideKsef          Boolean @default(false)
+  // bad debt relief (ulga na złe długi, art. 89a ustawy o VAT): the month (YYYY-MM) the unpaid invoice's VAT was taken
+  // back in the VAT register, and the month the debtor paid it after all and the VAT went back in (art. 89a ust. 4)
+  badDebtPeriod        String?
+  badDebtPaidPeriod    String?
 
   // false: test mode invoice, listed only in test mode and sent only to KSeF DEMO (no legal effect)
   livemode Boolean @default(true)
@@ -344,6 +348,10 @@ model costs {
   category        String    @default("other")
   // a service bought from abroad: VAT settled by the company as import of services
   reverseCharge   Boolean   @default(false)
+  // the month (YYYY-MM) the document is in the VAT register (JPK_V7M): the input VAT deducted then, e.g. the month after
+  // the invoice came in (art. 86 ust. 11); "none" = not in the register (VAT not deductible). Unset: the month of the
+  // issue date, for an import of services the month of the tax point (sale date, else issue date)
+  vatPeriod       String?
   // where the original is, e.g. "2021.03 Marzec/faktury otrzymane/ovh.pdf"
   // the original uploaded as a company document (private file, downloadable in the app)
   documentId      String?   @db.ObjectId
