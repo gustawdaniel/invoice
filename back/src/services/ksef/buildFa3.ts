@@ -29,7 +29,13 @@ const PAYMENT_FORMS: Partial<Record<PaymentForm, number>> = {
 };
 
 const COUNTRY_CODES: Record<string, string> = {
-    poland: 'PL', polska: 'PL', georgia: 'GE', germany: 'DE', 'united kingdom': 'GB', 'united states': 'US',
+    poland: 'PL', polska: 'PL', georgia: 'GE', 'united kingdom': 'GB', 'united states': 'US', usa: 'US', ukraine: 'UA',
+    switzerland: 'CH', norway: 'NO', canada: 'CA', australia: 'AU', israel: 'IL', singapore: 'SG',
+    // the European Union, where the place of a service (art. 28b) and the VAT register columns depend on the country
+    austria: 'AT', belgium: 'BE', bulgaria: 'BG', croatia: 'HR', cyprus: 'CY', czechia: 'CZ', 'czech republic': 'CZ',
+    denmark: 'DK', estonia: 'EE', finland: 'FI', france: 'FR', germany: 'DE', greece: 'EL', hungary: 'HU', ireland: 'IE',
+    italy: 'IT', latvia: 'LV', lithuania: 'LT', luxembourg: 'LU', malta: 'MT', netherlands: 'NL', portugal: 'PT',
+    romania: 'RO', slovakia: 'SK', slovenia: 'SI', spain: 'ES', sweden: 'SE',
 };
 
 const amount = (n: number) => (Math.round(n * 100) / 100).toFixed(2);
