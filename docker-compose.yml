@@ -1,6 +1,6 @@
 services:
   backend:
-    image: registry.digitalocean.com/main/open-invoice-backend
+    image: registry.preciselab.space/open-invoice-backend:latest
     build: ./back
     ports:
       - "8493:5000"
@@ -22,7 +22,7 @@ services:
     restart: always
 
   frontend:
-    image: registry.digitalocean.com/main/open-invoice-front
+    image: registry.preciselab.space/open-invoice-front:latest
     build:
       context: ./web
       args:
