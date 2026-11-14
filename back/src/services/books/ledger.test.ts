@@ -1,5 +1,5 @@
 import {describe, expect, it} from "vitest";
-import {buildPostings, LedgerInput, previousDay, statement, trialBalance} from "./ledger";
+import {booksOfYear, buildPostings, LedgerInput, previousDay, statement, trialBalance} from "./ledger";
 
 const base = (over: Partial<LedgerInput>): LedgerInput => ({
     bank: [], costs: [], invoices: [], journal: [],
@@ -107,6 +107,43 @@ describe('ledger', () => {
         const {postings} = buildPostings(base({journal: [opening]}));
         const bank = trialBalance(postings, 2022).rows.find((r) => r.account === '130-1652')!;
         expect([bank.openingDebit, bank.debit, bank.closingDebit]).toEqual([1000, 0, 1000]);
+    });
+
+    it('keeps the journal of books kept elsewhere for the years before the opening, apart from the books after it', () => {
+        const archive = [
+            {externalId: 'archive:2020:bo', date: '2020-03-09', kind: 'archive-opening', description: 'BO',
+                lines: [{account: '100', debit: 300, credit: 0}, {account: '801-u803', debit: 0, credit: 300}]},
+            {externalId: 'archive:2020:1', date: '2020-05-01', kind: 'archive', description: 'Sprzedaż',
+                lines: [{account: '130-u131', debit: 1000, credit: 0}, {account: '700-u701', debit: 0, credit: 1000}]},
+            {externalId: 'archive:2021:1', date: '2021-02-01', kind: 'archive', description: 'Najem',
+                lines: [{account: '403-u429-3', debit: 400, credit: 0}, {account: '130-u131', debit: 0, credit: 400}]},
+        ];
+        const {postings, warnings} = buildPostings(base({
+            journal: [...archive, {...opening, lines: [
+                {account: '130-1652', debit: 600, credit: 0}, {account: '100', debit: 300, credit: 0},
+                {account: '801', debit: 0, credit: 300}, {account: '820', debit: 0, credit: 600},
+            ]}],
+            // a bank operation before the opening belongs to the books kept elsewhere, not booked twice
+            bank: [{id: 'b0', account: '1652', date: '2020-05-01', amount: 1000, currency: 'PLN', description: 'zapłata', kind: 'sale_payment', costIds: []}],
+        }));
+        expect(warnings).toEqual([]);
+
+        const y2020 = trialBalance(postings, 2020).rows;
+        expect(y2020.find((r) => r.account === '100')).toMatchObject({openingDebit: 300, debit: 0, closingDebit: 300});
+        expect(statement(postings, 2020).rzis.L).toBe(1000);
+
+        const y2021 = statement(postings, 2021);
+        expect(y2021.rzis.L).toBe(-400);
+        expect(y2021.bilans.Pasywa_A_V).toBe(1000); // the result of 2020 brought forward
+        expect(y2021.bilans.Aktywa_B_III_1_C_1).toBe(900);
+        expect(y2021.bilans.Aktywa).toBe(y2021.bilans.Pasywa);
+
+        // from the opening on only the books kept here: no archive turnover, the opening as it was entered
+        const y2022 = trialBalance(postings, 2022).rows;
+        expect(y2022.find((r) => r.account === '130-u131')).toBeUndefined();
+        expect(y2022.find((r) => r.account === '820')).toMatchObject({openingCredit: 600, closingCredit: 600});
+        expect(booksOfYear(postings, 2021).every((p) => p.archive)).toBe(true);
+        expect(booksOfYear(postings, 2022).some((p) => p.archive)).toBe(false);
     });
 
     it('finds the day before', () => {

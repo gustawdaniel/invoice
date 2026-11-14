@@ -19,7 +19,7 @@ import {lookupNip} from "../mf/whiteList";
 import {randomUUID} from "node:crypto";
 import {deleteObject, getObject, putPrivateObject} from "../s3";
 import {statementXml} from "../books/statementXml";
-import {statement as bookStatement} from "../books/ledger";
+import {booksOfYear, statement as bookStatement} from "../books/ledger";
 import {companyBooks, companyLedger} from "../books/companyLedger";
 import {companyJpk} from "../books/companyJpk";
 import {ACCOUNTS} from "../books/accounts";
@@ -585,7 +585,9 @@ export function createMcpServer(ctx: AgentContext): McpServer {
 
     server.registerTool('upsert_journal_entries', {
         description: 'Add hand-made entries to the general ledger (idempotent by external_id): the opening balance '
-            + '(kind "opening", the books start on its date), offsets, payroll, write-offs, income tax. Bank operations, '
+            + '(kind "opening", the books start on its date), offsets, payroll, write-offs, income tax. The journal of '
+            + 'books kept elsewhere before the opening (e.g. a former accounting office, from its JPK_KR) goes in entry by '
+            + 'entry as kind "archive" (its opening balance "archive-opening"): it makes only the years before the opening. Bank operations, '
             + 'costs and invoices are booked automatically, do not book them again. Each entry must balance. '
             + 'An entry the human confirmed is not changed unless override_confirmed.',
         inputSchema: {
@@ -593,7 +595,7 @@ export function createMcpServer(ctx: AgentContext): McpServer {
             entries: z.array(z.object({
                 external_id: z.string().min(1),
                 date: DATE,
-                kind: z.enum(['opening', 'entry']).default('entry'),
+                kind: z.enum(['opening', 'entry', 'archive-opening', 'archive']).default('entry'),
                 description: z.string().min(1),
                 lines: z.array(LINE).min(2).max(500),
                 document_id: z.string().optional(),
@@ -658,8 +660,7 @@ export function createMcpServer(ctx: AgentContext): McpServer {
         await requireCompany(ctx, company_id);
         if (!account) return json({...await companyBooks(company_id, year), chart: ACCOUNTS});
         const {postings} = await companyLedger(company_id);
-        const card = postings
-            .filter((p) => p.date <= `${year}-12-31`)
+        const card = booksOfYear(postings, year)
             .flatMap((p) => p.lines.filter((l) => l.account === account || l.account.startsWith(`${account}-`))
                 .map((l) => ({date: p.date, source: p.source, description: p.description, ...l})));
         return json(card);

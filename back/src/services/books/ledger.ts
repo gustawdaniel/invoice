@@ -18,6 +18,8 @@ export interface Posting {
     description: string;
     // the opening balance: shown as the opening of its year, not as turnover
     opening?: boolean;
+    // from the journal of books kept elsewhere before the opening (archive): makes only the years before it
+    archive?: boolean;
     lines: Line[];
 }
 
@@ -61,7 +63,8 @@ export interface InvoiceInput {
 export interface JournalInput {
     externalId: string;
     date: string;
-    kind: string; // opening | entry
+    // opening | entry; archive-opening | archive: the journal of books kept elsewhere before the opening, entry by entry
+    kind: string;
     description: string;
     lines: Line[];
 }
@@ -222,7 +225,8 @@ export function buildPostings(input: LedgerInput): { postings: Posting[]; warnin
         if (unknown.length) warnings.push({source, message: `nieznane konta: ${unknown.map((l) => l.account).join(', ')}`});
         const balance = round(j.lines.reduce((s, l) => s + l.debit - l.credit, 0));
         if (balance) warnings.push({source, message: `zapis niezbilansowany o ${balance}`});
-        postings.push({date: j.date, source, description: j.description, opening: j.kind === 'opening', lines: j.lines.map((l) => ({...l}))});
+        postings.push({date: j.date, source, description: j.description, opening: j.kind === 'opening' || j.kind === 'archive-opening',
+            archive: j.kind.startsWith('archive') || undefined, lines: j.lines.map((l) => ({...l}))});
     }
 
     // foreign currency documents settled by payments: what is left on the document is an exchange difference
@@ -270,17 +274,26 @@ function net(debit: number, credit: number): [number, number] {
     return b >= 0 ? [b, 0] : [0, -b];
 }
 
+// the postings that make the books of a year up to its end: the archive (books kept elsewhere) for the years before
+// the opening, the books from the opening on for the rest, never both
+export function booksOfYear(postings: Posting[], year: number): Posting[] {
+    const to = `${year}-12-31`;
+    const start = postings.find((p) => p.opening && !p.archive)?.date;
+    const archived = start !== undefined && to < start;
+    return postings.filter((p) => p.date <= to && (p.archive === true) === archived);
+}
+
 // zestawienie obrotów i sald for a year: opening balance (with the result of earlier years moved to 820), turnover,
 // closing balance, per analytic account; settlement accounts are also kept per document (ref) for the balance sheet
 export function trialBalance(postings: Posting[], year: number) {
-    const from = `${year}-01-01`, to = `${year}-12-31`;
+    const from = `${year}-01-01`;
     const rows = new Map<string, { o: number; d: number; c: number }>();
     const refs = new Map<string, number>(); // "account|ref" → closing balance
     const row = (account: string) => rows.get(account) ?? rows.set(account, {o: 0, d: 0, c: 0}).get(account)!;
-    for (const p of postings) {
-        if (p.date > to) continue;
+    for (const p of booksOfYear(postings, year)) {
         for (const l of p.lines) {
-            const before = p.date < from || (p.opening === true && p.date === from);
+            // an opening balance opens the year it is in (the first year of a company starts on its founding day)
+            const before = p.date < from || (p.opening === true && p.date.startsWith(`${year}-`));
             const account = before && isResultAccount(l.account) ? '820' : l.account;
             const r = row(account);
             if (before) r.o = round(r.o + l.debit - l.credit);
